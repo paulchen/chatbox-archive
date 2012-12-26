@@ -1,0 +1,6 @@
+<?php
+$db_host = 'localhost';
+$db_user = 'chatbox';
+$db_pass = '';
+$db_name = 'chatbox';
+
