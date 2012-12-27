@@ -85,28 +85,30 @@ echo '<?xml version="1.0" ?>';
 	</div>
 	<hr />
 	<?php $b=0; foreach($queries as $query): $b++; ?>
-		<a id="query<?php echo $b ?>"></a>
-		<h2><?php echo $query['title'] ?></h2>
-		<table><tr>
-		<?php $a = 0; foreach($query['columns'] as $column): ?>
-		<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $column; ?></th>
-		<?php $a++; endforeach; ?>
-		</tr>
-		<?php
-			$result = $mysqli->query($query['query']);
-			while($row = $result->fetch_assoc()):
-				$a = 0;
-		?>
-			<tr>
-			<?php foreach($row as $key => $value): ?>
-				<td class="<?php echo $query['column_styles'][$a] ?>"><?php echo htmlentities($value, ENT_QUOTES, 'UTF-8'); ?></td>
+		<div>
+			<a id="query<?php echo $b ?>"></a>
+			<h2><?php echo $query['title'] ?></h2>
+			<table><tr>
+			<?php $a = 0; foreach($query['columns'] as $column): ?>
+			<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $column; ?></th>
 			<?php $a++; endforeach; ?>
 			</tr>
-		<?php
-			endwhile;
-			$result->close();
-		?>
-		</table>
+			<?php
+				$result = $mysqli->query($query['query']);
+				while($row = $result->fetch_assoc()):
+					$a = 0;
+			?>
+				<tr>
+				<?php foreach($row as $key => $value): ?>
+					<td class="<?php echo $query['column_styles'][$a] ?>"><?php echo htmlentities($value, ENT_QUOTES, 'UTF-8'); ?></td>
+				<?php $a++; endforeach; ?>
+				</tr>
+			<?php
+				endwhile;
+				$result->close();
+			?>
+			</table>
+		</div>
 		<hr />
 	<?php endforeach; ?>
 	<p>

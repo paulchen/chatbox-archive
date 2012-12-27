@@ -137,7 +137,7 @@ function process_chatbox($contents) {
 		if(date('m') < $date_array['tm_mon']+1) {
 			$year++;
 		}
-		$date = gmmktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
+		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
 
 		$memberpos1 = strpos($shout, 'member.php?u=')+13;
 		$memberpos2 = strpos($shout, '"', $memberpos1);
