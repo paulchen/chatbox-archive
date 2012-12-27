@@ -4,6 +4,8 @@ require_once('config.php');
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 $mysqli->query('SET NAMES utf8');
 
+require_once('auth.php');
+
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',

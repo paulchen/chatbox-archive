@@ -1,8 +1,11 @@
 <?php
 require_once('config.php');
 
+// TODO common.php?
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 $mysqli->query('SET NAMES utf8');
+
+require_once('auth.php');
 
 $default_page = 1;
 $default_limit = 100;
