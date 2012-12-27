@@ -144,7 +144,7 @@ echo '<?xml version="1.0" ?>';
 		<tr><td>User:</td><td><input type="text" name="user" value="<?php if(isset($_GET['user'])) echo htmlentities($_GET['user'], ENT_QUOTES, 'UTF-8') ?>" /></td></tr>
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
 		<tr><td>Page:</td><td><input type="text" name="page" value="<?php echo $page; ?>" /> (of <?php echo $page_count; ?>) <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a></td></tr>
-		<tr><td></td><td><input type="submit" value="Filter" /><input type="reset" value="Reset" onclick="document.location.href='?';"/></td></tr>
+		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="document.location.href='?';" /></td></tr>
 		</table>
 		</form>
 		</fieldset>
