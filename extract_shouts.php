@@ -218,7 +218,7 @@ function process_chatbox_archive($contents) {
 
 		$messagepos1x = strpos($shout, 'vsacb_message');
 		$messagepos1 = strpos($shout, '>', $messagepos1x)+9;
-		$messagepos2 = strpos($shout, '</div>', $messagepos1)-7;
+		$messagepos2 = strpos($shout, "\t\t\t\t\t</div>", $messagepos1)-2;
 		$message = substr($shout, $messagepos1, $messagepos2-$messagepos1);
 
 		$ret += process_shout($id, $date, $member_id, $member_nick, $nick_color, $message);
