@@ -61,6 +61,7 @@ while($stmt->fetch()) {
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);
+	$message = str_replace('"style="', '" style="', $message);
 
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
