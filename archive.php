@@ -50,7 +50,7 @@ $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', '
 $replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
 while($stmt->fetch()) {
 	// TODO DST problem
-	$date = date('[d-m H:i]', $date+3600);
+	$date = date('[d-m-Y H:i]', $date+3600);
 	$color = ($color == '-') ? 'user' : $color;
 	$link = '?user=' . urlencode($user_name) . "&amp;limit=$limit";
 	if(isset($_GET['text']) && trim($_GET['text']) != '') {
