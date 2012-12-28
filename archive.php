@@ -22,36 +22,36 @@ $offset = ($page-1)*$limit;
 
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	if (isset($_GET['user']) && trim($_GET['user']) != '') {
-		$stmt = $mysqli->prepare('SELECT s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$user = $_GET['user'];
 		$stmt->bind_param('ssii', $user, $text_filter, $offset, $limit);
 	}
 	else {
-		$stmt = $mysqli->prepare('SELECT s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$stmt->bind_param('sii', $text_filter, $offset, $limit);
 	}
 }
 else if (isset($_GET['user']) && trim($_GET['user']) != '') {
-	$stmt = $mysqli->prepare('SELECT s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? ORDER BY s.id DESC LIMIT ?, ?');
 	$user = $_GET['user'];
 	$stmt->bind_param('sii', $user, $offset, $limit);
 }
 else {
-	$stmt = $mysqli->prepare('SELECT s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) ORDER BY s.id DESC LIMIT ?, ?');
 	$stmt->bind_param('ii', $offset, $limit);
 }
 
 $stmt->execute();
-$stmt->bind_result($date, $color, $user_id, $user_name, $message);
+$stmt->bind_result($id, $date, $color, $user_id, $user_name, $message);
 $data = array();
 $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
 $replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
 while($stmt->fetch()) {
 	$datetime = new DateTime($date, new DateTimeZone('GMT'));
 	$datetime->setTimezone((new DateTime())->getTimezone());
-	$date = $date . " " . $datetime->format('[d-m-Y H:i]');
+	$formatted_date = $datetime->format('[d-m-Y H:i]');
 	$color = ($color == '-') ? 'user' : $color;
 	$link = '?user=' . urlencode($user_name) . "&amp;limit=$limit";
 	if(isset($_GET['text']) && trim($_GET['text']) != '') {
@@ -64,7 +64,7 @@ while($stmt->fetch()) {
 
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
-	$data[] = array('date' => $date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link);
+	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id);
 }
 $stmt->close();
 
@@ -134,6 +134,8 @@ echo '<?xml version="1.0" ?>';
 	a.user { color: #417394; }
 	a.purple { color: purple; font-weight: bold; }
 	a.green { color: green; font-weight: bold; }
+	a.red { color: red; font-weight: bold; }
+	a.blue { color: blue; font-weight: bold; }
 	img { border: none; }
 	</style>
 </head>
@@ -154,7 +156,7 @@ echo '<?xml version="1.0" ?>';
 		</fieldset>
 		<table>
 			<?php foreach($data as $row): ?>
-				<tr>
+				<tr id="message<?php echo $row['id'] ?>">
 					<td class="date"><?php echo $row['date'] ?></td>
 					<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
 					<td class="message"><?php echo $row['message'] ?></td>
