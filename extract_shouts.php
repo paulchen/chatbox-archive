@@ -14,6 +14,8 @@ $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 $mysqli->query('SET NAMES utf8');
 $mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE');
 
+$processed_ids = array();
+
 $contents = file_get_contents($argv[1]);
 if(strpos($contents, 'vsa_chatbox_bit') !== false) {
 	$ret = process_chatbox($contents);
@@ -26,8 +28,32 @@ else {
 	die();
 }
 
+sort($processed_ids);
+$min = $processed_ids[0];
+$max = $processed_ids[count($processed_ids)-1];
+
+$stmt = $mysqli->prepare('SELECT id FROM shouts WHERE id >= ? AND id <= ?');
+$stmt->bind_param('ii', $min, $max);
+$stmt->execute();
+$stmt->bind_result($id);
+$deleted_ids = array();
+while($stmt->fetch()) {
+	if(!in_array($id, $processed_ids)) {
+		$deleted_ids[] = $id;
+	}
+}
+$stmt->close();
+
+$stmt = $mysqli->prepare('UPDATE shouts SET deleted = 1 WHERE id = ?');
+foreach($deleted_ids as $id) {
+	$stmt->bind_param('i', $id);
+	$stmt->execute();
+}
+$stmt->close();
+
 $mysqli->query('UNLOCK TABLES');
 
+$mysqli->close();
 die($ret);
 
 function process_nick_color($nick_color) {
@@ -84,7 +110,9 @@ function process_nick($member_id, $member_nick, $nick_color) {
 }
 
 function process_shout($id, $date, $member_id, $member_nick, $nick_color, $message) {
-	global $mysqli;
+	global $mysqli, $processed_ids;
+
+	$processed_ids[] = $id;
 
 	process_nick($member_id, $member_nick, $nick_color);
 

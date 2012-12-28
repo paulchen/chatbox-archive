@@ -22,24 +22,24 @@ $offset = ($page-1)*$limit;
 
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	if (isset($_GET['user']) && trim($_GET['user']) != '') {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$user = $_GET['user'];
 		$stmt->bind_param('ssii', $user, $text_filter, $offset, $limit);
 	}
 	else {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$stmt->bind_param('sii', $text_filter, $offset, $limit);
 	}
 }
 else if (isset($_GET['user']) && trim($_GET['user']) != '') {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
 	$user = $_GET['user'];
 	$stmt->bind_param('sii', $user, $offset, $limit);
 }
 else {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
 	$stmt->bind_param('ii', $offset, $limit);
 }
 
