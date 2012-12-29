@@ -44,12 +44,14 @@ while($stmt->fetch()) {
 }
 $stmt->close();
 
+/*
 $stmt = $mysqli->prepare('UPDATE shouts SET deleted = 1 WHERE id = ?');
 foreach($deleted_ids as $id) {
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
 }
 $stmt->close();
+ */
 
 $mysqli->query('UNLOCK TABLES');
 
