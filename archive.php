@@ -10,6 +10,47 @@ require_once('auth.php');
 $default_page = 1;
 $default_limit = 100;
 
+if(isset($_GET['id'])) {
+	$id = $_GET['id'];
+	if(!preg_match('/^[0-9]+$/', $id)) {
+		die();
+	}
+	if(!isset($_GET['limit'])) {
+		$limit = $default_limit;
+	}
+	else {
+		$limit = $_GET['limit'];
+		if(!preg_match('/^[0-9]+$/', $id)) {
+			$limit = $default_limit;
+		}
+	}
+
+	$stmt = $mysqli->prepare('SELECT id FROM shouts WHERE id = ?');
+	$stmt->bind_param('i', $id);
+	$stmt->execute();
+	$stmt->bind_result($found_id);
+	$found = false;
+	while($stmt->fetch()) {
+		$found = true;
+	}
+	$stmt->close();
+	if(!$found) {
+		die();
+	}
+
+	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts WHERE id > ?');
+	$stmt->bind_param('i', $id);
+	$stmt->execute();
+	$stmt->bind_result($shouts);
+	$stmt->fetch();
+	$stmt->close();
+
+	$page = floor(($shouts+1)/$limit)+1;
+
+	header("Location: ?limit=$limit&page=$page#message$id");
+	die();
+}
+
 $page = isset($_GET['page']) ? $_GET['page'] : $default_page;
 $limit = isset($_GET['limit']) ? $_GET['limit'] : $default_limit;
 if(!preg_match('/^[0-9]+$/', $page)) {
@@ -157,8 +198,8 @@ echo '<?xml version="1.0" ?>';
 		</fieldset>
 		<table>
 			<?php foreach($data as $row): ?>
-				<tr id="message<?php echo $row['id'] ?>">
-					<td class="date"><?php echo $row['date'] ?></td>
+				<tr>
+					<td class="date"><a id="message<?php echo $row['id'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] ?>" style="color: black;"><?php echo $row['date'] ?></a></td>
 					<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
 					<td class="message"><?php echo $row['message'] ?></td>
 				</tr>
