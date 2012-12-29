@@ -1,6 +1,17 @@
 #!/bin/bash
 
-cookie_file=cookies2.txt
+cookie_file=cookies.txt
+pidfile=/tmp/chatbox.pid
+
+if [ -f $pidfile ]; then
+	old_pid=`cat $pidfile`
+	if [ "`ps aux|grep $old_pid|grep -c cronjob.sh`" -ne "0" ]; then
+		exit
+	fi
+fi
+
+rm -f $pidfile
+echo $$ > $pidfile
 
 touch $cookie_file
 
