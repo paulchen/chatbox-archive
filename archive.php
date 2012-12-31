@@ -1,27 +1,8 @@
 <?php
-require_once('config.php');
-
-// TODO common.php?
-$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
-$mysqli->query('SET NAMES utf8');
-
-require_once('auth.php');
+require_once('common.php');
 
 $default_page = 1;
 $default_limit = 100;
-
-function unicode_character($matches) {
-	if(($matches[1] == 0x9) || ($matches[1] == 0xA) || ($matches[1] == 0xD) ||
-			(($matches[1] >= 0x20) && ($matches[1] <= 0xD7FF)) ||
-			(($matches[1] >= 0xE000) && ($matches[1] <= 0xFFFD)) ||
-			(($matches[1] >= 0x10000) && ($matches[1] <= 0x10FFFF))) {
-		return $matches[0];
-	}
-	else {
-		return ' ';
-	}
-
-}
 
 if(isset($_GET['id'])) {
 	$id = $_GET['id'];
