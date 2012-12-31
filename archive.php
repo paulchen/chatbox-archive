@@ -91,6 +91,7 @@ else {
 $stmt->execute();
 $stmt->bind_result($id, $date, $color, $user_id, $user_name, $message);
 $data = array();
+// TODO simplify this
 $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
 $replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
 while($stmt->fetch()) {
@@ -102,11 +103,14 @@ while($stmt->fetch()) {
 	if(isset($_GET['text']) && trim($_GET['text']) != '') {
 		$link .= '&amp;text=' . urlencode($_GET['text']);
 	}
+
+	// TODO simplify this
 	$message = str_replace($patterns, $replacements, $message);
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);
 	$message = str_replace('"style="', '" style="', $message);
+	$message = str_replace('</A>', '</a>', $message);
 
 	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 
