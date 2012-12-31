@@ -2,6 +2,9 @@
 
 cookie_file=cookies.txt
 pidfile=/tmp/chatbox.pid
+logfile=log
+
+cd `dirname $0`
 
 if [ -f $pidfile ]; then
 	old_pid=`cat $pidfile`
@@ -24,32 +27,33 @@ login() {
 	rm login.html faq.html
 }
 
-cd `dirname $0`
+log() {
+	echo "`date "+%Y-%m-%d %H:%M:%S"` - $1" >> $logfile
+}
+
 if [ ! -f securitytoken ]; then
 	login
 fi
 
 while true; do
 	token=`cat securitytoken`
-	date
-	echo -n "Fetching chatbox... "
+	log "Fetching chatbox... "
 	rm -f cb1.xml
 	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://www.informatik-forum.at/misc.php?show=ccbmessages -O cb1.xml -q
 	if [ `grep -c "DOCTYPE" cb1.xml` -ne 0 ]; then
 		rm cb1.xml
-		echo "re-login required... "
+		log "Re-login required... "
 		login
 		token=`cat securitytoken`
-		date
-		echo -n "Fetching chatbox..."
+		log "Fetching chatbox..."
 		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://www.informatik-forum.at/misc.php?show=ccbmessages -O cb1.xml -q
 		if [ `grep -c "DOCTYPE" cb1.xml` -ne 0 ]; then
-			echo "unable."
+			log "Unable to fetch chatbox contents, terminating now."
 			exit 1
 		fi
 	fi
 
-	echo -n "processing... "
+	log "Processing... "
 	rm -f cb2.xml
 	iconv -f iso-8859-1 -t utf-8 cb1.xml -o cb2.xml
 	rm cb1.xml
@@ -57,16 +61,15 @@ while true; do
 	php extract_shouts.php cb2.xml
 	count=`echo $?`
 	rm cb2.xml
-	echo "$count shout(s) saved"
+	log "$count shout(s) saved"
 	if [ "$count" -eq 30 ]; then
 		page=1
 		while true; do
 			page=$((page+1))
-			date
-			echo -n "Fetching page $page... "
+			log "Fetching archive page $page... "
 			rm -f abc$page.xml
 			wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?do=ccarc\&page=$page -q -O abc$page.xml
-			echo -n "processing... "
+			log "Processing... "
 			rm -f def$page.xml
 			iconv -f iso-8859-1 -t utf-8 abc$page.xml -o def$page.xml
 			rm abc$page.xml
@@ -74,19 +77,17 @@ while true; do
 			php extract_shouts.php def$page.xml
 			count=`echo $?`
 			rm def$page.xml
-			echo "$count shout(s) saved"
+			log "$count shout(s) saved"
 			if [ "$count" -eq 0 ]; then
-				echo "Done."
+				log "Done."
 				break
 			fi
 		done
 	else 
-		echo "Done."
+		log "Done."
 	fi
 
-	date
-	echo -n "Waiting 10 seconds... "
+	log "Waiting 10 seconds... "
 	sleep 10
-	echo "done."
 done
 
