@@ -104,6 +104,8 @@ while($stmt->fetch()) {
 		$link .= '&amp;text=' . urlencode($_GET['text']);
 	}
 
+	// TODO scan for < and > inside href attributes
+	
 	// TODO simplify this
 	$message = str_replace($patterns, $replacements, $message);
 	$message = str_replace('/http:', 'http:', $message);
