@@ -6,9 +6,7 @@ $mysqli->query('SET NAMES utf8');
 
 /* HTTP basic authentication */
 if(!isset($_SERVER['PHP_AUTH_USER'])) {
-	header('WWW-Authenticate: Basic realm="Access restricted"');
-	header('HTTP/1.0 401 Unauthorized');
-	die();
+	noauth();
 }
 
 $username = $_SERVER['PHP_AUTH_USER'];
@@ -26,7 +24,10 @@ $stmt->close();
 
 $hash = crypt($password, $db_hash);
 if($hash != $db_hash) {
-	// TODO duplicate code
+	noauth();
+}
+
+function noauth() {
 	header('WWW-Authenticate: Basic realm="Access restricted"');
 	header('HTTP/1.0 401 Unauthorized');
 	die();
