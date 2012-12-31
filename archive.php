@@ -115,6 +115,7 @@ while($stmt->fetch()) {
 	$message = str_replace('</A>', '</a>', $message);
 
 	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
+	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
 
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
