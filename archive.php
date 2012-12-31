@@ -10,6 +10,10 @@ require_once('auth.php');
 $default_page = 1;
 $default_limit = 100;
 
+function unicode_character($matches) {
+	return json_decode('"\u' . dechex($matches[1]) . '"');
+}
+
 if(isset($_GET['id'])) {
 	$id = $_GET['id'];
 	if(!preg_match('/^[0-9]+$/', $id)) {
@@ -103,6 +107,8 @@ while($stmt->fetch()) {
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);
 	$message = str_replace('"style="', '" style="', $message);
+
+	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
