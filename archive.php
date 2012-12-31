@@ -11,7 +11,16 @@ $default_page = 1;
 $default_limit = 100;
 
 function unicode_character($matches) {
-	return json_decode('"\u' . dechex($matches[1]) . '"');
+	if(($matches[1] == 0x9) || ($matches[1] == 0xA) || ($matches[1] == 0xD) ||
+			(($matches[1] >= 0x20) && ($matches[1] <= 0xD7FF)) ||
+			(($matches[1] >= 0xE000) && ($matches[1] <= 0xFFFD)) ||
+			(($matches[1] >= 0x10000) && ($matches[1] <= 0x10FFFF))) {
+		return $matches[0];
+	}
+	else {
+		return ' ';
+	}
+
 }
 
 if(isset($_GET['id'])) {
