@@ -163,8 +163,8 @@ function process_chatbox($contents) {
 		$rawdate = substr($shout, $datepos1+1, $datepos2-$datepos1-1);
 		$date_array = strptime($rawdate, '%d-%m, %H:%M');
 
-		$year = date('y');
-		if(date('m') < $date_array['tm_mon']+1) {
+		$year = gmdate('y');
+		if(gmdate('m') < $date_array['tm_mon']+1) {
 			$year++;
 		}
 		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
