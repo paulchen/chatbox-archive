@@ -137,6 +137,11 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		return 1;
 	}
 
+	$stmt = $mysqli->prepare('UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ?');
+	$stmt->bind_param('iisi', $date, $member_id, $message, $id);
+	$stmt->execute();
+	$stmt->close();
+
 	return 0;
 }
 
