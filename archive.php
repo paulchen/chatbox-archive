@@ -175,12 +175,14 @@ echo '<?xml version="1.0" ?>';
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
-	a:hover { color: red; }
 	a.user { color: #417394; }
 	a.purple { color: purple; font-weight: bold; }
 	a.green { color: green; font-weight: bold; }
 	a.red { color: red; font-weight: bold; }
 	a.blue { color: blue; font-weight: bold; }
+	td.date > a { color: black; }
+	td.date > a:hover { color: red; }
+	a:hover { color: red; }
 	img { border: none; }
 	</style>
 </head>
@@ -202,7 +204,7 @@ echo '<?xml version="1.0" ?>';
 		<table>
 			<?php foreach($data as $row): ?>
 				<tr>
-					<td class="date"><a id="message<?php echo $row['id'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] ?>" style="color: black;"><?php echo $row['date'] ?></a></td>
+					<td class="date"><a id="message<?php echo $row['id'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] ?>"><?php echo $row['date'] ?></a></td>
 					<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
 					<td class="message"><?php echo $row['message'] ?></td>
 				</tr>
