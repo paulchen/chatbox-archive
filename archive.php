@@ -210,6 +210,9 @@ echo '<?xml version="1.0" ?>';
 				</tr>
 			<?php endforeach; ?>
 		</table>		
+		<div style="padding-top: 15px; padding-left: 5px;">
+			Page <?php echo $page; ?> of <?php echo $page_count; ?> &ndash; <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a>
+		</div>
 	</div>
 	<hr />
 	<p>
