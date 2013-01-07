@@ -12,7 +12,9 @@ require_once('config.php');
 
 $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 $mysqli->query('SET NAMES utf8');
-$mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE');
+$mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE');
+
+$max_id = get_setting('max_shout_id');
 
 $processed_ids = array();
 
@@ -27,6 +29,8 @@ else {
 	$mysqli->query('UNLOCK TABLES');
 	die();
 }
+
+set_setting('max_shout_id', $max_id);
 
 sort($processed_ids);
 $min = $processed_ids[0];
@@ -57,6 +61,29 @@ $mysqli->query('UNLOCK TABLES');
 
 $mysqli->close();
 die($ret);
+
+function get_setting($key) {
+	global $mysqli;
+
+	$stmt = $mysqli->prepare('SELECT value FROM settings WHERE `key` = ?');
+	echo $mysqli->error;
+	$stmt->bind_param('s', $key);
+	$stmt->execute();
+	$stmt->bind_result($value);
+	$stmt->fetch();
+	$stmt->close();
+
+	return $value;
+}
+
+function set_setting($key, $value) {
+	global $mysqli;
+
+	$stmt = $mysqli->prepare('INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?');
+	$stmt->bind_param('sss', $key, $value, $value);
+	$stmt->execute();
+	$stmt->close();
+}
 
 function process_nick_color($nick_color) {
 	global $mysqli;
@@ -112,7 +139,7 @@ function process_nick($member_id, $member_nick, $nick_color) {
 }
 
 function process_shout($id, $date, $member_id, $member_nick, $nick_color, $message) {
-	global $mysqli, $processed_ids;
+	global $mysqli, $processed_ids, $max_id;
 
 	$processed_ids[] = $id;
 
@@ -127,6 +154,12 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		$found = true;
 	}
 	$stmt->close();
+
+	$max_id = max($id, $max_id);
+	// TODO magic number
+	if($id < $max_id - 10000) {
+		return 0;
+	}
 
 	if(!$found) {
 		$stmt = $mysqli->prepare('INSERT INTO shouts (id, date, user, message) VALUES (?, FROM_UNIXTIME(?), ?, ?)');
