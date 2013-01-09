@@ -4,3 +4,6 @@ $db_user = 'chatbox';
 $db_pass = '';
 $db_name = 'chatbox';
 
+$forum_user = '';
+$forum_pass = '';
+

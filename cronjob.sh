@@ -21,7 +21,11 @@ touch $cookie_file
 login() {
 	rm -f $cookie_file
 	rm -f login.html faq.html
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data='vb_login_username=signanz&vb_login_password=4711pst4711&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=' http://www.informatik-forum.at/login.php?do=login -O login.html -q
+
+	username=`grep forum_user config.php|sed -e "s/^.*= '//g;s/';//g"`
+	password=`grep forum_pass config.php|sed -e "s/^.*= '//g;s/';//g"`
+
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html -q
 	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://www.informatik-forum.at/faq.php -O faq.html -q
 	grep SECURITYTOKEN faq.html|sed -e 's/^.* "//g;s/".*$//' > securitytoken
 	rm login.html faq.html
@@ -32,6 +36,7 @@ log() {
 }
 
 if [ ! -f securitytoken ]; then
+	log "Logging in..."
 	login
 fi
 
