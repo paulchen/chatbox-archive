@@ -71,6 +71,27 @@ $queries[] = array(
 	);
  */
 
+foreach($queries as $index => $query) {
+	$data = $memcached->get('overview_' . md5($query['title']));
+	if(!$data) {
+		$result = $mysqli->query($query['query']);
+		$data = array();
+
+		while($row = $result->fetch_assoc()) {
+			$data[] = $row;
+		}
+
+		$result->close();
+
+		// TODO magic number
+		$memcached->set('overview_' . md5($query['title']), $data, 300);
+		$memcached->set('last_overview_update', time());
+	}
+
+	$queries[$index]['data'] = $data;
+}
+$last_update = $memcached->get('last_overview_update');
+
 header('Content-Type: application/xhtml+xml; charset=utf-8');
 echo '<?xml version="1.0" ?>';
 ?>
@@ -103,6 +124,7 @@ echo '<?xml version="1.0" ?>';
 			<li><a href="#query<?php echo $b; ?>"><?php echo htmlentities($query['title'], ENT_QUOTES, 'UTF-8') ?></a></li>
 		<?php endforeach; ?>
 		</ul>
+		Last update: <?php echo date('Y-m-d H:i:s', $last_update) ?>
 	</div>
 	<hr />
 	<?php $b=0; foreach($queries as $query): $b++; ?>
@@ -115,8 +137,7 @@ echo '<?xml version="1.0" ?>';
 			<?php $a++; endforeach; ?>
 			</tr>
 			<?php
-				$result = $mysqli->query($query['query']);
-				while($row = $result->fetch_assoc()):
+				foreach($query['data'] as $row):
 					$a = 0;
 			?>
 				<tr>
@@ -125,8 +146,7 @@ echo '<?xml version="1.0" ?>';
 				<?php $a++; endforeach; ?>
 				</tr>
 			<?php
-				endwhile;
-				$result->close();
+				endforeach;
 			?>
 			</table>
 		</div>
