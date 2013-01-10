@@ -8,5 +8,5 @@ $forum_user = '';
 $forum_pass = '';
 
 $memcached_servers = array();
-$memcached_servers[] = array('ip' => '::1', 'port' => 11211);
+$memcached_servers[] = array('ip' => '127.0.0.1', 'port' => 11211);
 
