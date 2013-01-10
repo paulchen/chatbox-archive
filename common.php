@@ -27,6 +27,11 @@ if($hash != $db_hash) {
 	noauth();
 }
 
+$memcached = new Memcached();
+foreach($memcached_servers as $server) {
+	$memcached->addServer($server['ip'], $server['port']);
+}
+
 function noauth() {
 	header('WWW-Authenticate: Basic realm="Access restricted"');
 	header('HTTP/1.0 401 Unauthorized');

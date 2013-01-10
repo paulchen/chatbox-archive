@@ -7,3 +7,6 @@ $db_name = 'chatbox';
 $forum_user = '';
 $forum_pass = '';
 
+$memcached_servers = array();
+$memcached_servers[] = array('ip' => '::1', 'port' => 11211);
+
