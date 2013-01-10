@@ -1,6 +1,13 @@
 <?php
 require_once('common.php');
 
+function add_user_link(&$data) {
+	foreach($data[0] as $index => $row) {
+		$name = $row['name'];
+		$data[0][$index]['name'] = '<a href="details.php?user=' . urlencode($name) . '">' . $name . '</a>';
+	}
+}
+
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
@@ -11,6 +18,7 @@ $queries[] = array(
 				from (select u.id, u.name, count(*) as shouts from shouts s join users u
 				on (s.user = u.id) where deleted = 0 group by u.id, u.name) a) b, (select @row:=0) c
 			order by b.shouts desc",
+		'processing_function' => 'add_user_link',
 		'columns' => array('Position', 'Username', 'Messages', 'Average messages per day'),
 		'column_styles' => array('right', 'left', 'right', 'right'),
 	);
@@ -88,6 +96,10 @@ foreach($queries as $index => $query) {
 		$memcached->set('last_overview_update', time());
 	}
 
+	if(isset($query['processing_function'])) {
+		call_user_func($query['processing_function'], array(&$data));
+	}
+
 	$queries[$index]['data'] = $data;
 }
 $last_update = $memcached->get('last_overview_update');
@@ -142,7 +154,8 @@ echo '<?xml version="1.0" ?>';
 			?>
 				<tr>
 				<?php foreach($row as $key => $value): ?>
-					<td class="<?php echo $query['column_styles'][$a] ?>"><?php echo htmlentities($value, ENT_QUOTES, 'UTF-8'); ?></td>
+					<!-- TODO <td class="<?php echo $query['column_styles'][$a] ?>"><?php echo htmlentities($value, ENT_QUOTES, 'UTF-8'); ?></td> -->
+					<td class="<?php echo $query['column_styles'][$a] ?>"><?php echo $value ?></td>
 				<?php $a++; endforeach; ?>
 				</tr>
 			<?php
