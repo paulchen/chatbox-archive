@@ -7,6 +7,7 @@ if(!isset($_REQUEST['user'])) {
 }
 $user = $_REQUEST['user'];
 
+// TODO detail pages also for dates
 $stmt = $mysqli->prepare('SELECT id FROM users WHERE name = ?');
 $stmt->bind_param('s', $user);
 $stmt->execute();
