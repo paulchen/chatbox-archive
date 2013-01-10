@@ -84,7 +84,7 @@ foreach($queries as $index => $query) {
 		$result->close();
 
 		// TODO magic number
-		$memcached->set('overview_' . md5($query['title']), $data, 300);
+		$memcached->set('overview_' . md5($query['title']), $data, 300+rand(0,100));
 		$memcached->set('last_overview_update', time());
 	}
 
