@@ -1,20 +1,26 @@
 #!/bin/bash
 
 cookie_file=cookies.txt
-pidfile=/tmp/chatbox.pid
+lockfile=chatbox.lock
 logfile=log
 
 cd `dirname $0`
 
-if [ -f $pidfile ]; then
-	old_pid=`cat $pidfile`
-	if [ "`ps aux|grep $old_pid|grep -c cronjob.sh`" -ne "0" ]; then
-		exit
-	fi
+exec 9>/path/to/lock/file
+if ! flock -n 9  ; then
+	echo "another instance is running";
+	exit 1
 fi
 
-rm -f $pidfile
-echo $$ > $pidfile
+#if [ -f $pidfile ]; then
+#	old_pid=`cat $pidfile`
+#	if [ "`ps aux|grep $old_pid|grep -c cronjob.sh`" -ne "0" ]; then
+#		exit
+#	fi
+#fi
+
+#rm -f $pidfile
+#echo $$ > $pidfile
 
 touch $cookie_file
 
