@@ -6,14 +6,39 @@ require_once('common.php');
 foreach($queries as $index => $query) {
 /*	$data = $memcached->get('overview_' . md5($query['title']));
 	if(!$data) { */
-		$result = $mysqli->query($query['query']);
 		$data = array();
 
-		while($row = $result->fetch_assoc()) {
-			$data[] = $row;
+		$stmt = $mysqli->prepare($query['query']);
+		if(isset($query['params'])) {
+			$args = array(str_repeat('s', count($query['params'])));
+			foreach($query['params'] as $param) {
+				$var = $param;
+				$args[] = &$var;
+				unset($var);
+			}
+			$ref = new ReflectionClass('mysqli_stmt');
+			$method = $ref->getMethod('bind_param');
+			$method->invokeArgs($stmt, $args);
+		}
+		$stmt->execute();
+
+		$row = array();
+		for($a=0; $a<$stmt->field_count; $a++) {
+			$var = '';
+			$row[] = &$var;
+			unset($var);
+		}
+		$method = $ref->getMethod('bind_result');
+		$method->invokeArgs($stmt, $row);
+		while($stmt->fetch()) {
+			$new_row = array();
+			foreach($row as $cell) {
+				$new_row[] = $cell;
+			}
+			$data[] = $new_row;
 		}
 
-		$result->close();
+		$stmt->close();
 
 		// TODO magic number
 //		$memcached->set('overview_' . md5($query['title']), $data, 300+rand(0,100));
