@@ -3,9 +3,16 @@
 
 require_once('common.php');
 
+$last_update = -1;
 foreach($queries as $index => $query) {
-/*	$data = $memcached->get('overview_' . md5($query['title']));
-	if(!$data) { */
+	$hash = sha1($query['query'] . serialize($query['params']));
+	$memcached_key = "${memcached_prefix}_stats_$hash";
+	$memcached_data = $memcached->get($memcached_key);
+	if($memcached_data) {
+		$last_update = max($memcached_data['update'], $last_update);
+		$data = $memcached_data['data'];
+	}
+	else {
 		$data = array();
 
 		$stmt = $mysqli->prepare($query['query']);
@@ -40,10 +47,15 @@ foreach($queries as $index => $query) {
 
 		$stmt->close();
 
+		$memcached_data = array(
+				'update' => time(),
+				'data' => $data
+			);
 		// TODO magic number
-//		$memcached->set('overview_' . md5($query['title']), $data, 300+rand(0,100));
-//		$memcached->set('last_overview_update', time());
-//	}
+		$memcached->set($memcached_key, $memcached_data, 300+rand(0,100));
+
+		$last_update = time();
+	}
 
 	if(isset($query['processing_function'])) {
 		call_user_func($query['processing_function'], array(&$data));
@@ -51,7 +63,6 @@ foreach($queries as $index => $query) {
 
 	$queries[$index]['data'] = $data;
 }
-// $last_update = $memcached->get('last_overview_update');
 
 header('Content-Type: application/xhtml+xml; charset=utf-8');
 echo '<?xml version="1.0" ?>';
@@ -85,7 +96,7 @@ echo '<?xml version="1.0" ?>';
 			<li><a href="#query<?php echo $b; ?>"><?php echo htmlentities($query['title'], ENT_QUOTES, 'UTF-8') ?></a></li>
 		<?php endforeach; ?>
 		</ul>
-	<?php /*	Last update: <?php echo date('Y-m-d H:i:s', $last_update) */ ?>
+	Last update: <?php echo date('Y-m-d H:i:s', $last_update) ?>
 	</div>
 	<hr />
 	<?php $b=0; foreach($queries as $query): $b++; ?>
