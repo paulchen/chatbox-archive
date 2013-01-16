@@ -6,7 +6,7 @@ function overview_redirect() {
 	die();
 }
 
-if(!isset($_REQUEST['user']) && !isset($_REQUEST['year'])) {
+if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour'])) {
 	overview_redirect();
 }
 if(isset($_REQUEST['day']) && !isset($_REQUEST['month'])) {
@@ -43,22 +43,31 @@ if(isset($_REQUEST['year'])) {
 		$date = sprintf('%04d', $_REQUEST['year']);
 	}
 }
+if(isset($_REQUEST['hour'])) {
+	$hour = $_REQUEST['hour'];
+}
 
-if(isset($_REQUEST['user']) && isset($_REQUEST['year'])) {
-	$filter = "user = ? AND date_format(date, '$date_format') = ?";
-	$params = array($user_id, $date);
-	$what = "$user, $date";
+$filter_parts = array();
+$params = array();
+$what_parts = array();
+
+if(isset($_REQUEST['hour'])) {
+	$filter_parts[] = "date_format(date, '%H') = ?";
+	$params[] = $hour;
+	$what_parts[] = "hour $hour";
 }
-else if(isset($_REQUEST['user'])) {
-	$filter = "user = ?";
-	$params = array($user_id);
-	$what = $user;
+if(isset($_REQUEST['year'])) {
+	$filter_parts[] = "date_format(date, '$date_format') = ?";
+	$params[] = $date;
+	$what_parts[] = $date;
 }
-else {
-	$filter = "date_format(date, '$date_format') = ?";
-	$params = array($date);
-	$what = $date;
+if(isset($_REQUEST['user'])) {
+	$filter_parts[] = "user = ?";
+	$params[] = $user_id;
+	$what_parts[] = $user;
 }
+$filter = implode(' AND ', $filter_parts);
+$what = implode(', ', $what_parts);
 
 $queries = array();
 $queries[] = array(
