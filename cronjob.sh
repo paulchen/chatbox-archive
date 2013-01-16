@@ -6,10 +6,9 @@ logfile=log
 
 cd `dirname $0`
 
-exec 9>/path/to/lock/file
+exec 9>$lockfile
 if ! flock -n 9  ; then
-	echo "another instance is running";
-	exit 1
+	exit
 fi
 
 #if [ -f $pidfile ]; then
