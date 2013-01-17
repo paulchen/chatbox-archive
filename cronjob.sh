@@ -11,16 +11,6 @@ if ! flock -n 9  ; then
 	exit
 fi
 
-#if [ -f $pidfile ]; then
-#	old_pid=`cat $pidfile`
-#	if [ "`ps aux|grep $old_pid|grep -c cronjob.sh`" -ne "0" ]; then
-#		exit
-#	fi
-#fi
-
-#rm -f $pidfile
-#echo $$ > $pidfile
-
 touch $cookie_file
 
 login() {
