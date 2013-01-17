@@ -13,7 +13,6 @@ foreach($queries as $index => $query) {
 	}
 	$memcached_key = "${memcached_prefix}_stats_$hash";
 	$memcached_data = $memcached->get($memcached_key);
-	$memcached_data = null;
 	if($memcached_data) {
 		$last_update = max($memcached_data['update'], $last_update);
 		$data = $memcached_data['data'];
@@ -70,7 +69,10 @@ foreach($queries as $index => $query) {
 	}
 
 	if(isset($query['processing_function'])) {
-		call_user_func($query['processing_function'], array(&$data));
+		foreach($data as $key => &$value) {
+			call_user_func($query['processing_function'], array(&$value));
+		}
+		unset($value);
 	}
 
 	$queries[$index]['data'] = $data;

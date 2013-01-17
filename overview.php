@@ -1,9 +1,6 @@
 <?php
-function add_user_link(&$data) {
-	foreach($data[0] as $index => $row) {
-		$name = $row['name'];
-		$data[0][$index]['name'] = '<a href="details.php?user=' . urlencode($name) . '">' . $name . '</a>';
-	}
+function add_user_link(&$row) {
+	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . '">' . $row[0]['name'] . '</a>';
 }
 
 $queries = array();
