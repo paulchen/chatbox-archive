@@ -5,9 +5,15 @@ require_once('common.php');
 
 $last_update = -1;
 foreach($queries as $index => $query) {
-	$hash = sha1($query['query'] . serialize($query['params']));
+	if(isset($query['params'])) {
+		$hash = sha1($query['query'] . serialize($query['params']));
+	}
+	else {
+		$hash = sha1($query['query']);
+	}
 	$memcached_key = "${memcached_prefix}_stats_$hash";
 	$memcached_data = $memcached->get($memcached_key);
+	$memcached_data = null;
 	if($memcached_data) {
 		$last_update = max($memcached_data['update'], $last_update);
 		$data = $memcached_data['data'];
@@ -16,6 +22,7 @@ foreach($queries as $index => $query) {
 		$data = array();
 
 		$stmt = $mysqli->prepare($query['query']);
+		$ref = new ReflectionClass('mysqli_stmt');
 		if(isset($query['params'])) {
 			$args = array(str_repeat('s', count($query['params'])));
 			foreach($query['params'] as $param) {
@@ -23,7 +30,6 @@ foreach($queries as $index => $query) {
 				$args[] = &$var;
 				unset($var);
 			}
-			$ref = new ReflectionClass('mysqli_stmt');
 			$method = $ref->getMethod('bind_param');
 			$method->invokeArgs($stmt, $args);
 		}
@@ -37,10 +43,16 @@ foreach($queries as $index => $query) {
 		}
 		$method = $ref->getMethod('bind_result');
 		$method->invokeArgs($stmt, $row);
+
+		$metadata = $stmt->result_metadata();
+		$fields = $metadata->fetch_fields();
+
 		while($stmt->fetch()) {
 			$new_row = array();
+			$a = 0;
 			foreach($row as $cell) {
-				$new_row[] = $cell;
+				$new_row[$fields[$a]->name] = $cell;
+				$a++;
 			}
 			$data[] = $new_row;
 		}
