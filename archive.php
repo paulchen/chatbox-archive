@@ -85,7 +85,7 @@ $data = array();
 $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
 $replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
 while($stmt->fetch()) {
-	$datetime = new DateTime($date, new DateTimeZone('GMT'));
+	$datetime = new DateTime($date, new DateTimeZone('Europe/London'));
 	$datetime->setTimezone((new DateTime())->getTimezone());
 	$formatted_date = $datetime->format('[d-m-Y H:i]');
 	$color = ($color == '-') ? 'user' : $color;
