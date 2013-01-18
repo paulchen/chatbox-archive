@@ -47,7 +47,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour order by hour asc",
+		'query' => "select a.hour hour, coalesce(a.shouts, 0) shouts from (select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour) a right join hours_of_day h on (a.hour = h.hour) order by hour asc",
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
