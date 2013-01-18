@@ -71,6 +71,47 @@ CREATE TABLE IF NOT EXISTS `user_categories` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `hours_of_day`
+--
+
+CREATE TABLE IF NOT EXISTS `hours_of_day` (
+  `hour` varchar(2) NOT NULL,
+  PRIMARY KEY (`hour`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Daten für Tabelle `hours_of_day`
+--
+
+INSERT INTO `hours_of_day` (`hour`) VALUES
+('00'),
+('01'),
+('02'),
+('03'),
+('04'),
+('05'),
+('06'),
+('07'),
+('08'),
+('09'),
+('10'),
+('11'),
+('12'),
+('13'),
+('14'),
+('15'),
+('16'),
+('17'),
+('18'),
+('19'),
+('20'),
+('21'),
+('22'),
+('23');
+
 --
 -- Constraints der exportierten Tabellen
 --
