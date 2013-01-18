@@ -3,6 +3,10 @@ function add_user_link(&$row) {
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . '">' . $row[0]['name'] . '</a>';
 }
 
+function messages_per_hour(&$row) {
+	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . '">' . $row[0]['hour'] . '</a>';
+}
+
 function messages_per_month(&$row) {
 	$parts = explode('-', $row[0]['month']);
 	$year = $parts[0];
@@ -42,11 +46,16 @@ $queries[] = array(
 		'column_styles' => array('right', 'left', 'right', 'right'),
 	);
 $queries[] = array(
+		'title' => 'Messages per hour',
+		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 group by hour order by hour asc",
+		'processing_function' => 'messages_per_hour',
+		'columns' => array('Hour', 'Messages'),
+		'column_styles' => array('left', 'right'),
+	);
+$queries[] = array(
 		'title' => 'Busiest hours',
 		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 group by hour order by count(*) desc",
-		'processing_function' => function(&$row) {
-				$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . '">' . $row[0]['hour'] . '</a>';
-			},
+		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
 	);

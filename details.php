@@ -24,6 +24,24 @@ function add_user_link(&$row) {
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
 }
 
+function messages_per_hour(&$row) {
+	$link_parts = '';
+	if(isset($_REQUEST['day'])) {
+		$link_parts .= '&amp;day=' . $_REQUEST['day'];
+	}
+	if(isset($_REQUEST['month'])) {
+		$link_parts .= '&amp;month=' . $_REQUEST['month'];
+	}
+	if(isset($_REQUEST['year'])) {
+		$link_parts .= '&amp;year=' . $_REQUEST['year'];
+	}
+	if(isset($_REQUEST['user'])) {
+		$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
+	}
+
+	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
+}
+
 function messages_per_month(&$row) {
 	$link_parts = '';
 	if(isset($_REQUEST['user'])) {
@@ -144,26 +162,18 @@ $queries[] = array(
 		'column_styles' => array('right', 'left', 'right', 'right'),
 	);
 $queries[] = array(
+		'title' => 'Messages per hour',
+		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by hour asc",
+		'params' => $params,
+		'processing_function' => 'messages_per_hour',
+		'columns' => array('Hour', 'Messages'),
+		'column_styles' => array('left', 'right'),
+	);
+$queries[] = array(
 		'title' => 'Busiest hours',
 		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by count(*) desc",
 		'params' => $params,
-		'processing_function' => function(&$row) {
-				$link_parts = '';
-				if(isset($_REQUEST['day'])) {
-					$link_parts .= '&amp;day=' . $_REQUEST['day'];
-				}
-				if(isset($_REQUEST['month'])) {
-					$link_parts .= '&amp;month=' . $_REQUEST['month'];
-				}
-				if(isset($_REQUEST['year'])) {
-					$link_parts .= '&amp;year=' . $_REQUEST['year'];
-				}
-				if(isset($_REQUEST['user'])) {
-					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-				}
-
-				$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
-			},
+		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
 	);
