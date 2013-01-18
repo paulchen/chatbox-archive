@@ -115,7 +115,7 @@ $params = array();
 $what_parts = array();
 
 if(isset($_REQUEST['hour'])) {
-	$filter_parts[] = "date_format(date, '%H') = ?";
+	$filter_parts[] = "lpad((date_format(date, '%H')+1) % 24, 2, '0') = ?";
 	$params[] = $hour;
 	$what_parts[] = "hour $hour";
 }
@@ -163,7 +163,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by hour asc",
+		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by hour asc",
 		'params' => $params,
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
@@ -171,7 +171,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest hours',
-		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by count(*) desc",
+		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by count(*) desc",
 		'params' => $params,
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),

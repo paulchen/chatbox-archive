@@ -47,14 +47,14 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 group by hour order by hour asc",
+		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour order by hour asc",
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
 	);
 $queries[] = array(
 		'title' => 'Busiest hours',
-		'query' => "select date_format(date, '%H') hour, count(*) as shouts from shouts where deleted = 0 group by hour order by count(*) desc",
+		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour order by count(*) desc",
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
