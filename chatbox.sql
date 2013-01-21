@@ -112,6 +112,27 @@ INSERT INTO `hours_of_day` (`hour`) VALUES
 ('22'),
 ('23');
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `settings`
+--
+
+CREATE TABLE IF NOT EXISTS `settings` (
+  `key` varchar(50) NOT NULL,
+  `value` text NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Daten für Tabelle `settings`
+--
+
+INSERT INTO `settings` (`key`, `value`) VALUES
+('current_epoch', '1'),
+('max_shout_id', '0');
+
+
 --
 -- Constraints der exportierten Tabellen
 --
