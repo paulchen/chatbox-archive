@@ -8,15 +8,17 @@ if($argc != 2) {
 	die();
 }
 
-require_once('config.php');
+require_once('common.php');
 
-$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
-$mysqli->query('SET NAMES utf8');
 $mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE');
 
 $max_id = get_setting('max_shout_id');
+$epoch = get_setting('current_epoch');
 
 $processed_ids = array();
+
+#process_shout(10, '2014-01-01', 4233, 'Paulchen', 'green', 'blubbblubb');
+#die();
 
 $contents = file_get_contents($argv[1]);
 if(strpos($contents, 'vsa_chatbox_bit') !== false) {
@@ -61,29 +63,6 @@ $mysqli->query('UNLOCK TABLES');
 
 $mysqli->close();
 die($ret);
-
-function get_setting($key) {
-	global $mysqli;
-
-	$stmt = $mysqli->prepare('SELECT value FROM settings WHERE `key` = ?');
-	echo $mysqli->error;
-	$stmt->bind_param('s', $key);
-	$stmt->execute();
-	$stmt->bind_result($value);
-	$stmt->fetch();
-	$stmt->close();
-
-	return $value;
-}
-
-function set_setting($key, $value) {
-	global $mysqli;
-
-	$stmt = $mysqli->prepare('INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?');
-	$stmt->bind_param('sss', $key, $value, $value);
-	$stmt->execute();
-	$stmt->close();
-}
 
 function process_nick_color($nick_color) {
 	global $mysqli;
@@ -139,16 +118,16 @@ function process_nick($member_id, $member_nick, $nick_color) {
 }
 
 function process_shout($id, $date, $member_id, $member_nick, $nick_color, $message) {
-	global $mysqli, $processed_ids, $max_id;
+	global $mysqli, $processed_ids, $max_id, $epoch;
 
 	$processed_ids[] = $id;
 
 	process_nick($member_id, $member_nick, $nick_color);
 
-	$stmt = $mysqli->prepare('SELECT id FROM shouts WHERE id = ?');
-	$stmt->bind_param('i', $id);
+	$stmt = $mysqli->prepare('SELECT id, epoch FROM shouts WHERE id = ? AND epoch = ?');
+	$stmt->bind_param('ii', $id, $epoch);
 	$stmt->execute();
-	$stmt->bind_result($fetched_id);
+	$stmt->bind_result($fetched_id, $fetched_epoch);
 	$found = false;
 	while($stmt->fetch()) {
 		$found = true;
@@ -158,20 +137,23 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$max_id = max($id, $max_id);
 	// TODO magic number
 	if($id < $max_id - 10000) {
-		return 0;
+		$epoch++;
+		set_setting('current_epoch', $epoch);
+		$max_id = $id;
+		$found = false;
 	}
 
 	if(!$found) {
-		$stmt = $mysqli->prepare('INSERT INTO shouts (id, date, user, message) VALUES (?, FROM_UNIXTIME(?), ?, ?)');
-		$stmt->bind_param('iiis', $id, $date, $member_id, $message);
+		$stmt = $mysqli->prepare('INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)');
+		$stmt->bind_param('iiiis', $id, $epoch, $date, $member_id, $message);
 		$stmt->execute();
 		$stmt->close();
 
 		return 1;
 	}
 
-	$stmt = $mysqli->prepare('UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ?');
-	$stmt->bind_param('iisi', $date, $member_id, $message, $id);
+	$stmt = $mysqli->prepare('UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ? AND epoch = ?');
+	$stmt->bind_param('iisii', $date, $member_id, $message, $id, $epoch);
 	$stmt->execute();
 	$stmt->close();
 

@@ -4,9 +4,13 @@ require_once('common.php');
 $default_page = 1;
 $default_limit = 100;
 
-if(isset($_GET['id'])) {
+if(isset($_GET['id']) && isset($_GET['epoch'])) {
 	$id = $_GET['id'];
 	if(!preg_match('/^[0-9]+$/', $id)) {
+		die();
+	}
+	$epoch = $_GET['epoch'];
+	if(!preg_match('/^[0-9]+$/', $epoch)) {
 		die();
 	}
 	if(!isset($_GET['limit'])) {
@@ -14,15 +18,15 @@ if(isset($_GET['id'])) {
 	}
 	else {
 		$limit = $_GET['limit'];
-		if(!preg_match('/^[0-9]+$/', $id)) {
+		if(!preg_match('/^[0-9]+$/', $limit)) {
 			$limit = $default_limit;
 		}
 	}
 
-	$stmt = $mysqli->prepare('SELECT id FROM shouts WHERE id = ?');
-	$stmt->bind_param('i', $id);
+	$stmt = $mysqli->prepare('SELECT id, epoch FROM shouts WHERE id = ? and epoch = ?');
+	$stmt->bind_param('ii', $id, $epoch);
 	$stmt->execute();
-	$stmt->bind_result($found_id);
+	$stmt->bind_result($found_id, $found_epoch);
 	$found = false;
 	while($stmt->fetch()) {
 		$found = true;
@@ -32,8 +36,8 @@ if(isset($_GET['id'])) {
 		die();
 	}
 
-	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts WHERE id > ?');
-	$stmt->bind_param('i', $id);
+	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts WHERE (id > ? AND epoch = ?) OR epoch > ?');
+	$stmt->bind_param('iii', $id, $epoch, $epoch);
 	$stmt->execute();
 	$stmt->bind_result($shouts);
 	$stmt->fetch();
@@ -41,7 +45,7 @@ if(isset($_GET['id'])) {
 
 	$page = floor(($shouts+1)/$limit)+1;
 
-	header("Location: ?limit=$limit&page=$page#message$id");
+	header("Location: ?limit=$limit&page=$page#message${id}_$epoch");
 	die();
 }
 
@@ -57,29 +61,29 @@ $offset = ($page-1)*$limit;
 
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	if (isset($_GET['user']) && trim($_GET['user']) != '') {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$user = $_GET['user'];
 		$stmt->bind_param('ssii', $user, $text_filter, $offset, $limit);
 	}
 	else {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
+		$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
 		$text_filter = '%' . $_GET['text'] . '%';
 		$stmt->bind_param('sii', $text_filter, $offset, $limit);
 	}
 }
 else if (isset($_GET['user']) && trim($_GET['user']) != '') {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
 	$user = $_GET['user'];
 	$stmt->bind_param('sii', $user, $offset, $limit);
 }
 else {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE deleted = 0 ORDER BY s.id DESC LIMIT ?, ?');
+	$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
 	$stmt->bind_param('ii', $offset, $limit);
 }
 
 $stmt->execute();
-$stmt->bind_result($id, $date, $color, $user_id, $user_name, $message);
+$stmt->bind_result($id, $epoch, $date, $color, $user_id, $user_name, $message);
 $data = array();
 // TODO simplify this
 $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
@@ -109,7 +113,7 @@ while($stmt->fetch()) {
 
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
-	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id);
+	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id, 'epoch' => $epoch);
 }
 $stmt->close();
 
@@ -206,7 +210,7 @@ echo '<?xml version="1.0" ?>';
 		<table>
 			<?php foreach($data as $row): ?>
 				<tr>
-					<td class="date"><a id="message<?php echo $row['id'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] ?>"><?php echo $row['date'] ?></a></td>
+					<td class="date"><a id="message<?php echo $row['id'] . '_' . $row['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] . '&amp;epoch=' . $row['epoch'] ?>"><?php echo $row['date'] ?></a></td>
 					<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
 					<td class="message"><?php echo $row['message'] ?></td>
 				</tr>

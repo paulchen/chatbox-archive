@@ -5,26 +5,28 @@ $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 $mysqli->query('SET NAMES utf8');
 
 /* HTTP basic authentication */
-if(!isset($_SERVER['PHP_AUTH_USER'])) {
-	noauth();
-}
+if(!defined('STDIN') && !isset($argc)) {
+	if(!isset($_SERVER['PHP_AUTH_USER'])) {
+		noauth();
+	}
 
-$username = $_SERVER['PHP_AUTH_USER'];
-$password = $_SERVER['PHP_AUTH_PW'];
+	$username = $_SERVER['PHP_AUTH_USER'];
+	$password = $_SERVER['PHP_AUTH_PW'];
 
-$stmt = $mysqli->prepare('SELECT hash FROM accounts WHERE username = ?');
-$stmt->bind_param('s', $username);
-$stmt->execute();
-$stmt->bind_result($db_hash);
-$found = false;
-while($stmt->fetch()) {
-	$found = true;
-}
-$stmt->close();
+	$stmt = $mysqli->prepare('SELECT hash FROM accounts WHERE username = ?');
+	$stmt->bind_param('s', $username);
+	$stmt->execute();
+	$stmt->bind_result($db_hash);
+	$found = false;
+	while($stmt->fetch()) {
+		$found = true;
+	}
+	$stmt->close();
 
-$hash = crypt($password, $db_hash);
-if($hash != $db_hash) {
-	noauth();
+	$hash = crypt($password, $db_hash);
+	if($hash != $db_hash) {
+		noauth();
+	}
 }
 
 $memcached = new Memcached();
@@ -49,6 +51,29 @@ function unicode_character($matches) {
 		return ' ';
 	}
 
+}
+
+function get_setting($key) {
+	global $mysqli;
+
+	$stmt = $mysqli->prepare('SELECT value FROM settings WHERE `key` = ?');
+	echo $mysqli->error;
+	$stmt->bind_param('s', $key);
+	$stmt->execute();
+	$stmt->bind_result($value);
+	$stmt->fetch();
+	$stmt->close();
+
+	return $value;
+}
+
+function set_setting($key, $value) {
+	global $mysqli;
+
+	$stmt = $mysqli->prepare('INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?');
+	$stmt->bind_param('sss', $key, $value, $value);
+	$stmt->execute();
+	$stmt->close();
 }
 
 

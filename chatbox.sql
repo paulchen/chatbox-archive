@@ -35,11 +35,12 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 
 CREATE TABLE IF NOT EXISTS `shouts` (
   `id` int(11) NOT NULL,
+  `epoch` int(11) NOT NULL,
   `date` datetime NOT NULL,
   `user` int(11) NOT NULL,
   `message` mediumtext NOT NULL,
   `deleted` tinyint(4) NOT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`,`epoch`),
   KEY `user` (`user`),
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
