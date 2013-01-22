@@ -15,3 +15,5 @@ $cookie_file = 'cookies.txt';
 $lockfile = 'chatbox.lock';
 $logfile = 'log';
 
+$report_email = 'paulchen@rueckgr.at';
+
