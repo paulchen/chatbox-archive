@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cookie_file=cookies.txt
-lockfile=chatbox.lock
-logfile=log
-
 cd `dirname $0`
+
+cookie_file=`grep cookie_file config.php|sed -e "s/^.*= '//g;s/';//g"`
+lockfile=`grep lockfile config.php|sed -e "s/^.*= '//g;s/';//g"`
+logfile=`grep logfile config.php|sed -e "s/^.*= '//g;s/';//g"`
 
 exec 9>$lockfile
 if ! flock -n 9  ; then

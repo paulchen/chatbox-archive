@@ -11,3 +11,7 @@ $memcached_servers = array();
 $memcached_servers[] = array('ip' => '127.0.0.1', 'port' => 11211);
 $memcached_prefix = 'chatbox';
 
+$cookie_file = 'cookies.txt';
+$lockfile = 'chatbox.lock';
+$logfile = 'log';
+
