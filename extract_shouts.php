@@ -17,9 +17,6 @@ $epoch = get_setting('current_epoch');
 
 $processed_ids = array();
 
-#process_shout(10, '2014-01-01', 4233, 'Paulchen', 'green', 'blubbblubb');
-#die();
-
 $contents = file_get_contents($argv[1]);
 if(strpos($contents, 'vsa_chatbox_bit') !== false) {
 	$ret = process_chatbox($contents);
