@@ -57,7 +57,6 @@ function get_setting($key) {
 	global $mysqli;
 
 	$stmt = $mysqli->prepare('SELECT value FROM settings WHERE `key` = ?');
-	echo $mysqli->error;
 	$stmt->bind_param('s', $key);
 	$stmt->execute();
 	$stmt->bind_result($value);
