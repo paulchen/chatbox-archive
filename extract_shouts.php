@@ -104,6 +104,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		set_setting('current_epoch', $epoch);
 		$max_id = $id;
 		$found = false;
+		epoch_change_mail();
 	}
 	 */
 
@@ -253,6 +254,24 @@ function process_chatbox_archive($contents) {
 	}
 
 	return $ret;
+}
+
+function epoch_change_mail() {
+	ob_start();
+	require(dirname(__FILE__) . '/templates/mails/epoch_change.php');
+	$message = ob_get_contents();
+	ob_end_clean();
+
+	// TODO duplicate code
+	$headers = "From: $email_from\n";
+	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
+	$headers .= "Content-Transfer-Encoding: 8bit\n";
+
+	$subject = 'Processing error';
+
+	mail($report_email, $subject, $message, $headers);
+
+	die();
 }
 
 function message_count_error($expected, $actual) {
