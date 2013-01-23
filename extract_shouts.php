@@ -98,12 +98,14 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	$max_id = max($id, $max_id);
 	// TODO magic number
+	/*
 	if($id < $max_id - 10000) {
 		$epoch++;
 		set_setting('current_epoch', $epoch);
 		$max_id = $id;
 		$found = false;
 	}
+	 */
 
 	if(count($data) == 0) {
 		$query = 'INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)';
@@ -112,8 +114,8 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		return 1;
 	}
 
-	$query = 'UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ? AND epoch = ?';
-	db_query($query, array($date, $member_id, $message, $id, $epoch));
+	$query = 'UPDATE shouts SET user = ?, message = ? WHERE id = ? AND epoch = ?';
+	db_query($query, array($member_id, $message, $id, $epoch));
 
 	return 0;
 }
