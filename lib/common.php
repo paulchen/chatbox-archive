@@ -61,6 +61,7 @@ function db_error($error, $stacktrace, $query, $parameters) {
 	$message = ob_get_contents();
 	ob_end_clean();
 
+	// TODO duplicate code
 	$headers = "From: $email_from\n";
 	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
 	$headers .= "Content-Transfer-Encoding: 8bit\n";

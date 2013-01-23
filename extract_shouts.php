@@ -121,6 +121,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 function process_chatbox($contents) {
 	$last_pos = 0;
 	$ret = 0;
+	$processed = 0;
 	while(true) {
 		$pos1 = strpos($contents, '<!-- BEGIN TEMPLATE: vsa_chatbox_bit -->', $last_pos);
 		if($pos1 === false) {
@@ -172,6 +173,13 @@ function process_chatbox($contents) {
 		$ret += process_shout($id, $date, $member_id, $member_nick, $nick_color, $message);
 
 		$last_pos = $pos2;
+
+		$processed++;
+	}
+
+	// TODO magic number
+	if($processed != 30) {
+		message_count_error(30, $processed);
 	}
 
 	return $ret;
@@ -180,6 +188,7 @@ function process_chatbox($contents) {
 function process_chatbox_archive($contents) {
 	$last_pos = 0;
 	$ret = 0;
+	$processed = 0;
 	while(true) {
 		$pos1 = strpos($contents, '<!-- BEGIN TEMPLATE: vsa_chatbox_archive_bit -->', $last_pos);
 		if($pos1 === false) {
@@ -232,8 +241,36 @@ function process_chatbox_archive($contents) {
 		$ret += process_shout($id, $date, $member_id, $member_nick, $nick_color, $message);
 
 		$last_pos = $pos2;
+
+		$processed++;
+	}
+
+	// TODO magic number
+	if($processed != 25) {
+		message_count_error(25, $processed);
 	}
 
 	return $ret;
+}
+
+function message_count_error($expected, $actual) {
+	global $argv, $email_from, $report_email;
+
+	$input_file = $argv[1];
+	ob_start();
+	require(dirname(__FILE__) . '/templates/mails/message_count.php');
+	$message = ob_get_contents();
+	ob_end_clean();
+
+	// TODO duplicate code
+	$headers = "From: $email_from\n";
+	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
+	$headers .= "Content-Transfer-Encoding: 8bit\n";
+
+	$subject = 'Processing error';
+
+	mail($report_email, $subject, $message, $headers);
+
+	die();
 }
 
