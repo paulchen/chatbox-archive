@@ -70,6 +70,8 @@ function db_error($error, $stacktrace, $query, $parameters) {
 
 	mail($report_email, $subject, $message, $headers);
 
+	header('HTTP/1.1 500 Internal Server Error');
+	echo "A database error has just occurred. Please don't freak out, the administrator has already been notified.";
 	die();
 }
 
