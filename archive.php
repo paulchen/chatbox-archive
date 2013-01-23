@@ -48,6 +48,9 @@ if(!preg_match('/^[0-9]+$/', $limit)) {
 }
 $offset = ($page-1)*$limit;
 
+$limit = intval($limit);
+$offset = intval($offset);
+
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	if (isset($_GET['user']) && trim($_GET['user']) != '') {
 		$query = 'SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?';
