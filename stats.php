@@ -1,7 +1,7 @@
 <?php
 // TODO check if included
 
-require_once('common.php');
+require_once('lib/common.php');
 
 $last_update = -1;
 foreach($queries as $index => $query) {

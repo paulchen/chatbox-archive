@@ -1,5 +1,5 @@
 <?php
-require_once('common.php');
+require_once('lib/common.php');
 
 $default_page = 1;
 $default_limit = 100;
@@ -23,27 +23,16 @@ if(isset($_GET['id']) && isset($_GET['epoch'])) {
 		}
 	}
 
-	$stmt = $mysqli->prepare('SELECT id, epoch FROM shouts WHERE id = ? and epoch = ?');
-	$stmt->bind_param('ii', $id, $epoch);
-	$stmt->execute();
-	$stmt->bind_result($found_id, $found_epoch);
-	$found = false;
-	while($stmt->fetch()) {
-		$found = true;
-	}
-	$stmt->close();
+	$query = 'SELECT id, epoch FROM shouts WHERE id = ? and epoch = ?';
+	$data = $db->query($query, array($id, $epoch));
 	if(!$found) {
 		die();
 	}
 
-	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts WHERE (id > ? AND epoch = ?) OR epoch > ?');
-	$stmt->bind_param('iii', $id, $epoch, $epoch);
-	$stmt->execute();
-	$stmt->bind_result($shouts);
-	$stmt->fetch();
-	$stmt->close();
+	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE (id > ? AND epoch = ?) OR epoch > ?';
+	$data = $db->query($quety, array($id, $epoch, $epoch));
 
-	$page = floor(($shouts+1)/$limit)+1;
+	$page = floor(($data[0]['shouts']+1)/$limit)+1;
 
 	header("Location: ?limit=$limit&page=$page#message${id}_$epoch");
 	die();
@@ -61,34 +50,44 @@ $offset = ($page-1)*$limit;
 
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	if (isset($_GET['user']) && trim($_GET['user']) != '') {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
+		$query = 'SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?';
 		$text_filter = '%' . $_GET['text'] . '%';
 		$user = $_GET['user'];
-		$stmt->bind_param('ssii', $user, $text_filter, $offset, $limit);
+		$params = array($user, $text_filter, $offset, $limit);
 	}
 	else {
-		$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
+		$query = 'SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE s.message LIKE ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?';
 		$text_filter = '%' . $_GET['text'] . '%';
-		$stmt->bind_param('sii', $text_filter, $offset, $limit);
+		$params = array($text_filter, $offset, $limit);
 	}
 }
 else if (isset($_GET['user']) && trim($_GET['user']) != '') {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
+	$query = 'SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE u.name = ? AND deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?';
 	$user = $_GET['user'];
-	$stmt->bind_param('sii', $user, $offset, $limit);
+	$params = array($user, $offset, $limit);
 }
 else {
-	$stmt = $mysqli->prepare('SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?');
-	$stmt->bind_param('ii', $offset, $limit);
+	$query = 'SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE deleted = 0 ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?';
+	$params = array($offset, $limit);
 }
 
-$stmt->execute();
-$stmt->bind_result($id, $epoch, $date, $color, $user_id, $user_name, $message);
+$db_data = db_query($query, $params);
+
+// $stmt->bind_result(array($id, $epoch, $date, $color, $user_id, $user_name, $message));
 $data = array();
 // TODO simplify this
 $patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
 $replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
-while($stmt->fetch()) {
+foreach($db_data as $row) {
+	// TODO simplify this
+	$id = $row['id'];
+	$epoch = $row['epoch'];
+	$date = $row['date'];
+	$color = $row['color'];
+	$user_id = $row['user_id'];
+	$user_name = $row['user_name'];
+	$message = $row['message'];
+
 	$datetime = new DateTime($date, new DateTimeZone('Europe/London'));
 	$datetime->setTimezone((new DateTime())->getTimezone());
 	$formatted_date = $datetime->format('[d-m-Y H:i]');
@@ -115,30 +114,28 @@ while($stmt->fetch()) {
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
 	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id, 'epoch' => $epoch);
 }
-$stmt->close();
 
 if(isset($_GET['text']) && trim($_GET['text']) != '') {
 	$text = '%' . $_GET['text'] . '%';
 	if(isset($_GET['user']) && trim($_GET['user']) != '') {
-		$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE message LIKE ? AND u.name = ?');
-		$stmt->bind_param('ss', $text, $_GET['user']);
+		$query = 'SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE message LIKE ? AND u.name = ?';
+		$params = array($text, $_GET['user']);
 	}
 	else {
-		$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts WHERE message LIKE ?');
-		$stmt->bind_param('s', $text);
+		$query = 'SELECT COUNT(*) shouts FROM shouts WHERE message LIKE ?';
+		$params = array($text);
 	}
 }
 else if(isset($_GET['user']) && trim($_GET['user']) != '') {
-	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE u.name = ?');
-	$stmt->bind_param('s', $_GET['user']);
+	$query = 'SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE u.name = ?';
+	$params = array($_GET['user']);
 }
 else {
-	$stmt = $mysqli->prepare('SELECT COUNT(*) shouts FROM shouts');
+	$query = 'SELECT COUNT(*) shouts FROM shouts';
+	$params = array();
 }
-$stmt->execute();
-$stmt->bind_result($total_shouts);
-$stmt->fetch();
-$stmt->close();
+$db_data = db_query($query, $params);
+$total_shouts = $db_data[0]['shouts'];
 
 $page_count = ceil($total_shouts/$limit);
 $link_parts = "?limit=$limit";

@@ -8,7 +8,7 @@ if($argc != 2) {
 	die();
 }
 
-require_once('common.php');
+require_once('lib/common.php');
 
 $mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE');
 

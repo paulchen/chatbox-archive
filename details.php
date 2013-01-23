@@ -1,5 +1,5 @@
 <?php
-require_once('common.php');
+require_once('lib/common.php');
 
 function overview_redirect() {
 	header('Location: overview.php');

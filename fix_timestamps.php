@@ -1,5 +1,5 @@
 <?php
-require_once('common.php');
+require_once('lib/common.php');
 
 $ranges = array(
 	array('start' => 1, 'end' => 129206, 'offset' => -2),
