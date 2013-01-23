@@ -82,15 +82,11 @@ if(isset($_REQUEST['month']) && !isset($_REQUEST['year'])) {
 if(isset($_REQUEST['user'])) {
 	$user = $_REQUEST['user'];
 
-	$stmt = $mysqli->prepare('SELECT id FROM users WHERE name = ?');
-	$stmt->bind_param('s', $user);
-	$stmt->execute();
-	$stmt->bind_result($user_id);
-	$stmt->fetch();
-	$stmt->close();
-	if(!$user_id) {
+	$user_data = db_query('SELECT id FROM users WHERE name = ?', array($user));
+	if(count($user_data) != 1) {
 		overview_redirect();
 	}
+	$user_id = $user_data[0]['id'];
 }
 if(isset($_REQUEST['year'])) {
 	if(isset($_REQUEST['day'])) {
@@ -252,5 +248,5 @@ $backlink = array(
 		'text' => 'Spam overview',
 	);
 
-require_once('stats.php');
+require_once(dirname(__FILE__) . '/lib/stats.php');
 

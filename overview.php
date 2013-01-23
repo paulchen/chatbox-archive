@@ -115,5 +115,5 @@ $backlink = array(
 		'text' => 'Chatbox archive',
 	);
 
-require_once('stats.php');
+require_once(dirname(__FILE__) . '/lib/stats.php');
 
