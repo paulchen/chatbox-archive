@@ -16,4 +16,5 @@ $lockfile = 'chatbox.lock';
 $logfile = 'log';
 
 $report_email = 'paulchen@rueckgr.at';
+$email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';
 

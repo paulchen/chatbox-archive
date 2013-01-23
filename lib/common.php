@@ -34,24 +34,42 @@ function db_query($query, $parameters = array()) {
 	global $db;
 
 	if(!($stmt = $db->prepare($query))) {
-		// TODO
-		die("$query\n" . var_dump($db->errorInfo()));
+		$error = $db->errorInfo();
+		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
 	// see https://bugs.php.net/bug.php?id=40740 and https://bugs.php.net/bug.php?id=44639
 	foreach($parameters as $key => $value) {
 		$stmt->bindValue($key+1, $value, is_numeric($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
 	}
 	if(!$stmt->execute()) {
-		// TODO
-		die("$query\n" . var_dump($stmt->errorInfo()));
+		$error = $stmt->errorInfo();
+		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
-	// TODO any errors?
 	$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	if(!$stmt->closeCursor()) {
-		// TODO
-		die("$query\n" . var_dump($stmt->errorInfo()));
+		$error = $stmt->errorInfo();
+		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
 	return $data;
+}
+
+function db_error($error, $stacktrace, $query, $parameters) {
+	global $report_email, $email_from;
+
+	ob_start();
+	require(dirname(__FILE__) . '/../templates/mails/db_error.php');
+	$message = ob_get_contents();
+	ob_end_clean();
+
+	$headers = "From: $email_from\n";
+	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
+	$headers .= "Content-Transfer-Encoding: 8bit\n";
+
+	$subject = 'Database error';
+
+	mail($report_email, $subject, $message, $headers);
+
+	die();
 }
 
 function noauth() {

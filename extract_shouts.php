@@ -10,7 +10,7 @@ if($argc != 2) {
 
 require_once('lib/common.php');
 
-$mysqli->query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE');
+db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE');
 
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
@@ -25,7 +25,7 @@ else if(strpos($contents, 'vsa_chatbox_archive_bit') !== false) {
 	$ret = process_chatbox_archive($contents);
 }
 else {
-	$mysqli->query('UNLOCK TABLES');
+	db_query('UNLOCK TABLES');
 	die();
 }
 
@@ -35,82 +35,54 @@ sort($processed_ids);
 $min = $processed_ids[0];
 $max = $processed_ids[count($processed_ids)-1];
 
-$stmt = $mysqli->prepare('SELECT id FROM shouts WHERE id >= ? AND id <= ?');
-$stmt->bind_param('ii', $min, $max);
-$stmt->execute();
-$stmt->bind_result($id);
+$query = 'SELECT id FROM shouts WHERE id >= ? AND id <= ?';
+$data = db_query($query, array($min, $max));
 $deleted_ids = array();
-while($stmt->fetch()) {
-	if(!in_array($id, $processed_ids)) {
-		$deleted_ids[] = $id;
+foreach($data as $row) {
+	if(!in_array($row['id'], $processed_ids)) {
+		$deleted_ids[] = $row['id'];
 	}
 }
-$stmt->close();
 
 /*
-$stmt = $mysqli->prepare('UPDATE shouts SET deleted = 1 WHERE id = ?');
+$query = ('UPDATE shouts SET deleted = 1 WHERE id = ?';
 foreach($deleted_ids as $id) {
-	$stmt->bind_param('i', $id);
-	$stmt->execute();
+	db_query($query, array($id));
 }
-$stmt->close();
  */
 
-$mysqli->query('UNLOCK TABLES');
+db_query('UNLOCK TABLES');
 
-$mysqli->close();
 die($ret);
 
 function process_nick_color($nick_color) {
-	global $mysqli;
+	$query = 'SELECT id FROM user_categories WHERE color = ?';
+	$data = db_query($query, array($nick_color));
 
-	$stmt = $mysqli->prepare('SELECT id FROM user_categories WHERE color = ?');
-	$stmt->bind_param('s', $nick_color);
-	$stmt->execute();
-	$stmt->bind_result($id);
-	$found = false;
-	while($stmt->fetch()) {
-		$found = true;
-	}
-	$stmt->close();
-
-	if(!$found) {
-		$stmt = $mysqli->prepare('INSERT INTO user_categories (name, color) VALUES (?, ?)');
-		$stmt->bind_param('ss', $nick_color, $nick_color);
-		$stmt->execute();
-		$id = $mysqli->insert_id;
-		$stmt->close();
+	if(count($data) == 0) {
+		$query = 'INSERT INTO user_categories (name, color) VALUES (?, ?)';
+		db_query($query, array($nick_color, $nick_color));
 	}
 
-	return $id;
+	$query = 'SELECT id FROM user_categories WHERE color = ?';
+	$data = db_query($query, array($nick_color));
+
+	return $data[0]['id'];
 }
 
 function process_nick($member_id, $member_nick, $nick_color) {
-	global $mysqli;
-
 	$id = process_nick_color($nick_color);
 
-	$stmt = $mysqli->prepare('SELECT id FROM users WHERE id = ?');
-	$stmt->bind_param('i', $member_id);
-	$stmt->execute();
-	$stmt->bind_result($found_id);
-	$found = false;
-	while($stmt->fetch()) {
-		$found = true;
-	}
-	$stmt->close();
+	$query = 'SELECT id FROM users WHERE id = ?';
+	$data = db_query($query, array($member_id));
 
-	if($found) {
-		$stmt = $mysqli->prepare('UPDATE users SET name = ?, category = ? WHERE id = ?');
-		$stmt->bind_param('sii', $member_nick, $id, $member_id);
-		$stmt->execute();
-		$stmt->close();
+	if(count($data) > 0) {
+		$query = 'UPDATE users SET name = ?, category = ? WHERE id = ?';
+		db_query($query, array($member_nick, $id, $member_id));
 	}
 	else {
-		$stmt = $mysqli->prepare('INSERT INTO users (id, name, category) VALUES (?, ?, ?)');
-		$stmt->bind_param('isi', $member_id, $member_nick, $id);
-		$stmt->execute();
-		$stmt->close();
+		$query = 'INSERT INTO users (id, name, category) VALUES (?, ?, ?)';
+		db_query($query, array($member_id, $member_nick, $id));
 	}
 }
 
@@ -121,15 +93,8 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	process_nick($member_id, $member_nick, $nick_color);
 
-	$stmt = $mysqli->prepare('SELECT id, epoch FROM shouts WHERE id = ? AND epoch = ?');
-	$stmt->bind_param('ii', $id, $epoch);
-	$stmt->execute();
-	$stmt->bind_result($fetched_id, $fetched_epoch);
-	$found = false;
-	while($stmt->fetch()) {
-		$found = true;
-	}
-	$stmt->close();
+	$query = 'SELECT id, epoch FROM shouts WHERE id = ? AND epoch = ?';
+	$data = db_query($query, array($id, $epoch));
 
 	$max_id = max($id, $max_id);
 	// TODO magic number
@@ -140,19 +105,15 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		$found = false;
 	}
 
-	if(!$found) {
-		$stmt = $mysqli->prepare('INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)');
-		$stmt->bind_param('iiiis', $id, $epoch, $date, $member_id, $message);
-		$stmt->execute();
-		$stmt->close();
+	if(count($data) == 0) {
+		$query = 'INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)';
+		db_query($query, array($id, $epoch, $date, $member_id, $message));
 
 		return 1;
 	}
 
-	$stmt = $mysqli->prepare('UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ? AND epoch = ?');
-	$stmt->bind_param('iisii', $date, $member_id, $message, $id, $epoch);
-	$stmt->execute();
-	$stmt->close();
+	$query = 'UPDATE shouts SET date = FROM_UNIXTIME(?), user = ?, message = ? WHERE id = ? AND epoch = ?';
+	db_query($query, array($date, $member_id, $message, $id, $epoch));
 
 	return 0;
 }

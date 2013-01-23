@@ -6,13 +6,16 @@ Error:
 
 <?php echo $error ?>
 
+
 Stacktrace:
 
 <?php print_r($stacktrace) ?>
 
+
 Query:
 
 <?php echo $query ?>
+
 
 Parameters:
 
