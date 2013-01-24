@@ -24,13 +24,13 @@ if(isset($_GET['id']) && isset($_GET['epoch'])) {
 	}
 
 	$query = 'SELECT id, epoch FROM shouts WHERE id = ? and epoch = ?';
-	$data = $db->query($query, array($id, $epoch));
-	if(!$found) {
+	$data = db_query($query, array($id, $epoch));
+	if(count($data) != 1) {
 		die();
 	}
 
 	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE (id > ? AND epoch = ?) OR epoch > ?';
-	$data = $db->query($quety, array($id, $epoch, $epoch));
+	$data = db_query($query, array($id, $epoch, $epoch));
 
 	$page = floor(($data[0]['shouts']+1)/$limit)+1;
 
