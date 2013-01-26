@@ -27,12 +27,10 @@ function ex_aequo(&$data, $col) {
 
 $last_update = -1;
 foreach($queries as $index => $query) {
-	if(isset($query['params'])) {
-		$hash = sha1($query['query'] . serialize($query['params']));
+	if(!isset($query['params'])) {
+		$query['params'] = array();
 	}
-	else {
-		$hash = sha1($query['query']);
-	}
+	$hash = sha1($query['query'] . serialize($query['params']));
 	$memcached_key = "${memcached_prefix}_stats_$hash";
 	$memcached_data = $memcached->get($memcached_key);
 	if($memcached_data) {
