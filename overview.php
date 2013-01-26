@@ -18,6 +18,28 @@ function messages_per_year(&$row) {
 	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "\">" . $row[0]['year'] . '</a>';
 }
 
+function ex_aequo2(&$data) {
+	ex_aequo($data, 2);
+}
+
+function ex_aequo3(&$data) {
+	ex_aequo($data, 3);
+}
+
+function ex_aequo(&$data, $col) {
+	$last_value = -1;
+	foreach($data[0] as &$row) {
+		$keys = array_keys($row);
+		$first_row = $keys[0];
+		$compare_row = $keys[$col];
+		if($row[$compare_row] == $last_value) {
+			$row[$first_row] = '';
+		}
+		$last_value = $row[$compare_row];
+	}
+	unset($row);
+}
+
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
@@ -27,8 +49,9 @@ $queries[] = array(
 				(select unix_timestamp(max(date)) from shouts where user=a.id) as last_shout
 				from (select u.id, u.name, count(*) as shouts from shouts s join users u
 				on (s.user = u.id) where deleted = 0 group by u.id, u.name) a) b, (select @row:=0) c
-			order by b.shouts desc",
+			order by b.shouts desc, average_shouts_per_day desc, b.name asc",
 		'processing_function' => 'add_user_link',
+		'processing_function_all' => 'ex_aequo2',
 		'columns' => array('Position', 'Username', 'Messages', 'Average messages per day'),
 		'column_styles' => array('right', 'left', 'right', 'right'),
 	);
@@ -40,8 +63,9 @@ $queries[] = array(
 				(select unix_timestamp(max(date)) from shouts where user=a.id) as last_shout
 				from (select u.id, u.name, count(*) as shouts from shouts s join users u
 				on (s.user = u.id) where deleted = 0 group by u.id, u.name) a) b, (select @row:=0) c
-			order by average_shouts_per_day desc",
+			order by average_shouts_per_day desc, b.shouts desc, b.name asc",
 		'processing_function' => 'add_user_link',
+		'processing_function_all' => 'ex_aequo3',
 		'columns' => array('Position', 'Username', 'Messages', 'Average messages per day'),
 		'column_styles' => array('right', 'left', 'right', 'right'),
 	);
@@ -88,15 +112,17 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per month, ordered by number of messages',
-		'query' => "select concat(@row:=@row+1, '.'), month, shouts from (select date_format(date, '%Y-%m') month, count(*) as shouts from shouts c where deleted = 0 group by month order by shouts desc) a, (select @row:=0) c",
+		'query' => "select concat(@row:=@row+1, '.'), month, shouts from (select date_format(date, '%Y-%m') month, count(*) as shouts from shouts c where deleted = 0 group by month order by shouts desc, month asc) a, (select @row:=0) c",
 		'processing_function' => 'messages_per_month',
+		'processing_function_all' => 'ex_aequo2',
 		'columns' => array('Position', 'Month', 'Messages'),
 		'column_styles' => array('right', 'left', 'right'),
 	);
 $queries[] = array(
 		'title' => 'Messages per year, ordered by number of messages',
-		'query' => "select concat(@row:=@row+1, '.'), year, shouts from (select date_format(date, '%Y') year, count(*) as shouts from shouts c where deleted = 0 group by year order by shouts desc) a, (select @row:=0) c",
+		'query' => "select concat(@row:=@row+1, '.'), year, shouts from (select date_format(date, '%Y') year, count(*) as shouts from shouts c where deleted = 0 group by year order by shouts desc, year asc) a, (select @row:=0) c",
 		'processing_function' => 'messages_per_year',
+		'processing_function_all' => 'ex_aequo2',
 		'columns' => array('Position', 'Year', 'Messages'),
 		'column_styles' => array('right', 'left', 'right'),
 	);
