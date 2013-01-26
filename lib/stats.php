@@ -3,6 +3,28 @@
 
 require_once(dirname(__FILE__) . '/common.php');
 
+function ex_aequo2(&$data) {
+	ex_aequo($data, 2);
+}
+
+function ex_aequo3(&$data) {
+	ex_aequo($data, 3);
+}
+
+function ex_aequo(&$data, $col) {
+	$last_value = -1;
+	foreach($data[0] as &$row) {
+		$keys = array_keys($row);
+		$first_row = $keys[0];
+		$compare_row = $keys[$col];
+		if($row[$compare_row] == $last_value) {
+			$row[$first_row] = '';
+		}
+		$last_value = $row[$compare_row];
+	}
+	unset($row);
+}
+
 $last_update = -1;
 foreach($queries as $index => $query) {
 	if(isset($query['params'])) {
