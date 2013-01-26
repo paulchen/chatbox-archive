@@ -18,3 +18,5 @@ $logfile = 'log';
 $report_email = 'paulchen@rueckgr.at';
 $email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';
 
+$refresh_time = 10;
+

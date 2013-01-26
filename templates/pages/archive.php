@@ -1,5 +1,6 @@
 <?php
-echo '<?xml version="1.0" ?>';
+if(!$ajax):
+	echo '<?xml version="1.0" ?>';
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -22,6 +23,43 @@ echo '<?xml version="1.0" ?>';
 	a:hover { color: red; }
 	img { border: none; }
 	</style>
+	<script type="text/javascript" src="lib/jquery.min.js"></script>
+	<script type="text/javascript">
+<!--
+var timeout;
+
+function refresh() {
+	var url = document.location.href + "&ajax=on";
+
+	$.ajax({
+		url : url,
+		success : function(data, textStatus, xhr) {
+			$('#content').children().remove(); // replaceWith('');
+			$('#content').append(data);
+		},
+		complete : function(xhr, textStatus) {
+			update_refresh();
+		}
+	});
+}
+
+function update_refresh() {
+	clearTimeout(timeout);
+	if($('#refresh_checkbox').is(':checked')) {
+		timeout = setTimeout('refresh();', <?php echo $refresh_time*1000 ?>);
+	}
+}
+
+$(document).ready(function() {
+	update_refresh();
+
+	$('#refresh_checkbox').change(function() {
+		update_refresh();
+	});
+});
+
+// -->
+	</script>
 </head>
 <body>
 	<h1>Chatbox archive</h1>
@@ -35,18 +73,23 @@ echo '<?xml version="1.0" ?>';
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
 		<tr><td>Page:</td><td><input type="text" name="page" value="<?php echo $page; ?>" /> (of <?php echo $page_count; ?>) <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a> <a href="<?php echo $last_link ?>">Last</a></td></tr>
 		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="document.location.href='?';" /></td></tr>
+		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;Auto-refresh every <?php echo $refresh_time ?> seconds.</td></tr>
 		</table>
 		</form>
 		</fieldset>
-		<table>
-			<?php foreach($data as $row): ?>
-				<tr>
-					<td class="date"><a id="message<?php echo $row['id'] . '_' . $row['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] . '&amp;epoch=' . $row['epoch'] ?>"><?php echo $row['date'] ?></a></td>
-					<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
-					<td class="message"><?php echo $row['message'] ?></td>
-				</tr>
-			<?php endforeach; ?>
-		</table>		
+		<div id="content">
+<?php endif; /* if(!$ajax) */ ?>
+			<table>
+				<?php foreach($data as $row): ?>
+					<tr>
+						<td class="date"><a id="message<?php echo $row['id'] . '_' . $row['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] . '&amp;epoch=' . $row['epoch'] ?>"><?php echo $row['date'] ?></a></td>
+						<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
+						<td class="message"><?php echo $row['message'] ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</table>
+<?php if(!$ajax): ?>
+		</div>
 		<div style="padding-top: 15px; padding-left: 5px;">
 			Page <?php echo $page; ?> of <?php echo $page_count; ?> &ndash; <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a> <a href="<?php echo $last_link ?>">Last</a>
 		</div>
@@ -57,3 +100,5 @@ echo '<?xml version="1.0" ?>';
 	</p>
 </body>
 </html>
+<?php endif; /* if(!$ajax) */ ?>
+
