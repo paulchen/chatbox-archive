@@ -37,6 +37,9 @@ foreach($queries as $index => $query) {
 		unset($value);
 	}
 
+	if(isset($query['processing_function_all'])) {
+		call_user_func($query['processing_function_all'], array(&$data));
+	}
 	$queries[$index]['data'] = $data;
 }
 
