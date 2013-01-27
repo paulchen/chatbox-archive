@@ -29,7 +29,13 @@ if(!$ajax):
 var timeout;
 
 function refresh() {
-	var url = document.location.href + "&ajax=on";
+	var url;
+	if(document.location.href.indexOf('?') == -1) {
+		var url = document.location.href + "?ajax=on";
+	}
+	else {
+		var url = document.location.href + "&ajax=on";
+	}
 
 	$.ajax({
 		url : url,
