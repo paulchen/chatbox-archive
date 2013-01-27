@@ -116,6 +116,8 @@ foreach($db_data as $row) {
 	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
 
+	$message = preg_replace('/<a /', '<a target="_blank" ', $message);
+
 	// TODO problems with <embed> tag?
 	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
 	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id, 'epoch' => $epoch);
