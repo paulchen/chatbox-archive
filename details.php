@@ -20,6 +20,9 @@ function add_user_link(&$row) {
 	if(isset($_REQUEST['hour'])) {
 		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
 	}
+	if(isset($_REQUEST['smiley'])) {
+		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
+	}
 
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
 }
@@ -38,6 +41,9 @@ function messages_per_hour(&$row) {
 	if(isset($_REQUEST['user'])) {
 		$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
 	}
+	if(isset($_REQUEST['smiley'])) {
+		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
+	}
 
 	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
 }
@@ -49,6 +55,9 @@ function messages_per_month(&$row) {
 	}
 	if(isset($_REQUEST['hour'])) {
 		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
+	}
+	if(isset($_REQUEST['smiley'])) {
+		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 	}
 
 	$parts = explode('-', $row[0]['month']);
@@ -65,11 +74,14 @@ function messages_per_year(&$row) {
 	if(isset($_REQUEST['hour'])) {
 		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
 	}
+	if(isset($_REQUEST['smiley'])) {
+		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
+	}
 
 	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
 }
 
-if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour'])) {
+if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley'])) {
 	overview_redirect();
 }
 if(isset($_REQUEST['day']) && !isset($_REQUEST['month'])) {
@@ -87,6 +99,15 @@ if(isset($_REQUEST['user'])) {
 		overview_redirect();
 	}
 	$user_id = $user_data[0]['id'];
+}
+if(isset($_REQUEST['smiley'])) {
+	$smiley_id = $_REQUEST['smiley'];
+
+	$smiley_data = db_query('SELECT filename FROM smilies WHERE id = ?', array($smiley_id));
+	if(count($smiley_data) != 1) {
+		overview_redirect();
+	}
+	$smiley_filename = $smiley_data[0]['filename'];
 }
 if(isset($_REQUEST['year'])) {
 	if(isset($_REQUEST['day'])) {
@@ -125,6 +146,11 @@ if(isset($_REQUEST['user'])) {
 	$params[] = $user_id;
 	$what_parts[] = $user;
 }
+if(isset($_REQUEST['smiley'])) {
+	$filter_parts[] = "(s.id, s.epoch) in (select shout_id, shout_epoch from shout_smilies where smiley = ?)";
+	$params[] = $smiley_id;
+	$what_parts[] = "smiley <img src=\"smilies/$smiley_filename\" alt=\"\" />";
+}
 $filter = implode(' AND ', $filter_parts);
 $what = implode(', ', $what_parts);
 
@@ -161,7 +187,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select h.hour hour, coalesce(a.shouts, 0) shouts from (select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour) a right join hours_of_day h on (a.hour = h.hour) order by hour asc",
+		'query' => "select h.hour hour, coalesce(a.shouts, 0) shouts from (select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts s where deleted = 0 and $filter group by hour) a right join hours_of_day h on (a.hour = h.hour) order by hour asc",
 		'params' => $params,
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
@@ -169,7 +195,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest hours',
-		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 and $filter group by hour order by count(*) desc",
+		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts s where deleted = 0 and $filter group by hour order by count(*) desc",
 		'params' => $params,
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
@@ -177,7 +203,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select date_format(date, '%Y-%m-%d') day, count(*) as shouts from shouts where deleted = 0 and $filter group by day order by count(*) desc limit 0, 10",
+		'query' => "select date_format(date, '%Y-%m-%d') day, count(*) as shouts from shouts s where deleted = 0 and $filter group by day order by count(*) desc limit 0, 10",
 		'params' => $params,
 		'processing_function' => function(&$row) {
 				$link_parts = '';
@@ -186,6 +212,9 @@ $queries[] = array(
 				}
 				if(isset($_REQUEST['user'])) {
 					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
+				}
+				if(isset($_REQUEST['smiley'])) {
+					$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 				}
 
 				$parts = explode('-', $row[0]['day']);
@@ -200,7 +229,7 @@ $queries[] = array(
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "select date_format(date, '%Y-%m') month, count(*) as shouts from shouts where deleted = 0 and $filter group by month order by month asc",
+			'query' => "select date_format(date, '%Y-%m') month, count(*) as shouts from shouts s where deleted = 0 and $filter group by month order by month asc",
 			'params' => $params,
 			'processing_function' => 'messages_per_month',
 			'columns' => array('Month', 'Messages'),
@@ -210,7 +239,7 @@ if(!isset($_REQUEST['day'])) {
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
-			'query' => "select date_format(date, '%Y') year, count(*) as shouts from shouts where deleted = 0 and $filter group by year order by year asc",
+			'query' => "select date_format(date, '%Y') year, count(*) as shouts from shouts s where deleted = 0 and $filter group by year order by year asc",
 			'params' => $params,
 			'processing_function' => 'messages_per_year',
 			'columns' => array('Year', 'Messages'),
@@ -218,7 +247,7 @@ if(!isset($_REQUEST['month'])) {
 		);
 	$queries[] = array(
 			'title' => 'Messages per month, ordered by number of messages',
-			'query' => "select concat(@row:=@row+1, '.'), month, shouts from (select date_format(date, '%Y-%m') month, count(*) as shouts from shouts c where deleted = 0 and $filter group by month order by shouts desc, month asc) a, (select @row:=0) c",
+			'query' => "select concat(@row:=@row+1, '.'), month, shouts from (select date_format(date, '%Y-%m') month, count(*) as shouts from shouts s where deleted = 0 and $filter group by month order by shouts desc, month asc) a, (select @row:=0) c",
 			'params' => $params,
 			'processing_function' => 'messages_per_month',
 			'processing_function_all' => 'ex_aequo2',
@@ -229,7 +258,7 @@ if(!isset($_REQUEST['month'])) {
 if(!isset($_REQUEST['year'])) {
 	$queries[] = array(
 			'title' => 'Messages per year, ordered by number of messages',
-			'query' => "select concat(@row:=@row+1, '.'), year, shouts from (select date_format(date, '%Y') year, count(*) as shouts from shouts c where deleted = 0 and $filter group by year order by shouts desc, year asc) a, (select @row:=0) c",
+			'query' => "select concat(@row:=@row+1, '.'), year, shouts from (select date_format(date, '%Y') year, count(*) as shouts from shouts s where deleted = 0 and $filter group by year order by shouts desc, year asc) a, (select @row:=0) c",
 			'params' => $params,
 			'processing_function' => 'messages_per_year',
 			'processing_function_all' => 'ex_aequo2',
@@ -239,9 +268,40 @@ if(!isset($_REQUEST['year'])) {
 }
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select s.filename filename, sum(count) from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 and $filter group by ss.smiley, s.filename order by sum(count) desc",
+		'query' => "select sm.filename filename, sum(count) from shout_smilies ss join smilies sm on (ss.smiley = sm.id) join shouts s on (ss.shout_epoch = s.epoch and ss.shout_id = s.id) where s.deleted = 0 and $filter group by ss.smiley, sm.filename order by sum(count) desc",
 		'processing_function' => function(&$row) {
-				$row[0]['filename'] = '<img src="smilies/' . $row[0]['filename'] . '" alt="" />';
+				global $smilies;
+
+				if(!isset($smilies)) {
+					$query = 'SELECT id, filename FROM smilies';
+					$smilies = db_query($query, array());
+				}
+
+				foreach($smilies as $smiley) {
+					if($smiley['filename'] == $row[0]['filename']) {
+						$smiley_id = $smiley['id'];
+						break;
+					}
+				}
+
+				$link_parts = '';
+				if(isset($_REQUEST['hour'])) {
+					$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
+				}
+				if(isset($_REQUEST['day'])) {
+					$link_parts .= '&amp;day=' . $_REQUEST['day'];
+				}
+				if(isset($_REQUEST['month'])) {
+					$link_parts .= '&amp;month=' . $_REQUEST['month'];
+				}
+				if(isset($_REQUEST['year'])) {
+					$link_parts .= '&amp;year=' . $_REQUEST['year'];
+				}
+				if(isset($_REQUEST['user'])) {
+					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
+				}
+
+				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="smilies/' . $row[0]['filename'] . '" alt="" /></a>';
 			},
 		'params' => $params,
 		'columns' => array('Smiley', 'Occurrences'),

@@ -6,6 +6,7 @@ echo '<?xml version="1.0" ?>';
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<!-- TODO HTML tags inside page title -->
 	<title><?php echo htmlentities($page_title, ENT_QUOTES, 'UTF-8') ?></title>
 	<style type="text/css">
 	body { font-family: Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 13px; }
@@ -22,7 +23,8 @@ echo '<?xml version="1.0" ?>';
 	</style>
 </head>
 <body>
-	<h1><?php echo htmlentities($page_title, ENT_QUOTES, 'UTF-8') ?></h1>
+	<?php /* TODO <h1><?php echo htmlentities($page_title, ENT_QUOTES, 'UTF-8') ?></h1> */ ?>
+	<h1><?php echo $page_title ?></h1>
 	<div>
 		<a href="<?php echo $backlink['url'] ?>"><?php echo htmlentities($backlink['text'], ENT_QUOTES, 'UTF-8') ?></a>
 		<ul>
