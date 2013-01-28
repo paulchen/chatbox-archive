@@ -106,7 +106,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select s.filename filename, sum(count) from shout_smilies ss join smilies s on (ss.smiley = s.id) group by ss.smiley, s.filename order by sum(count) desc",
+		'query' => "select s.filename filename, sum(count) from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 group by ss.smiley, s.filename order by sum(count) desc",
 		'processing_function' => function(&$row) {
 				$row[0]['filename'] = '<img src="smilies/' . $row[0]['filename'] . '" alt="" />';
 			},
