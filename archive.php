@@ -79,11 +79,12 @@ else {
 
 $db_data = db_query($query, $params);
 
-// $stmt->bind_result(array($id, $epoch, $date, $color, $user_id, $user_name, $message));
+// TODO move this function to the top of the file?
+function process_smiley($match) {
+	return "smilies/" . basename($match[0]);
+}
+
 $data = array();
-// TODO simplify this
-$patterns = array('pics/nb/smilies/', 'images/smilies/', 'images/nb/smilies/', 'images/ob/smilies', 'pics/ob/smilies');
-$replacements = array('http://www.informatik-forum.at/pics/nb/smilies/', 'http://www.informatik-forum.at/images/smilies/', 'http://www.informatik-forum.at/images/nb/smilies/', 'http://www.informatik-forum.at/images/ob/smilies', 'http://www.informatik-forum.at/pics/ob/smilies');
 foreach($db_data as $row) {
 	// TODO simplify this
 	$id = $row['id'];
@@ -104,9 +105,8 @@ foreach($db_data as $row) {
 	}
 
 	// TODO scan for < and > inside href attributes
-	
-	// TODO simplify this
-	$message = str_replace($patterns, $replacements, $message);
+
+	$message = preg_replace_callback('+(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_smiley', $message);
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);

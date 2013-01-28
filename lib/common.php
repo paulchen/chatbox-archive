@@ -106,4 +106,81 @@ function set_setting($key, $value) {
 	db_query($query, array($key, $value, $value));
 }
 
+function process_message_smiley($match) {
+	global $found_smilies;
+
+	$full_url = 'http://www.informatik-forum.at/' . $match[0];
+	$filename = basename($match[0]);
+
+	$query = 'SELECT id FROM smilies WHERE filename = ?';
+	$data = db_query($query, array($filename));
+	if(count($data) == 0) {
+		$query = 'INSERT INTO smilies (filename) VALUES (?)';
+		db_query($query, array($filename));
+
+		$query = 'SELECT id FROM smilies WHERE filename = ?';
+		$data = db_query($query, array($filename));
+
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $full_url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		$gif = curl_exec($curl);
+		curl_close($curl);
+
+		file_put_contents("smilies/$filename", $gif);
+	}
+
+	$smiley_id = $data[0]['id'];
+	if(!isset($found_smilies[$smiley_id])) {
+		$found_smilies[$smiley_id] = 1;
+	}
+	else {
+		$found_smilies[$smiley_id] = $found_smilies[$smiley_id] + 1;
+	}
+}
+
+function process_smilies($id, $epoch) {
+	global $found_smilies;
+
+	$query = 'SELECT message FROM shouts WHERE id = ? AND epoch = ?';
+	$data = db_query($query, array($id, $epoch));
+	if(count($data) != 1) {
+		return;
+	}
+	$message = $data[0]['message'];
+
+	$found_smilies = array();
+	$message = preg_replace_callback('+(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
+
+	$query = 'SELECT smiley, `count` FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
+	$data = db_query($query, array($id, $epoch));
+
+	$diff = false;
+	foreach($data as $row) {
+		if(!isset($found_smilies[$row['smiley']]) || $found_smilies[$row['smiley']] != $row['count']) {
+			$diff = true;
+		}
+	}
+	foreach($found_smilies as $smiley => $count) {
+		$found = false;
+		foreach($data as $row) {
+			if($row['smiley'] == $smiley && $row['count'] == $count) {
+				$found = true;
+			}
+		}
+		if(!$found) {
+			$diff = true;
+		}
+	}
+
+	if($diff) {
+		$query = 'DELETE FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
+		db_query($query, array($id, $epoch));
+
+		$query = 'INSERT INTO shout_smilies (shout_id, shout_epoch, smiley, `count`) VALUES (?, ?, ?, ?)';
+		foreach($found_smilies as $smiley => $count) {
+			db_query($query, array($id, $epoch, $smiley, $count));
+		}
+	}
+}
 
