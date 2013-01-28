@@ -104,6 +104,15 @@ $queries[] = array(
 		'columns' => array('Position', 'Year', 'Messages'),
 		'column_styles' => array('right', 'left', 'right'),
 	);
+$queries[] = array(
+		'title' => 'Smiley usage',
+		'query' => "select s.filename filename, sum(count) from shout_smilies ss join smilies s on (ss.smiley = s.id) group by ss.smiley, s.filename order by sum(count) desc",
+		'processing_function' => function(&$row) {
+				$row[0]['filename'] = '<img src="smilies/' . $row[0]['filename'] . '" alt="" />';
+			},
+		'columns' => array('Smiley', 'Occurrences'),
+		'column_styles' => array('right', 'right'),
+	);
 /*
 $queries[] = array(
 		'title' => '',
