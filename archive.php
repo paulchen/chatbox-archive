@@ -29,10 +29,10 @@ if(isset($_GET['id']) && isset($_GET['epoch'])) {
 		die();
 	}
 
-	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE (id > ? AND epoch = ?) OR epoch > ?';
+	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE ((id > ? AND epoch = ?) OR epoch > ?) AND deleted = 0';
 	$data = db_query($query, array($id, $epoch, $epoch));
 
-	$page = floor(($data[0]['shouts']+1)/$limit)+1;
+	$page = floor($data[0]['shouts']/$limit)+1;
 
 	header("Location: ?limit=$limit&page=$page#message${id}_$epoch");
 	die();
