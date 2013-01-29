@@ -20,14 +20,14 @@ function messages_per_year(&$row) {
 
 function smiley_column(&$row) {
 	$smiley_info = explode('$$', $row[0]['smiley_info']);
-	$id = $smiley_info[0];
-	$filename = $smiley_info[1];
-	$count = $smiley_info[2];
-
-	if(!is_numeric($count)) {
+	if(count($smiley_info) == 1) {
 		$row[0]['smiley_info'] = '-';
 		return;
 	}
+
+	$id = $smiley_info[0];
+	$filename = $smiley_info[1];
+	$count = $smiley_info[2];
 
 	$row[0]['smiley_info'] = "<img src=\"smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
 }
