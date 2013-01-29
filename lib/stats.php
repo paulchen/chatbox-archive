@@ -51,10 +51,20 @@ foreach($queries as $index => $query) {
 	}
 
 	if(isset($query['processing_function'])) {
-		foreach($data as $key => &$value) {
-			call_user_func($query['processing_function'], array(&$value));
+		if(is_array($query['processing_function'])) {
+			foreach($query['processing_function'] as $func) {
+				foreach($data as $key => &$value) {
+					call_user_func($func, array(&$value));
+				}
+				unset($value);
+			}
 		}
-		unset($value);
+		else {
+			foreach($data as $key => &$value) {
+				call_user_func($query['processing_function'], array(&$value));
+			}
+			unset($value);
+		}
 	}
 
 	if(isset($query['processing_function_all'])) {
