@@ -133,6 +133,33 @@ INSERT INTO `settings` (`key`, `value`) VALUES
 ('current_epoch', '1'),
 ('max_shout_id', '0');
 
+--
+-- Tabellenstruktur für Tabelle `shout_smilies`
+--
+
+CREATE TABLE IF NOT EXISTS `shout_smilies` (
+  `shout_id` int(11) NOT NULL,
+  `shout_epoch` int(11) NOT NULL,
+  `smiley` int(11) NOT NULL,
+  `count` int(11) NOT NULL,
+  PRIMARY KEY (`shout_id`,`shout_epoch`,`smiley`),
+  KEY `smiley` (`smiley`),
+  KEY `shout_id` (`shout_id`,`shout_epoch`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `smilies`
+--
+
+CREATE TABLE IF NOT EXISTS `smilies` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `filename` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `filename` (`filename`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+
 
 --
 -- Constraints der exportierten Tabellen
@@ -149,4 +176,11 @@ ALTER TABLE `shouts`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`category`) REFERENCES `user_categories` (`id`);
+
+--
+-- Constraints der Tabelle `shout_smilies`
+--
+ALTER TABLE `shout_smilies`
+  ADD CONSTRAINT `shout_smilies_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`),
+  ADD CONSTRAINT `shout_smilies_ibfk_2` FOREIGN KEY (`smiley`) REFERENCES `smilies` (`id`);
 
