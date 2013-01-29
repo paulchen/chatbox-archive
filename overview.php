@@ -134,7 +134,14 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select s.filename filename, sum(count) from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 group by ss.smiley, s.filename order by sum(count) desc",
+		'query' => "select s.filename filename, sum(count),
+			(select concat(u.id, '$$', u.name, '$$', sum(ss2.count))
+				from users u join shouts s2 on (u.id = s2.user) join shout_smilies ss2 on (s2.id = ss2.shout_id and s2.epoch = ss2.shout_epoch)
+				where ss2.smiley = s.id and s2.deleted = 0
+				group by s2.user
+				order by sum(ss2.count) desc
+				limit 0, 1) top
+			from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 group by ss.smiley, s.filename order by sum(count) desc",
 		'processing_function' => function(&$row) {
 				global $smilies;
 
@@ -151,9 +158,15 @@ $queries[] = array(
 				}
 
 				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="smilies/' . $row[0]['filename'] . '" alt="" /></a>';
+
+				$top = explode('$$', $row[0]['top']);
+				$user_id = $top[0];
+				$username = $top[1];
+				$frequency = $top[2];
+				$row[0]['top'] = "$username (${frequency}x)";
 			},
-		'columns' => array('Smiley', 'Occurrences'),
-		'column_styles' => array('right', 'right'),
+		'columns' => array('Smiley', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'right', 'left'),
 	);
 /*
 $queries[] = array(
