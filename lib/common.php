@@ -109,6 +109,10 @@ function set_setting($key, $value) {
 function process_message_smiley($match) {
 	global $found_smilies;
 
+	if(mb_substr($match[0], 0, 1, 'UTF-8') == '"') {
+		$match[0] = mb_substr($match[0], 1, mb_strlen($match[0], 'UTF-8')-1, 'UTF-8');
+	}
+
 	$full_url = 'http://www.informatik-forum.at/' . $match[0];
 	$filename = basename($match[0]);
 
@@ -150,7 +154,7 @@ function process_smilies($id, $epoch) {
 	$message = $data[0]['message'];
 
 	$found_smilies = array();
-	$message = preg_replace_callback('+(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
+	$message = preg_replace_callback('+"(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
 
 	$query = 'SELECT smiley, `count` FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
 	$data = db_query($query, array($id, $epoch));
