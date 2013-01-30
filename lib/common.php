@@ -154,7 +154,7 @@ function process_smilies($id, $epoch) {
 	$message = $data[0]['message'];
 
 	$found_smilies = array();
-	$message = preg_replace_callback('+"(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
+	$message = preg_replace_callback('+"/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
 
 	$query = 'SELECT smiley, `count` FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
 	$data = db_query($query, array($id, $epoch));

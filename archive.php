@@ -106,7 +106,7 @@ foreach($db_data as $row) {
 
 	// TODO scan for < and > inside href attributes
 
-	$message = preg_replace_callback('+(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_smiley', $message);
+	$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_smiley', $message);
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);
