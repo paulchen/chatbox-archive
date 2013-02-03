@@ -32,6 +32,36 @@ function smiley_column(&$row) {
 	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
 }
 
+function top_spammers($data) {
+	$data = $data[0];
+	usort($data, function($a, $b) {
+		if($a['average_shouts_per_day'] == $b['average_shouts_per_day']) {
+			if($a['shouts'] == $b['shouts']) {
+				if($a['name'] < $b['name']) {
+					return -1;
+				}
+				return 1;
+			}
+			if($a['shouts'] <= $b['shouts']) {
+				return 1;
+			}
+			return -1;
+		}
+		if($a['average_shouts_per_day'] < $b['average_shouts_per_day']) {
+			return 1;
+		}
+		return -1;
+	});
+
+	$keys = array_keys($data[0]);
+	$first_row_name = $keys[0];
+	foreach($data as $index => &$row) {
+		$row[$first_row_name] = ($index+1) . '.';
+	}
+
+	return $data;
+}
+
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
@@ -53,27 +83,16 @@ $queries[] = array(
 		'processing_function_all' => 'ex_aequo2',
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
 		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
-	);
-$queries[] = array(
-		'title' => 'Top spammers, ordered by messages per day',
-		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info
-			from (select a.name, a.shouts, a.smilies,
-				(select unix_timestamp(min(date)) from shouts where user=a.id) as first_shout,
-				(select unix_timestamp(max(date)) from shouts where user=a.id) as last_shout,
-				(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count))
-					from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id)
-					where s.user = a.id and deleted = 0
-					group by ss.smiley, sm.filename
-					order by sum(ss.count) desc
-					limit 0, 1) as smiley_info
-				from (select u.id, u.name, count(*) as shouts, coalesce(sum(ss.count), 0) as smilies from shouts s join users u
-				on (s.user = u.id) left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
-				where deleted = 0 group by u.id, u.name) a) b, (select @row:=0) c
-			order by average_shouts_per_day desc, b.shouts desc, b.name asc",
-		'processing_function' => array('add_user_link', 'smiley_column'),
-		'processing_function_all' => 'ex_aequo3',
-		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
-		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+		'derived_queries' => array(
+			array(
+				'title' => 'Top spammers, ordered by messages per day',
+				'transformation_function' => 'top_spammers',
+				'processing_function' => array('add_user_link', 'smiley_column'),
+				'processing_function_all' => 'ex_aequo3',
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+			),
+		),
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',

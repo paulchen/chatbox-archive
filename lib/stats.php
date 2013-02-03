@@ -26,7 +26,9 @@ function ex_aequo(&$data, $col) {
 }
 
 $last_update = -1;
-foreach($queries as $index => $query) {
+for($index=0; $index<count($queries); $index++) {
+	$query = $queries[$index];
+
 	if(!isset($query['params'])) {
 		$query['params'] = array();
 	}
@@ -50,6 +52,25 @@ foreach($queries as $index => $query) {
 		$last_update = time();
 	}
 
+	$queries[$index]['data'] = $data;
+
+	if(isset($query['derived_queries'])) {
+		foreach($query['derived_queries'] as $derived_query) {
+			for($a=count($queries)-1; $a>$index; $a--) {
+				$queries[$a+1] = $queries[$a];
+				unset($queries[$a]);
+			}
+			$index++;
+
+			$derived_query['data'] = call_user_func($derived_query['transformation_function'], array($data));
+			$queries[$index] = $derived_query;
+		}
+	}
+}
+
+foreach($queries as $index => $query) {
+	$data = $query['data'];
+
 	if(isset($query['processing_function'])) {
 		if(is_array($query['processing_function'])) {
 			foreach($query['processing_function'] as $func) {
@@ -72,6 +93,8 @@ foreach($queries as $index => $query) {
 	}
 	$queries[$index]['data'] = $data;
 }
+
+ksort($queries);
 
 header('Content-Type: application/xhtml+xml; charset=utf-8');
 require_once(dirname(__FILE__) . '/../templates/pages/stats.php');
