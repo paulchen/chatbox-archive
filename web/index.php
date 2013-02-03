@@ -173,7 +173,7 @@ $first_link = "$link_parts&amp;page=1";
 $last_link = "$link_parts&amp;page=$page_count";
 
 $query = 'SELECT name FROM users ORDER BY name ASC';
-$users = array_map(function($a) { return $a['name']; }, db_query($query));
+$users = json_encode(array_map(function($a) { return $a['name']; }, db_query($query)));
 
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
 header('Content-Type: text/html; charset=utf-8');

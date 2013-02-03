@@ -23,7 +23,9 @@ if(!$ajax):
 	a:hover { color: red; }
 	img { border: none; }
 	</style>
+        <link href="css/redmond/jquery-ui-1.10.0.custom.min.css" rel="stylesheet" type="text/css"></link>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.10.0.custom.min.js"></script>
 	<script type="text/javascript">
 <!--
 var timeout;
@@ -40,7 +42,7 @@ function refresh() {
 	$.ajax({
 		url : url,
 		success : function(data, textStatus, xhr) {
-			$('#content').children().remove(); // replaceWith('');
+			$('#content').children().remove();
 			$('#content').append(data);
 		},
 		complete : function(xhr, textStatus) {
@@ -62,6 +64,10 @@ $(document).ready(function() {
 	$('#refresh_checkbox').change(function() {
 		update_refresh();
 	});
+
+	$('#name_input').autocomplete({
+			source : <?php echo $users; ?>,
+		});
 });
 
 // -->
