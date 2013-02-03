@@ -1,3 +1,10 @@
 web/images/smilies/*.gif
 web/images/smilies/*.png
 web/images/smilies/*.jpg
+config.php
+log
+tmp/chatbox.lock
+tmp/securitytoken
+tmp/cookies.txt
+tmp/cb1.xml
+tmp/cb2.xml
