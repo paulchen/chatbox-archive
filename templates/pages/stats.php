@@ -62,7 +62,7 @@ echo '<?xml version="1.0" ?>';
 		<hr />
 	<?php endforeach; ?>
 	<p>
-		<a href="http://validator.w3.org/check?uri=referer"><img src="xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
+		<a href="http://validator.w3.org/check?uri=referer"><img src="images/xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
 	</p>
 </body>
 </html>

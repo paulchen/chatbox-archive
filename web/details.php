@@ -1,5 +1,5 @@
 <?php
-require_once('lib/common.php');
+require_once(dirname(__FILE__) . '/../lib/common.php');
 
 function overview_redirect() {
 	header('Location: overview.php');
@@ -92,7 +92,7 @@ function smiley_column(&$row) {
 	$filename = $smiley_info[1];
 	$count = $smiley_info[2];
 
-	$row[0]['smiley_info'] = "<img src=\"smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
+	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
 }
 
 if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley'])) {
@@ -163,7 +163,7 @@ if(isset($_REQUEST['user'])) {
 if(isset($_REQUEST['smiley'])) {
 	$filter_parts[] = "(s.id, s.epoch) in (select shout_id, shout_epoch from shout_smilies where smiley = ?)";
 	$params[] = $smiley_id;
-	$what_parts[] = "smiley <img src=\"smilies/$smiley_filename\" alt=\"\" />";
+	$what_parts[] = "smiley <img src=\"images/smilies/$smiley_filename\" alt=\"\" />";
 }
 $filter = implode(' AND ', $filter_parts);
 $what = implode(', ', $what_parts);
@@ -338,7 +338,7 @@ $queries[] = array(
 					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
 				}
 
-				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="smilies/' . $row[0]['filename'] . '" alt="" /></a>';
+				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
 
 				$top = explode('$$', $row[0]['top']);
 				$user_id = $top[0];
@@ -365,5 +365,5 @@ $backlink = array(
 		'text' => 'Spam overview',
 	);
 
-require_once(dirname(__FILE__) . '/lib/stats.php');
+require_once(dirname(__FILE__) . '/../lib/stats.php');
 

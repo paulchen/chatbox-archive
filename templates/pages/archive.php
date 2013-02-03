@@ -23,7 +23,7 @@ if(!$ajax):
 	a:hover { color: red; }
 	img { border: none; }
 	</style>
-	<script type="text/javascript" src="lib/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript">
 <!--
 var timeout;
@@ -102,7 +102,7 @@ $(document).ready(function() {
 	</div>
 	<hr />
 	<p>
-		<a href="http://validator.w3.org/check?uri=referer"><img src="xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
+		<a href="http://validator.w3.org/check?uri=referer"><img src="images/xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
 	</p>
 </body>
 </html>

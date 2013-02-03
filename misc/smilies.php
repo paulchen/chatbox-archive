@@ -1,6 +1,6 @@
 <?php
 
-require_once('lib/common.php');
+require_once('../lib/common.php');
 
 $query = 'SELECT id, epoch FROM shouts';
 $data = db_query($query, array());

@@ -1,5 +1,5 @@
 <?php
-require_once('lib/common.php');
+require_once('../lib/common.php');
 
 $file = file_get_contents('abc');
 $ids = explode("\n", $file);

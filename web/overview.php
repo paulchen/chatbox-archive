@@ -29,7 +29,7 @@ function smiley_column(&$row) {
 	$filename = $smiley_info[1];
 	$count = $smiley_info[2];
 
-	$row[0]['smiley_info'] = "<img src=\"smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
+	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
 }
 
 $queries = array();
@@ -157,7 +157,7 @@ $queries[] = array(
 					}
 				}
 
-				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="smilies/' . $row[0]['filename'] . '" alt="" /></a>';
+				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
 
 				$top = explode('$$', $row[0]['top']);
 				$user_id = $top[0];
@@ -183,5 +183,5 @@ $backlink = array(
 		'text' => 'Chatbox archive',
 	);
 
-require_once(dirname(__FILE__) . '/lib/stats.php');
+require_once(dirname(__FILE__) . '/../lib/stats.php');
 

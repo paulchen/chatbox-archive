@@ -1,5 +1,5 @@
 <?php
-require_once('lib/common.php');
+require_once(dirname(__FILE__) . '/../lib/common.php');
 
 $default_page = 1;
 $default_limit = 100;
@@ -81,7 +81,7 @@ $db_data = db_query($query, $params);
 
 // TODO move this function to the top of the file?
 function process_smiley($match) {
-	return "smilies/" . basename($match[0]);
+	return "images/smilies/" . basename($match[0]);
 }
 
 $data = array();
@@ -172,8 +172,11 @@ $next_link = "$link_parts&amp;page=$next_page";
 $first_link = "$link_parts&amp;page=1";
 $last_link = "$link_parts&amp;page=$page_count";
 
+$query = 'SELECT name FROM users ORDER BY name ASC';
+$users = array_map(function($a) { return $a['name']; }, db_query($query));
+
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
 header('Content-Type: text/html; charset=utf-8');
 
-require_once(dirname(__FILE__) . '/templates/pages/archive.php');
+require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
 

@@ -1,5 +1,5 @@
 <?php
-require_once('lib/common.php');
+require_once('../lib/common.php');
 
 $ranges = array(
 	array('start' => 1, 'end' => 129206, 'year' => 2010),

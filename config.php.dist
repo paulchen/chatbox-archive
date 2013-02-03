@@ -11,9 +11,11 @@ $memcached_servers = array();
 $memcached_servers[] = array('ip' => '127.0.0.1', 'port' => 11211);
 $memcached_prefix = 'chatbox';
 
-$cookie_file = 'cookies.txt';
-$lockfile = 'chatbox.lock';
+$cookie_file = 'tmp/cookies.txt';
+$lockfile = 'tmp/chatbox.lock';
 $logfile = 'log';
+$tokenfile = 'tmp/securitytoken';
+$tmpdir = 'tmp';
 
 $report_email = 'paulchen@rueckgr.at';
 $email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';

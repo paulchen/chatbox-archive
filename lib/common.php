@@ -131,7 +131,7 @@ function process_message_smiley($match) {
 		$gif = curl_exec($curl);
 		curl_close($curl);
 
-		file_put_contents("smilies/$filename", $gif);
+		file_put_contents("web/images/smilies/$filename", $gif);
 	}
 
 	$smiley_id = $data[0]['id'];
