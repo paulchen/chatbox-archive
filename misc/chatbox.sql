@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS `queries` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `query` text NOT NULL,
   `parameters` text NOT NULL,
-  `execution_time` int(11) NOT NULL,
+  `execution_time` float NOT NULL,
   PRIMARY KEY (`id`),
   KEY `request` (`request`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
