@@ -42,7 +42,7 @@ function top_spammers($data) {
 				}
 				return 1;
 			}
-			if($a['shouts'] <= $b['shouts']) {
+			if($a['shouts'] < $b['shouts']) {
 				return 1;
 			}
 			return -1;
@@ -59,6 +59,41 @@ function top_spammers($data) {
 		$row[$first_row_name] = ($index+1) . '.';
 	}
 
+	return $data;
+}
+
+function busiest_hours($data) {
+	$data = $data[0];
+	usort($data, function($a, $b) {
+		if($a['shouts'] == $b['shouts']) {
+			return 0;
+		}
+		if($a['shouts'] < $b['shouts']) {
+			return 1;
+		}
+		return -1;
+
+	});
+
+	return array_filter($data, function($a) { return $a['shouts'] != '0'; });
+}
+
+function busiest_months($data) {
+	$data = $data[0];
+	// TODO duplicate code
+	usort($data, function($a, $b) {
+		if($a['shouts'] == $b['shouts']) {
+			return 0;
+		}
+		if($a['shouts'] < $b['shouts']) {
+			return 1;
+		}
+		return -1;
+
+	});
+	foreach($data as $index => &$row) {
+		array_unshift($row, ($index+1) . '.');
+	}	
 	return $data;
 }
 
@@ -100,13 +135,15 @@ $queries[] = array(
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages'),
 		'column_styles' => array('left', 'right'),
-	);
-$queries[] = array(
-		'title' => 'Busiest hours',
-		'query' => "select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour order by count(*) desc",
-		'processing_function' => 'messages_per_hour',
-		'columns' => array('Hour', 'Messages'),
-		'column_styles' => array('left', 'right'),
+		'derived_queries' => array(
+			array(
+				'title' => 'Busiest hours',
+				'transformation_function' => 'busiest_hours',
+				'processing_function' => 'messages_per_hour',
+				'columns' => array('Hour', 'Messages'),
+				'column_styles' => array('left', 'right'),
+			),
+		),
 	);
 $queries[] = array(
 		'title' => 'Busiest days',
@@ -127,6 +164,16 @@ $queries[] = array(
 		'processing_function' => 'messages_per_month',
 		'columns' => array('Month', 'Messages'),
 		'column_styles' => array('left', 'right'),
+		'derived_queries' => array(
+			array(
+				'title' => 'Messages per month, ordered by number of messages',
+				'transformation_function' => 'busiest_months',
+				'processing_function' => 'messages_per_month',
+				'processing_function_all' => 'ex_aequo2',
+				'columns' => array('Position', 'Month', 'Messages'),
+				'column_styles' => array('right', 'left', 'right'),
+			),
+		),
 	);
 $queries[] = array(
 		'title' => 'Messages per year',
@@ -134,22 +181,16 @@ $queries[] = array(
 		'processing_function' => 'messages_per_year',
 		'columns' => array('Year', 'Messages'),
 		'column_styles' => array('left', 'right'),
-	);
-$queries[] = array(
-		'title' => 'Messages per month, ordered by number of messages',
-		'query' => "select concat(@row:=@row+1, '.'), month, shouts from (select date_format(date, '%Y-%m') month, count(*) as shouts from shouts c where deleted = 0 group by month order by shouts desc, month asc) a, (select @row:=0) c",
-		'processing_function' => 'messages_per_month',
-		'processing_function_all' => 'ex_aequo2',
-		'columns' => array('Position', 'Month', 'Messages'),
-		'column_styles' => array('right', 'left', 'right'),
-	);
-$queries[] = array(
-		'title' => 'Messages per year, ordered by number of messages',
-		'query' => "select concat(@row:=@row+1, '.'), year, shouts from (select date_format(date, '%Y') year, count(*) as shouts from shouts c where deleted = 0 group by year order by shouts desc, year asc) a, (select @row:=0) c",
-		'processing_function' => 'messages_per_year',
-		'processing_function_all' => 'ex_aequo2',
-		'columns' => array('Position', 'Year', 'Messages'),
-		'column_styles' => array('right', 'left', 'right'),
+		'derived_queries' => array(
+			array(
+				'title' => 'Messages per year, ordered by number of messages',
+				'transformation_function' => 'busiest_months', // TODO rename function
+				'processing_function' => 'messages_per_year',
+				'processing_function_all' => 'ex_aequo2',
+				'columns' => array('Position', 'Year', 'Messages'),
+				'column_styles' => array('right', 'left', 'right'),
+			),
+		),
 	);
 $queries[] = array(
 		'title' => 'Smiley usage',
