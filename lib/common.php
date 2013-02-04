@@ -106,7 +106,7 @@ function log_data() {
 	$end_time = microtime(true);
 
 	$query = 'INSERT INTO requests (timestamp, url, ip, request_time, browser) VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?)';
-	db_query($query, array(time(), $_SERVER['REQUEST_URI'] . $_SERVER['QUERY_STRING'], $_SERVER['REMOTE_ADDR'], $end_time-$start_time, $_SERVER['HTTP_USER_AGENT']));
+	db_query($query, array(time(), $_SERVER['REQUEST_URI'], $_SERVER['REMOTE_ADDR'], $end_time-$start_time, $_SERVER['HTTP_USER_AGENT']));
 	$request_id = db_last_insert_id();
 
 	$query = 'INSERT INTO queries (request, timestamp, query, parameters, execution_time) VALUES (?, FROM_UNIXTIME(?), ?, ?, ?)';
