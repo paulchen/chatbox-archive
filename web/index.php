@@ -180,3 +180,5 @@ header('Content-Type: text/html; charset=utf-8');
 
 require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
 
+log_data();
+

@@ -1,4 +1,6 @@
 <?php
+$start_time = microtime(true);
+
 require_once(dirname(__FILE__) . '/../config.php');
 
 $db = new PDO("mysql:dbname=$db_name;host=$db_host", $db_user, $db_pass);
@@ -31,8 +33,9 @@ foreach($memcached_servers as $server) {
 }
 
 function db_query($query, $parameters = array()) {
-	global $db;
+	global $db, $db_locked, $db_queries;
 
+	$query_start = microtime(true);
 	if(!($stmt = $db->prepare($query))) {
 		$error = $db->errorInfo();
 		db_error($error[2], debug_backtrace(), $query, $parameters);
@@ -50,6 +53,17 @@ function db_query($query, $parameters = array()) {
 		$error = $stmt->errorInfo();
 		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
+	$query_end = microtime(true);
+
+	if(preg_match('/LOCK TABLES/i', $query)) {
+		$db_locked = true;
+	}
+
+	if(!isset($db_queries)) {
+		$db_queries = array();
+	}
+	$db_queries[] = array('timestamp' => time(), 'query' => $query, 'parameters' => serialize($parameters), 'execution_time' => $query_end-$query_start);
+
 	return $data;
 }
 
@@ -73,6 +87,37 @@ function db_error($error, $stacktrace, $query, $parameters) {
 	header('HTTP/1.1 500 Internal Server Error');
 	echo "A database error has just occurred. Please don't freak out, the administrator has already been notified.";
 	die();
+}
+
+function db_last_insert_id() {
+	global $db;
+
+	return $db->lastInsertId();
+}
+
+function log_data() {
+	global $db_locked, $db_queries, $start_time;
+
+	if($db_locked) {
+		db_query('UNLOCK TABLES');
+		$db_locked = false;
+	}
+
+	$end_time = microtime(true);
+
+	$query = 'INSERT INTO requests (timestamp, url, ip, request_time, browser) VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?)';
+	db_query($query, array(time(), $_SERVER['REQUEST_URI'] . $_SERVER['QUERY_STRING'], $_SERVER['REMOTE_ADDR'], $end_time-$start_time, $_SERVER['HTTP_USER_AGENT']));
+	$request_id = db_last_insert_id();
+
+	$query = 'INSERT INTO queries (request, timestamp, query, parameters, execution_time) VALUES (?, FROM_UNIXTIME(?), ?, ?, ?)';
+
+	/* don't use a foreach loop as this would create an endless loop because of db_query() appending each qwuery to $db_queries */
+	/* subtract 1 as we do not want the 'INSERT INTO requests' query (see above) to be logged */
+	$queries = count($db_queries)-1;
+	for($a=0; $a<$queries; $a++) {
+		$db_query = $db_queries[$a];
+		db_query($query, array($request_id, $db_query['timestamp'], $db_query['query'], $db_query['parameters'], $db_query['execution_time']));
+	}
 }
 
 function noauth() {

@@ -166,3 +166,5 @@ $backlink = array(
 
 require_once(dirname(__FILE__) . '/../lib/stats.php');
 
+log_data();
+
