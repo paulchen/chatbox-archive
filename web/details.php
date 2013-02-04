@@ -268,10 +268,8 @@ if(!isset($_REQUEST['month'])) {
 				),
 			),
 		);
-	// TODO messages per month
 }
 if(!isset($_REQUEST['year'])) {
-	// TODO messages per year
 }
 $filter2 = str_replace(array('s.epoch', 's.id'), array('s2.epoch', 's2.id'), $filter);
 $filter3 = str_replace(array('s.epoch', 's.id'), array('sh.epoch', 'sh.id'), $filter);
