@@ -25,6 +25,85 @@ function ex_aequo(&$data, $col) {
 	unset($row);
 }
 
+function smiley_column(&$row) {
+	$smiley_info = explode('$$', $row[0]['smiley_info']);
+	if(count($smiley_info) == 1) {
+		$row[0]['smiley_info'] = '-';
+		return;
+	}
+
+	$id = $smiley_info[0];
+	$filename = $smiley_info[1];
+	$count = $smiley_info[2];
+
+	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
+}
+
+function top_spammers($data) {
+	$data = $data[0];
+	usort($data, function($a, $b) {
+		if($a['average_shouts_per_day'] == $b['average_shouts_per_day']) {
+			if($a['shouts'] == $b['shouts']) {
+				if($a['name'] < $b['name']) {
+					return -1;
+				}
+				return 1;
+			}
+			if($a['shouts'] < $b['shouts']) {
+				return 1;
+			}
+			return -1;
+		}
+		if($a['average_shouts_per_day'] < $b['average_shouts_per_day']) {
+			return 1;
+		}
+		return -1;
+	});
+
+	$keys = array_keys($data[0]);
+	$first_row_name = $keys[0];
+	foreach($data as $index => &$row) {
+		$row[$first_row_name] = ($index+1) . '.';
+	}
+
+	return $data;
+}
+
+function busiest_hours($data) {
+	$data = $data[0];
+	usort($data, function($a, $b) {
+		if($a['shouts'] == $b['shouts']) {
+			return 0;
+		}
+		if($a['shouts'] < $b['shouts']) {
+			return 1;
+		}
+		return -1;
+
+	});
+
+	return array_filter($data, function($a) { return $a['shouts'] != '0'; });
+}
+
+function busiest_time($data) {
+	$data = $data[0];
+	// TODO duplicate code
+	usort($data, function($a, $b) {
+		if($a['shouts'] == $b['shouts']) {
+			return 0;
+		}
+		if($a['shouts'] < $b['shouts']) {
+			return 1;
+		}
+		return -1;
+
+	});
+	foreach($data as $index => &$row) {
+		array_unshift($row, ($index+1) . '.');
+	}	
+	return $data;
+}
+
 $last_update = -1;
 for($index=0; $index<count($queries); $index++) {
 	$query = $queries[$index];

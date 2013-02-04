@@ -18,85 +18,6 @@ function messages_per_year(&$row) {
 	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "\">" . $row[0]['year'] . '</a>';
 }
 
-function smiley_column(&$row) {
-	$smiley_info = explode('$$', $row[0]['smiley_info']);
-	if(count($smiley_info) == 1) {
-		$row[0]['smiley_info'] = '-';
-		return;
-	}
-
-	$id = $smiley_info[0];
-	$filename = $smiley_info[1];
-	$count = $smiley_info[2];
-
-	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
-}
-
-function top_spammers($data) {
-	$data = $data[0];
-	usort($data, function($a, $b) {
-		if($a['average_shouts_per_day'] == $b['average_shouts_per_day']) {
-			if($a['shouts'] == $b['shouts']) {
-				if($a['name'] < $b['name']) {
-					return -1;
-				}
-				return 1;
-			}
-			if($a['shouts'] < $b['shouts']) {
-				return 1;
-			}
-			return -1;
-		}
-		if($a['average_shouts_per_day'] < $b['average_shouts_per_day']) {
-			return 1;
-		}
-		return -1;
-	});
-
-	$keys = array_keys($data[0]);
-	$first_row_name = $keys[0];
-	foreach($data as $index => &$row) {
-		$row[$first_row_name] = ($index+1) . '.';
-	}
-
-	return $data;
-}
-
-function busiest_hours($data) {
-	$data = $data[0];
-	usort($data, function($a, $b) {
-		if($a['shouts'] == $b['shouts']) {
-			return 0;
-		}
-		if($a['shouts'] < $b['shouts']) {
-			return 1;
-		}
-		return -1;
-
-	});
-
-	return array_filter($data, function($a) { return $a['shouts'] != '0'; });
-}
-
-function busiest_months($data) {
-	$data = $data[0];
-	// TODO duplicate code
-	usort($data, function($a, $b) {
-		if($a['shouts'] == $b['shouts']) {
-			return 0;
-		}
-		if($a['shouts'] < $b['shouts']) {
-			return 1;
-		}
-		return -1;
-
-	});
-	foreach($data as $index => &$row) {
-		array_unshift($row, ($index+1) . '.');
-	}	
-	return $data;
-}
-
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
@@ -167,7 +88,7 @@ $queries[] = array(
 		'derived_queries' => array(
 			array(
 				'title' => 'Messages per month, ordered by number of messages',
-				'transformation_function' => 'busiest_months',
+				'transformation_function' => 'busiest_time',
 				'processing_function' => 'messages_per_month',
 				'processing_function_all' => 'ex_aequo2',
 				'columns' => array('Position', 'Month', 'Messages'),
@@ -184,7 +105,7 @@ $queries[] = array(
 		'derived_queries' => array(
 			array(
 				'title' => 'Messages per year, ordered by number of messages',
-				'transformation_function' => 'busiest_months', // TODO rename function
+				'transformation_function' => 'busiest_time',
 				'processing_function' => 'messages_per_year',
 				'processing_function_all' => 'ex_aequo2',
 				'columns' => array('Position', 'Year', 'Messages'),
