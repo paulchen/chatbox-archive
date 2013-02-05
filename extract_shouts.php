@@ -97,8 +97,6 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$data = db_query($query, array($id, $epoch));
 
 	$max_id = max($id, $max_id);
-	// TODO magic number
-	/*
 	if($id < $max_id - 10000) {
 		$epoch++;
 		set_setting('current_epoch', $epoch);
@@ -106,7 +104,6 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		$found = false;
 		epoch_change_mail();
 	}
-	 */
 
 	if(count($data) == 0) {
 		$query = 'INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)';
