@@ -65,7 +65,7 @@ if(isset($_GET['user']) && trim($_GET['user']) != '') {
 	$params[] = $_GET['user'];
 }
 if(isset($_GET['date']) && trim($_GET['date']) != '') {
-	$filters[] = "DATE_FORMAT(s.date, '%Y-%m-%d') = ?";
+	$filters[] = "DATE_FORMAT(DATE_ADD(s.date, INTERVAL 1 HOUR), '%Y-%m-%d') = ?";
 	$params[] = $_GET['date'];
 }
 
@@ -134,7 +134,7 @@ if(isset($_GET['user']) && trim($_GET['user']) != '') {
 	$link_parts .= '&amp;user=' . urlencode($_GET['user']);
 }
 if(isset($_GET['date']) && trim($_GET['date']) != '') {
-	$link_parts .= '&amp;user=' . urlencode($_GET['user']);
+	$link_parts .= '&amp;date=' . urlencode($_GET['date']);
 }
 $previous_page = $page-1;
 if($previous_page <= 0) {
