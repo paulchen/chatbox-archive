@@ -42,8 +42,15 @@ function refresh() {
 	$.ajax({
 		url : url,
 		success : function(data, textStatus, xhr) {
+			var pos = data.indexOf('$$');
+			var parts = data.substring(0, pos).split(' ');
 			$('#content').children().remove();
-			$('#content').append(data);
+			$('#content').append(data.substring(pos+2));
+			$('#shouts_filtered').text(parts[1]);
+			$('#shouts_total').text(parts[2]);
+			$('.page_count').text(parts[0]);
+			$('.next_link').attr('href', "<?php echo $generic_link ?>" + Math.min(parts[0], <?php echo $page+1 ?>));
+			$('.last_link').attr('href', "<?php echo $generic_link ?>" + parts[0]);
 		},
 		complete : function(xhr, textStatus) {
 			update_refresh();
@@ -97,15 +104,20 @@ $(document).ready(function() {
 		<tr><td>Text:</td><td><input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" /></td></tr>
 		<tr><td>User:</td><td><input type="text" name="user" value="<?php if(isset($_GET['user'])) echo htmlentities($_GET['user'], ENT_QUOTES, 'UTF-8') ?>" id="name_input" /></td></tr>
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
-		<tr><td>Page:</td><td><input type="text" name="page" value="<?php echo $page; ?>" /> (of <?php echo $page_count; ?>) <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a> <a href="<?php echo $last_link ?>">Last</a></td></tr>
+		<tr><td>Page:</td><td><input type="text" name="page" value="<?php echo $page; ?>" /> (of <span class="page_count"><?php echo $page_count; ?></span>) <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>" class="next_link">Next</a> <a href="<?php echo $last_link ?>" class="last_link">Last</a></td></tr>
 		<tr><td>Date:</td><td><input type="text" name="date" value="<?php if(isset($_GET['date'])) echo htmlentities($_GET['date'], ENT_QUOTES, 'UTF-8') ?>" id="date_input" /></td></tr>
 		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="reset_form();" /></td></tr>
 		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr>
 		</table>
 		</form>
 		</fieldset>
+		<div style="padding: 10px 5px 10px 5px;">
+			Messages (filtered/total): <span id="shouts_filtered"><?php echo $total_shouts ?></span>/<span id="shouts_total"><?php echo $grand_total ?></span>
+		</div>
 		<div id="content">
-<?php endif; /* if(!$ajax) */ ?>
+<?php else:
+	echo "$page_count $total_shouts $grand_total$$";
+endif; /* if(!$ajax) */ ?>
 			<table>
 				<?php foreach($data as $row): ?>
 					<tr>
@@ -118,7 +130,7 @@ $(document).ready(function() {
 <?php if(!$ajax): ?>
 		</div>
 		<div style="padding-top: 15px; padding-left: 5px;">
-			Page <?php echo $page; ?> of <?php echo $page_count; ?> &ndash; <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>">Next</a> <a href="<?php echo $last_link ?>">Last</a>
+			Page <?php echo $page; ?> of <span class="page_count"><?php echo $page_count; ?></span> &ndash; <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>" class="next_link">Next</a> <a href="<?php echo $last_link ?>" class="last_link">Last</a>
 		</div>
 	</div>
 	<hr />

@@ -119,6 +119,10 @@ foreach($db_data as $row) {
 	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id, 'epoch' => $epoch);
 }
 
+$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
+$db_data = db_query($query);
+$grand_total = $db_data[0]['shouts'];
+
 $query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE $filter";
 array_pop($params);
 array_pop($params);
@@ -154,6 +158,7 @@ $previous_link = "$link_parts&amp;page=$previous_page";
 $next_link = "$link_parts&amp;page=$next_page";
 $first_link = "$link_parts&amp;page=1";
 $last_link = "$link_parts&amp;page=$page_count";
+$generic_link = str_replace('&amp;', '&', "$link_parts&amp;page=");
 
 $query = 'SELECT name FROM users ORDER BY name ASC';
 $users = json_encode(array_map(function($a) { return $a['name']; }, db_query($query)));
