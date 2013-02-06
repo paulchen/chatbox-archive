@@ -159,8 +159,8 @@ $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info
 			from (select a.name, a.shouts, a.smilies,
-				(select unix_timestamp(min(date)) from shouts where user=a.id) as first_shout,
-				(select unix_timestamp(max(date)) from shouts where user=a.id) as last_shout,
+				(select unix_timestamp(min(date)) from shouts where user=a.id and $filter) as first_shout,
+				(select unix_timestamp(max(date)) from shouts where user=a.id and $filter) as last_shout,
 				(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count))
 					from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id)
 					where s.user = a.id and deleted = 0 and $filter
@@ -171,7 +171,7 @@ $queries[] = array(
 				on (s.user = u.id) left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
 				where deleted = 0 and $filter group by u.id, u.name) a) b, (select @row:=0) c
 			order by b.shouts desc, average_shouts_per_day desc, b.name asc",
-		'params' => array_merge($params, $params),
+		'params' => array_merge($params, $params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column'),
 		'processing_function_all' => 'ex_aequo2',
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
