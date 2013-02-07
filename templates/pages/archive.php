@@ -119,11 +119,11 @@ $(document).ready(function() {
 	echo "$page_count $total_shouts $grand_total$$";
 endif; /* if(!$ajax) */ ?>
 			<table>
-				<?php foreach($data as $row): ?>
+				<?php foreach($messages as $message): ?>
 					<tr>
-						<td class="date"><a id="message<?php echo $row['id'] . '_' . $row['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $row['id'] . '&amp;epoch=' . $row['epoch'] ?>"><?php echo $row['date'] ?></a></td>
-						<td class="user"><a class="<?php echo $row['color'] ?>" href="<?php echo $row['user_link'] ?>"><?php echo $row['user_name'] ?></a></td>
-						<td class="message"><?php echo $row['message'] ?></td>
+						<td class="date"><a id="message<?php echo $message['id'] . '_' . $message['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['id'] . '&amp;epoch=' . $message['epoch'] ?>"><?php echo $message['date'] ?></a></td>
+						<td class="user"><a class="<?php echo $message['color'] ?>" href="<?php echo $message['user_link'] ?>"><?php echo $message['user_name'] ?></a></td>
+						<td class="message"><?php echo $message['message'] ?></td>
 					</tr>
 				<?php endforeach; ?>
 			</table>
