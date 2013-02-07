@@ -175,6 +175,18 @@ foreach($queries as $index => $query) {
 
 ksort($queries);
 
+$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
+$data = db_query($query);
+$total_shouts = $data[0]['shouts'];
+
+if($query == $query_total['query'] && count($query_total['params']) == 0) {
+	$filtered_shouts = $total_shouts;
+}
+else {
+	$data = db_query($query_total['query'], $query_total['params']);
+	$filtered_shouts = $data[0]['shouts'];
+}
+
 header('Content-Type: application/xhtml+xml; charset=utf-8');
 require_once(dirname(__FILE__) . '/../templates/pages/stats.php');
 

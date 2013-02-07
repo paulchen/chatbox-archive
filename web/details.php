@@ -335,6 +335,10 @@ $queries[] = array(
 		'column_styles' => array(),
 	);
  */
+$query_total = array(
+		'query' => "SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0 AND $filter",
+		'params' => $params,
+	);
 
 $page_title = "Spam overview for $what";
 $backlink = array(

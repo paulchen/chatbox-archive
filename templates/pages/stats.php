@@ -32,6 +32,8 @@ echo '<?xml version="1.0" ?>';
 			<li><a href="#query<?php echo $b; ?>"><?php echo htmlentities($query['title'], ENT_QUOTES, 'UTF-8') ?></a></li>
 		<?php endforeach; ?>
 		</ul>
+	Messages (on this page/total): <?php echo "$filtered_shouts/$total_shouts" ?>
+	<br /><br />
 	Last update: <?php echo date('Y-m-d H:i:s', $last_update) ?>
 	</div>
 	<hr />

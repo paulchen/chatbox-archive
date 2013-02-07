@@ -149,6 +149,7 @@ $queries[] = array(
 		'columns' => array('Smiley', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'left'),
 	);
+
 /*
 $queries[] = array(
 		'title' => '',
@@ -157,6 +158,10 @@ $queries[] = array(
 		'column_styles' => array(),
 	);
  */
+$query_total = array(
+		'query' => 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0',
+		'params' => array(),
+	);
 
 $page_title = 'Spam overview';
 $backlink = array(
