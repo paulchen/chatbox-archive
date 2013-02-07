@@ -292,21 +292,20 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
 	$db_data = db_query($query);
-	$grand_total = $db_data[0]['shouts'];
+	$total_shouts = $db_data[0]['shouts'];
 
 	$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE $filter";
 	array_pop($params);
 	array_pop($params);
 	$db_data = db_query($query, $params);
-	$total_shouts = $db_data[0]['shouts'];
+	$filtered_shouts = $db_data[0]['shouts'];
 
 	$page_count = ceil($total_shouts/$limit);
 
-	// TODO rename variables?
 	return array(
 		'messages' => $data,
-		'filtered_shouts' => $total_shouts,
-		'total_shouts' => $grand_total,
+		'filtered_shouts' => $filtered_shouts,
+		'total_shouts' => $total_shouts,
 		'page_count' => $page_count,
 	);
 }
