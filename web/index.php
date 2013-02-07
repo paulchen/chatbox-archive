@@ -54,91 +54,26 @@ $offset = intval($offset);
 $ajax = (isset($_GET['ajax']) && $_GET['ajax'] == 'on');
 $refresh = (isset($_GET['refresh']) && $_GET['refresh'] == 'on');
 
-$filters = array('deleted = 0');
-$params = array();
-if(isset($_GET['text']) && trim($_GET['text']) != '') {
-	$filters[] = 's.message LIKE ?';
-	$params[] = '%' . $_GET['text'] . '%';
-}
-if(isset($_GET['user']) && trim($_GET['user']) != '') {
-	$filters[] = 'u.name = ?';
-	$params[] = $_GET['user'];
-}
-if(isset($_GET['date']) && trim($_GET['date']) != '') {
-	$filters[] = "DATE_FORMAT(DATE_ADD(s.date, INTERVAL 1 HOUR), '%Y-%m-%d') = ?";
-	$params[] = $_GET['date'];
-}
+$text = isset($_GET['text']) ? trim($_GET['text']) : '';
+$user = isset($_GET['user']) ? trim($_GET['user']) : '';
+$date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
-$filter = implode(' AND ', $filters);
-$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE $filter ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?";
-$params[] = intval($offset);
-$params[] = intval($limit);
-$db_data = db_query($query, $params);
+$message_data = get_messages($text, $user, $date, $offset, $limit);
+// TODO rename variables?
+$data = $message_data['messages'];
+$total_shouts = $message_data['filtered_shouts'];
+$grand_total = $message_data['total_shouts'];
+$page_count = $message_data['page_count'];
 
-// TODO move this function to the top of the file?
-function process_smiley($match) {
-	return "images/smilies/" . basename($match[0]);
-}
-
-$data = array();
-foreach($db_data as $row) {
-	// TODO simplify this
-	$id = $row['id'];
-	$epoch = $row['epoch'];
-	$date = $row['date'];
-	$color = $row['color'];
-	$user_id = $row['user_id'];
-	$user_name = $row['user_name'];
-	$message = $row['message'];
-
-	$datetime = new DateTime($date, new DateTimeZone('Europe/London'));
-	$datetime->setTimezone((new DateTime())->getTimezone());
-	$formatted_date = $datetime->format('[d-m-Y H:i]');
-	$color = ($color == '-') ? 'user' : $color;
-	$link = '?user=' . urlencode($user_name) . "&amp;limit=$limit";
-	if(isset($_GET['text']) && trim($_GET['text']) != '') {
-		$link .= '&amp;text=' . urlencode($_GET['text']);
-	}
-
-	// TODO scan for < and > inside href attributes
-
-	$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_smiley', $message);
-	$message = str_replace('/http:', 'http:', $message);
-	$message = str_replace(' target="_blank"', '', $message);
-	$message = str_replace(' border="0"', '', $message);
-	$message = str_replace('"style="', '" style="', $message);
-	$message = str_replace('</A>', '</a>', $message);
-
-	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
-	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
-
-	$message = preg_replace('/<a /', '<a target="_blank" ', $message);
-
-	// TODO problems with <embed> tag?
-	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
-	$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $user_id, 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $id, 'epoch' => $epoch);
-}
-
-$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
-$db_data = db_query($query);
-$grand_total = $db_data[0]['shouts'];
-
-$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE $filter";
-array_pop($params);
-array_pop($params);
-$db_data = db_query($query, $params);
-$total_shouts = $db_data[0]['shouts'];
-
-$page_count = ceil($total_shouts/$limit);
 $link_parts = "?limit=$limit";
-if(isset($_GET['text']) && trim($_GET['text']) != '') {
-	$link_parts .= '&amp;text=' . urlencode($_GET['text']);
+if($text != '') {
+	$link_parts .= '&amp;text=' . urlencode($text);
 }
-if(isset($_GET['user']) && trim($_GET['user']) != '') {
-	$link_parts .= '&amp;user=' . urlencode($_GET['user']);
+if($user != '') {
+	$link_parts .= '&amp;user=' . urlencode($user);
 }
-if(isset($_GET['date']) && trim($_GET['date']) != '') {
-	$link_parts .= '&amp;date=' . urlencode($_GET['date']);
+if($date != '') {
+	$link_parts .= '&amp;date=' . urlencode($date);
 }
 $previous_page = $page-1;
 if($previous_page <= 0) {

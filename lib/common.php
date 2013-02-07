@@ -233,3 +233,81 @@ function process_smilies($id, $epoch) {
 	}
 }
 
+function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100) {
+	$filters = array('deleted = 0');
+	$params = array();
+	if($text != '') {
+		$filters[] = 's.message LIKE ?';
+		$params[] = "%$text%";
+	}
+	if($user != '') {
+		$filters[] = 'u.name = ?';
+		$params[] = $user;
+	}
+	if($date != '') {
+		$filters[] = "DATE_FORMAT(DATE_ADD(s.date, INTERVAL 1 HOUR), '%Y-%m-%d') = ?";
+		$params[] = $date;
+	}
+
+	$filter = implode(' AND ', $filters);
+	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE $filter ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?";
+	$params[] = intval($offset);
+	$params[] = intval($limit);
+	$db_data = db_query($query, $params);
+
+	$data = array();
+	foreach($db_data as $row) {
+		$datetime = new DateTime($row['date'], new DateTimeZone('Europe/London'));
+		$datetime->setTimezone((new DateTime())->getTimezone());
+		$formatted_date = $datetime->format('[d-m-Y H:i]');
+		$color = $row['color'];
+		$color = ($color == '-') ? 'user' : $color;
+		$user_name = $row['user_name'];
+
+		// TODO remove from here?
+		$link = '?user=' . urlencode($user_name) . "&amp;limit=$limit";
+		if($text != '') {
+			$link .= '&amp;text=' . urlencode($text);
+		}
+
+		// TODO scan for < and > inside href attributes
+
+		$message = $row['message'];
+		$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', function($match) { return "images/smilies/" . basename($match[0]); }, $message);
+		$message = str_replace('/http:', 'http:', $message);
+		$message = str_replace(' target="_blank"', '', $message);
+		$message = str_replace(' border="0"', '', $message);
+		$message = str_replace('"style="', '" style="', $message);
+		$message = str_replace('</A>', '</a>', $message);
+
+		$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
+		$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
+
+		$message = preg_replace('/<a /', '<a target="_blank" ', $message);
+
+		// TODO problems with <embed> tag?
+		$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
+		$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch']);
+	}
+
+	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
+	$db_data = db_query($query);
+	$grand_total = $db_data[0]['shouts'];
+
+	$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE $filter";
+	array_pop($params);
+	array_pop($params);
+	$db_data = db_query($query, $params);
+	$total_shouts = $db_data[0]['shouts'];
+
+	$page_count = ceil($total_shouts/$limit);
+
+	// TODO rename variables?
+	return array(
+		'messages' => $data,
+		'filtered_shouts' => $total_shouts,
+		'total_shouts' => $grand_total,
+		'page_count' => $page_count,
+	);
+}
+
