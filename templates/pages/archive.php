@@ -112,11 +112,11 @@ $(document).ready(function() {
 		</form>
 		</fieldset>
 		<div style="padding: 10px 5px 10px 5px;">
-			Messages (filtered/total): <span id="shouts_filtered"><?php echo $total_shouts ?></span>/<span id="shouts_total"><?php echo $grand_total ?></span>
+			Messages (filtered/total): <span id="shouts_filtered"><?php echo $filtered_shouts ?></span>/<span id="shouts_total"><?php echo $total_shouts ?></span>
 		</div>
 		<div id="content">
 <?php else:
-	echo "$page_count $total_shouts $grand_total$$";
+	echo "$page_count $filtered_shouts $total_shouts$$";
 endif; /* if(!$ajax) */ ?>
 			<table>
 				<?php foreach($messages as $message): ?>

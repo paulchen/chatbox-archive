@@ -59,10 +59,9 @@ $user = isset($_GET['user']) ? trim($_GET['user']) : '';
 $date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
 $message_data = get_messages($text, $user, $date, $offset, $limit);
-// TODO rename variables?
 $messages = $message_data['messages'];
-$total_shouts = $message_data['filtered_shouts'];
-$grand_total = $message_data['total_shouts'];
+$filtered_shouts = $message_data['filtered_shouts'];
+$total_shouts = $message_data['total_shouts'];
 $page_count = $message_data['page_count'];
 
 $link_parts = "?limit=$limit";
