@@ -22,6 +22,15 @@ $date = get_parameter('date', '/./', '');
 
 $message_data = get_messages($text, $user, $date, $offset, $limit);
 
-header('Content-Type: application/xhtml+xml; charset=utf-8');
+ob_start();
 require_once('templates/api/success.php');
+$data = ob_get_contents();
+ob_end_clean();
+
+$tidy = new tidy();
+$tidy->parseString($data, array('indent' => true, 'input-xml' => true, 'wrap' => 1000), 'utf8');
+$tidy->cleanRepair();
+
+header('Content-Type: application/xml; charset=utf-8');
+echo $tidy;
 
