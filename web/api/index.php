@@ -21,5 +21,7 @@ $user = get_parameter('user', '/./', '');
 $date = get_parameter('date', '/./', '');
 
 $message_data = get_messages($text, $user, $date, $offset, $limit);
-print_r($message_data);
+
+header('Content-Type: application/xhtml+xml; charset=utf-8');
+require_once('templates/api/success.php');
 

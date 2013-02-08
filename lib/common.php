@@ -250,7 +250,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	}
 
 	$filter = implode(' AND ', $filters);
-	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE $filter ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?";
+	$query = "SELECT s.id id, s.epoch epoch, UNIX_TIMESTAMP(s.date) unixdate, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE $filter ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
 	$db_data = db_query($query, $params);
@@ -287,7 +287,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		// TODO problems with <embed> tag?
 		$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
-		$data[] = array('date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch']);
+		$data[] = array('unixdate' => $row['unixdate'], 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch']);
 	}
 
 	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
