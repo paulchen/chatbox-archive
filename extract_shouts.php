@@ -263,7 +263,6 @@ function epoch_change_mail() {
 function message_count_error($expected, $actual) {
 	global $argv;
 
-	$finfo = finfo_open(FILEINFO_MIME_TYPE);
 	$parameters = array('INPUT_FILE' => $argv[1], 'EXPECTED' => $expected, 'ACTUAL' => $actual);
 	$attachments = array($argv[1]);
 	send_mail('message_count.php', 'Processing error', $parameters, true, $attachments);
