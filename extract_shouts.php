@@ -261,7 +261,7 @@ function epoch_change_mail() {
 }
 
 function message_count_error($expected, $actual) {
-	global $argv, $email_from, $report_email;
+	global $argv;
 
 	$finfo = finfo_open(FILEINFO_MIME_TYPE);
 	$parameters = array('INPUT_FILE' => $argv[1], 'EXPECTED' => $expected, 'ACTUAL' => $actual);
