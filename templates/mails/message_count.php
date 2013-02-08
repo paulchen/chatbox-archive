@@ -1,13 +1,14 @@
 Dear admin,
 
-An error has just occurred: The input file did not contain the expected number of messages.
+An error has just occurred: The input file did not contain the expected
+number of messages.
 
-Expected: <?php echo $expected ?>
+Expected: [EXPECTED]
 
-Actual: <?php echo $actual ?>
+Actual: [ACTUAL]
 
 
-Input filename: <?php echo $input_file ?>
+Input filename: [INPUT_FILE]
 
 
 Regards,

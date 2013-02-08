@@ -4,22 +4,22 @@ A database error has just occurred.
 
 Error:
 
-<?php echo $error ?>
+[ERROR]
 
 
 Stacktrace:
 
-<?php print_r($stacktrace) ?>
+[STACKTRACE]
 
 
 Query:
 
-<?php echo $query ?>
+[QUERY]
 
 
 Parameters:
 
-<?php print_r($parameters) ?>
+[PARAMETERS]
 
 
 Regards,

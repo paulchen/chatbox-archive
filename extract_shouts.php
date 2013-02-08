@@ -257,41 +257,15 @@ function process_chatbox_archive($contents) {
 }
 
 function epoch_change_mail() {
-	ob_start();
-	require(dirname(__FILE__) . '/templates/mails/epoch_change.php');
-	$message = ob_get_contents();
-	ob_end_clean();
-
-	// TODO duplicate code
-	$headers = "From: $email_from\n";
-	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
-	$headers .= "Content-Transfer-Encoding: 8bit\n";
-
-	$subject = 'Processing error';
-
-	mail($report_email, $subject, $message, $headers);
-
-	die();
+	send_mail('epoch_change.php', 'Epoch change');
 }
 
 function message_count_error($expected, $actual) {
 	global $argv, $email_from, $report_email;
 
-	$input_file = $argv[1];
-	ob_start();
-	require(dirname(__FILE__) . '/templates/mails/message_count.php');
-	$message = ob_get_contents();
-	ob_end_clean();
-
-	// TODO duplicate code
-	$headers = "From: $email_from\n";
-	$headers .= "Content-Type: text/plain; charset = \"UTF-8\";\n";
-	$headers .= "Content-Transfer-Encoding: 8bit\n";
-
-	$subject = 'Processing error';
-
-	mail($report_email, $subject, $message, $headers);
-
-	die();
+	$finfo = finfo_open(FILEINFO_MIME_TYPE);
+	$parameters = array('INPUT_FILE' => $argv[1], 'EXPECTED' => $expected, 'ACTUAL' => $actual);
+	$attachments = array($argv[1]);
+	send_mail('message_count.php', 'Processing error', $parameters, true, $attachments);
 }
 
