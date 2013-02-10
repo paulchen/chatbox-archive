@@ -159,8 +159,8 @@ $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info
 			from (select a.name, a.shouts, a.smilies,
-				(select unix_timestamp(min(date)) from shouts where user=a.id and $filter) as first_shout,
-				(select unix_timestamp(max(date)) from shouts where user=a.id and $filter) as last_shout,
+				(select unix_timestamp(min(date)) from shouts s where s.user=a.id and $filter) as first_shout,
+				(select unix_timestamp(max(date)) from shouts s where s.user=a.id and $filter) as last_shout,
 				(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count))
 					from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id)
 					where s.user = a.id and deleted = 0 and $filter
@@ -336,7 +336,7 @@ $queries[] = array(
 	);
  */
 $query_total = array(
-		'query' => "SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0 AND $filter",
+		'query' => "SELECT COUNT(*) shouts FROM shouts s WHERE deleted = 0 AND $filter",
 		'params' => $params,
 	);
 
