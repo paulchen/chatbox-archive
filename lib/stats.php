@@ -187,6 +187,12 @@ else {
 	$filtered_shouts = $data[0]['shouts'];
 }
 
-header('Content-Type: application/xhtml+xml; charset=utf-8');
+ob_start();
 require_once(dirname(__FILE__) . '/../templates/pages/stats.php');
+$data = ob_get_contents();
+ob_clean();
+
+xml_validate($data);
+header('Content-Type: application/xhtml+xml; charset=utf-8');
+echo $data;
 

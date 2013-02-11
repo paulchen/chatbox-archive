@@ -100,7 +100,15 @@ $users = json_encode(array_map(function($a) { return $a['name']; }, db_query($qu
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
 header('Content-Type: text/html; charset=utf-8');
 
+ob_start();
 require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
+$data = ob_get_contents();
+ob_clean();
+
+if(!$ajax) {
+	xml_validate($data);
+}
+echo $data;
 
 log_data();
 
