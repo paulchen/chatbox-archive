@@ -317,6 +317,10 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 function send_mail($template, $subject, $parameters = array(), $fatal = false, $attachments = array()) {
 	global $email_from, $report_email;
 
+	if(strpos($template, '..') !== false) {
+		die();
+	}
+
 	$message = file_get_contents(dirname(__FILE__) . "/../templates/mails/$template");
 
 	$patterns = array();
@@ -344,8 +348,27 @@ function send_mail($template, $subject, $parameters = array(), $fatal = false, $
 	$mail->send($report_email, $mime->headers($headers), $mime->get());
 
 	if($fatal) {
+		// TODO HTTP error code/message
 		die();
 	}
+}
+
+function xml_validate($data) {
+	$document = new DOMDocument;
+	$xml_error = false;
+	@$document->LoadXML($data) or $xml_error = true;
+	if($xml_error) {
+		$filename = tempnam($tmpdir, 'api_');
+		file_put_contents($filename, $data);
+
+		$parameters = array('REQUEST_URI' => $_SERVER['REQUEST_URI']);
+		$attachments = array($filename);
+		send_mail('validation_error.php', 'Validation error', $parameters, false, $attachments);
+
+		unlink($filename);
+	}
+
+	return $data;
 }
 
 

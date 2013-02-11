@@ -27,19 +27,7 @@ require_once('templates/api/success.php');
 $data = ob_get_contents();
 ob_end_clean();
 
-$document = new DOMDocument;
-$xml_error = false;
-@$document->LoadXML($data) or $xml_error = true;
-if($xml_error) {
-	$filename = tempnam($tmpdir, 'api_');
-	file_put_contents($filename, $data);
-
-	$parameters = array('REQUEST_URI' => $_SERVER['REQUEST_URI']);
-	$attachments = array($filename);
-	send_mail('api_error.php', 'API validation error', $parameters, false, $attachments);
-
-	unlink($filename);
-}
+xml_validate($data);
 
 $tidy = new tidy();
 $tidy->parseString($data, array('indent' => true, 'input-xml' => true, 'wrap' => 1000), 'utf8');
