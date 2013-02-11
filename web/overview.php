@@ -169,6 +169,11 @@ $backlink = array(
 		'text' => 'Chatbox archive',
 	);
 
+require_once(dirname(__FILE__) . '/../lib/common.php');
+
+/* cached data from misc/update_stats.php */
+$extra_stats = $memcached->get("${memcached_prefix}_stats_min_max");
+
 require_once(dirname(__FILE__) . '/../lib/stats.php');
 
 log_data();

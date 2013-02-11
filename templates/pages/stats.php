@@ -63,6 +63,7 @@ echo '<?xml version="1.0" ?>';
 		</div>
 		<hr />
 	<?php endforeach; ?>
+	<?php if(isset($extra_stats)): echo $extra_stats; endif; ?>
 	<p>
 		<a href="http://validator.w3.org/check?uri=referer"><img src="images/xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
 	</p>
