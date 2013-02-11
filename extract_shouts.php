@@ -213,8 +213,7 @@ function process_chatbox_archive($contents) {
 		$rawdate = trim(substr($shout, $datepos1+1, $datepos2-$datepos1-1));
 		$date_array = strptime($rawdate, '%d-%m, %H:%M');
 
-		// TODO year issues
-		$year = 2012;
+		$year = gmdate('y');
 		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
 
 		$memberpos1 = strpos($shout, 'member.php?u=')+13;
