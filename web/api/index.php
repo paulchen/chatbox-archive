@@ -48,3 +48,5 @@ $tidy->cleanRepair();
 header('Content-Type: application/xml; charset=utf-8');
 echo $tidy;
 
+log_data();
+
