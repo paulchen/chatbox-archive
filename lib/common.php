@@ -80,6 +80,7 @@ function db_error($error, $stacktrace, $query, $parameters) {
 			'STACKTRACE' => dump_r($stacktrace),
 			'QUERY' => $query,
 			'PARAMETERS' => dump_r($parameters),
+			'REQUEST_URI' => (isset($_SERVER) && isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : 'none',
 		);
 	send_mail('db_error.php', 'Database error', $params, true);
 }

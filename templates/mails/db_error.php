@@ -22,6 +22,12 @@ Parameters:
 [PARAMETERS]
 
 
+Request:
+
+[REQUEST_URI]
+
+
+
 Regards,
 The Chatbox Archive
 
