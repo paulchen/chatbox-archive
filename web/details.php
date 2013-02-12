@@ -137,7 +137,7 @@ if(isset($_REQUEST['hour'])) {
 	$what_parts[] = "hour $hour";
 }
 if(isset($_REQUEST['year'])) {
-	$filter_parts[] = "date_format(date, '$date_format') = ?";
+	$filter_parts[] = "date_format(date_add(date, interval 1 hour), '$date_format') = ?";
 	$params[] = $date;
 	$what_parts[] = $date;
 }
