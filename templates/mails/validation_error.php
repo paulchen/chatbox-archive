@@ -1,6 +1,6 @@
 Dear admin,
 
-The API has just produced XML code that is not well-formed.
+The web page has just produced XML code that is not well-formed.
 
 Request: [REQUEST_URI]
 
