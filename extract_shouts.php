@@ -170,7 +170,7 @@ function process_chatbox($contents) {
 		}
 
 		$messagepos1 = strpos($shout, '<td style="font-size:;vertical-align:bottom;">')+50;
-		$messagepos2 = strpos($shout, '</td>', $messagepos1)-3;
+		$messagepos2 = strpos($shout, "\t\t</td>", $messagepos1)-1;
 		$message = substr($shout, $messagepos1, $messagepos2-$messagepos1);
 
 		$ret += process_shout($id, $date, $member_id, $member_nick, $nick_color, $message);
