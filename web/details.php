@@ -64,6 +64,12 @@ function messages_per_month(&$row) {
 	$year = $parts[0];
 	$month = $parts[1];
 	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
+
+	$parts = explode('$$', $row[0]['top_spammer']);
+	$row[0]['top_spammer'] = "<a href=\"details.php?user={$parts[1]}\">{$parts[1]}</a> ({$parts[2]}x)";
+
+	$parts = explode('$$', $row[0]['popular_smiley']);
+	$row[0]['popular_smiley'] = "<a href=\"details.php?smiley={$parts[0]}\"><img src=\"images/smilies/{$parts[1]}\" alt=\"\" /></a> ({$parts[2]}x)";
 }
 
 function messages_per_year(&$row) {
@@ -232,19 +238,25 @@ $queries[] = array(
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "select date_format(date, '%Y-%m') month, count(*) as shouts from shouts s where deleted = 0 and $filter group by month order by month asc",
-			'params' => $params,
+			'query' => "select date_format(date, '%Y-%m') month, count(*) as shouts,
+						(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m')=month and $filter group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
+						(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m')=month and $filter group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
+					from shouts
+					where deleted = 0 and $filter 
+					group by month
+					order by month asc",
+			'params' => array_merge($params, $params, $params),
 			'processing_function' => 'messages_per_month',
-			'columns' => array('Month', 'Messages'),
-			'column_styles' => array('left', 'right'),
+			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley'),
+			'column_styles' => array('left', 'right', 'left', 'left'),
 			'derived_queries' => array(
 				array(
 					'title' => 'Messages per month, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_month',
 					'processing_function_all' => 'ex_aequo2',
-					'columns' => array('Position', 'Month', 'Messages'),
-					'column_styles' => array('right', 'left', 'right'),
+					'columns' => array('Position', 'Month', 'Messages', 'Top spammer', 'Most popular smiley'),
+					'column_styles' => array('right', 'left', 'right', 'left', 'left'),
 				),
 			),
 		);
