@@ -114,7 +114,7 @@ for($index=0; $index<count($queries); $index++) {
 	$hash = sha1($query['query'] . serialize($query['params']));
 	$memcached_key = "${memcached_prefix}_stats_$hash";
 	$memcached_data = $memcached->get($memcached_key);
-	if($memcached_data) {
+	if($memcached_data && !isset($_REQUEST['update'])) {
 		$last_update = max($memcached_data['update'], $last_update);
 		$data = $memcached_data['data'];
 	}
