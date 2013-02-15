@@ -105,9 +105,16 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		epoch_change_mail();
 	}
 
+	$datetime = new DateTime("@" . ($date+3600)); // TODO simply adding 3600 is sub-optimal
+	$datetime->setTimezone((new DateTime())->getTimezone());
+	$hour = $datetime->format('H');
+	$day = $datetime->format('d');
+	$month = $datetime->format('m');
+	$year = $datetime->format('Y');
+
 	if(count($data) == 0) {
-		$query = 'INSERT INTO shouts (id, epoch, date, user, message) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?)';
-		db_query($query, array($id, $epoch, $date, $member_id, $message));
+		$query = 'INSERT INTO shouts (id, epoch, date, user, message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
+		db_query($query, array($id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
 		process_smilies($id, $epoch);
 		return 1;

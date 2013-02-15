@@ -64,9 +64,9 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "select a.hour hour, coalesce(a.shouts, 0) shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where (date_format(date, '%H')+1)%24=a.hour and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where (date_format(date, '%H')+1)%24=a.hour and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
-				from (select lpad((date_format(date, '%H')+1) % 24, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour) a right join hours_of_day h on (a.hour = h.hour)
+					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where s.hour=a.hour and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
+					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.hour=a.hour and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
+				from (select lpad(hour, 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour) a right join hours_of_day h on (a.hour = h.hour)
 				order by hour asc",
 		'processing_function' => 'messages_per_hour',
 		'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley'),
@@ -84,12 +84,12 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "select a.day, a.shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m-%d')=a.day and deleted = 0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m-%d')=a.day and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
+					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where s.day=a.qday and s.month=a.qmonth and s.year=a.qyear and deleted = 0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
+					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.day=a.qday and s.month=a.qmonth and s.year=a.qyear and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 			from
-				(select date_format(date, '%Y-%m-%d') day, count(*) as shouts
+				(select date_format(date, '%Y-%m-%d') day, date_format(date, '%Y') qyear, date_format(date, '%m') qmonth, date_format(date, '%d') qday, count(*) as shouts
 					from shouts where deleted = 0
-					group by day
+					group by day, qyear, qmonth, qday
 					order by count(*) desc
 					limit 0, 10) a",
 		'processing_function' => function(&$row) {
@@ -106,9 +106,9 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Messages per month',
 		'query' => "select date_format(date, '%Y-%m') month, count(*) as shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m')=month and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m')=month and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
-				from shouts
+					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where s.month=date_format(sx.date, '%m') and s.year=date_format(sx.date, '%Y') and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
+					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.month=date_format(sx.date, '%m') and s.year=date_format(sx.date, '%Y') and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
+				from shouts sx
 				where deleted = 0
 				group by month
 				order by month asc",
