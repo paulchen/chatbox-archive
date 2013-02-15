@@ -40,9 +40,17 @@ CREATE TABLE IF NOT EXISTS `shouts` (
   `user` int(11) NOT NULL,
   `message` mediumtext NOT NULL,
   `deleted` tinyint(4) NOT NULL,
+  `hour` int(11) NOT NULL,
+  `day` int(11) NOT NULL,
+  `month` int(11) NOT NULL,
+  `year` int(11) NOT NULL,
   PRIMARY KEY (`id`,`epoch`),
   KEY `user` (`user`),
   KEY `deleted` (`deleted`)
+  KEY `hour` (`hour`),
+  KEY `day` (`day`),
+  KEY `month` (`month`),
+  KEY `year` (`year`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
