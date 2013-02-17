@@ -110,8 +110,8 @@ $queries[] = array(
 					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.month=date_format(sx.date, '%m') and s.year=date_format(sx.date, '%Y') and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 				from shouts sx
 				where deleted = 0
-				group by month
-				order by month asc",
+				group by month, year
+				order by year asc, month asc",
 		'processing_function' => 'messages_per_month',
 		'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley'),
 		'column_styles' => array('left', 'right', 'left', 'left'),
