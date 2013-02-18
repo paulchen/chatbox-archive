@@ -284,6 +284,9 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$message = str_replace(' border="0"', '', $message);
 		$message = str_replace('"style="', '" style="', $message);
 		$message = str_replace('</A>', '</a>', $message);
+		for($a=14; $a<32; $a++) {
+			$message = str_replace(chr($a), '', $message);
+		}
 
 		$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 		$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
