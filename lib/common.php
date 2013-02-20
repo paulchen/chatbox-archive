@@ -308,7 +308,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$db_data = db_query($query, $params);
 	$filtered_shouts = $db_data[0]['shouts'];
 
-	$page_count = ceil($total_shouts/$limit);
+	$page_count = ceil($filtered_shouts/$limit);
 
 	return array(
 		'messages' => $data,
