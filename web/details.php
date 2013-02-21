@@ -61,10 +61,10 @@ function messages_per_month(&$row) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 	}
 
-	$parts = explode('-', $row[0]['month']);
+	$parts = explode('-', $row[0]['monthx']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
+	$row[0]['monthx'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['monthx'] . '</a>';
 	spammer_smiley($row);
 }
 
@@ -88,7 +88,7 @@ function messages_per_year(&$row) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 	}
 
-	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
+	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "$link_parts\">" . $row[0]['yearx'] . '</a>';
 	spammer_smiley($row);
 }
 
