@@ -27,15 +27,15 @@ function messages_per_hour(&$row) {
 }
 
 function messages_per_month(&$row) {
-	$parts = explode('-', $row[0]['month']);
+	$parts = explode('-', $row[0]['monthx']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['month'] = "<a href=\"details.php?month={$parts[1]}&amp;year={$parts[0]}\">{$row[0]['month']}</a>";
+	$row[0]['monthx'] = "<a href=\"details.php?month={$parts[1]}&amp;year={$parts[0]}\">{$row[0]['monthx']}</a>";
 	spammer_smiley($row);
 }
 
 function messages_per_year(&$row) {
-	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "\">" . $row[0]['year'] . '</a>';
+	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "\">" . $row[0]['yearx'] . '</a>';
 	spammer_smiley($row);
 }
 
