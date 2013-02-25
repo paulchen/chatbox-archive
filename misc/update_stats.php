@@ -64,6 +64,83 @@ foreach($periods as &$period) {
 }
 unset($period);
 
+$time_difference = 300;
+$message_difference = 5;
+
+$query = 'SELECT user, UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY epoch ASC, id ASC';
+$data = db_query($query);
+
+$time_queue = array();
+$id_queue = array();
+
+$overall_points = array();
+
+function increase_points(&$points, $user1, $user2) {
+	if(!isset($points[$user1])) {
+		$points[$user1] = array();
+	}
+
+	if(!isset($points[$user1][$user2])) {
+		$points[$user1][$user2] = 1;
+	}
+	else {
+		$points[$user1][$user2] = $points[$user1][$user2] + 1;
+	}
+}
+
+foreach($data as $row) {
+	while(count($time_queue) > 0 && $row['date']-$time_queue[0]['date'] > $time_difference) {
+		array_shift($time_queue);
+	}
+	while(count($id_queue) > $message_difference) {
+		array_shift($id_queue);
+	}
+
+	$points = array();
+	foreach($time_queue as $old_item) {
+		if($old_item['user'] != $row['user'] && !in_array($row['user'], $points)) {
+			$points[] = $old_item['user'];
+		}
+	}
+	foreach($id_queue as $old_item) {
+		if($old_item['user'] != $row['user'] && !in_array($row['user'], $points)) {
+			$points[] = $old_item['user'];
+		}
+	}
+
+	foreach($points as $point) {
+		increase_points($overall_points, $row['user'], $point);
+		increase_points($overall_points, $point, $row['user']);
+	}
+
+	$time_queue[] = $row;
+	$id_queue[] = $row;
+}
+
+foreach($overall_points as &$row) {
+	arsort($row);
+}
+unset($row);
+
+$query = 'SELECT id, name FROM users';
+$data = db_query($query);
+$users = array();
+foreach($data as $row) {
+	$users[$row['id']] = $row['name'];
+}
+
+$conversation_points = array();
+foreach($overall_points as $index1 => $row1) {
+	$new_row = array();
+	foreach($row1 as $index2 => $row2) {
+		$new_row[$users[$index2]] = $row2;
+	}
+
+	$conversation_points[$users[$index1]] = $new_row;
+}
+
+uksort($conversation_points, function($a, $b) { return mb_strtolower($a, 'UTF-8') > mb_strtolower($b, 'UTF-8'); } );
+
 ob_start();
 require_once('templates/pages/cached_stats.php');
 $data = ob_get_contents();
