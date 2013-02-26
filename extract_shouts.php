@@ -10,7 +10,7 @@ if($argc != 2) {
 
 require_once('lib/common.php');
 
-db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE');
+db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE, words WRITE, shout_words WRITE');
 
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
@@ -117,6 +117,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		db_query($query, array($id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
 		process_smilies($id, $epoch);
+		process_words($id, $epoch);
 		return 1;
 	}
 
@@ -124,6 +125,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	db_query($query, array($member_id, $message, $id, $epoch));
 
 	process_smilies($id, $epoch);
+	process_words($id, $epoch);
 	
 	return 0;
 }

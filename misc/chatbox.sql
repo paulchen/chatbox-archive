@@ -202,6 +202,35 @@ CREATE TABLE IF NOT EXISTS `requests` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `shout_words`
+--
+
+CREATE TABLE IF NOT EXISTS `shout_words` (
+  `shout_id` int(11) NOT NULL,
+  `shout_epoch` int(11) NOT NULL,
+  `word` int(11) NOT NULL,
+  `count` int(11) NOT NULL,
+  PRIMARY KEY (`shout_id`,`shout_epoch`,`word`),
+  KEY `smiley` (`word`),
+  KEY `shout_id` (`shout_id`,`shout_epoch`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `words`
+--
+
+CREATE TABLE IF NOT EXISTS `words` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `word` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `word` (`word`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+
 --
 -- Constraints der exportierten Tabellen
 --
@@ -230,4 +259,11 @@ ALTER TABLE `shout_smilies`
 --
 ALTER TABLE `queries`
   ADD CONSTRAINT `queries_ibfk_1` FOREIGN KEY (`request`) REFERENCES `requests` (`id`);
+
+--
+-- Constraints der Tabelle `shout_words`
+--
+ALTER TABLE `shout_words`
+  ADD CONSTRAINT `shout_words_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`),
+  ADD CONSTRAINT `shout_words_ibfk_2` FOREIGN KEY (`word`) REFERENCES `words` (`id`);
 
