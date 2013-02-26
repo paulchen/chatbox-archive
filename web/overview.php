@@ -97,7 +97,7 @@ $queries[] = array(
 					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where s.day=a.qday and s.month=a.qmonth and s.year=a.qyear and deleted = 0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
 					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.day=a.qday and s.month=a.qmonth and s.year=a.qyear and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 			from
-				(select date_format(date, '%Y-%m-%d') day, date_format(date, '%Y') qyear, date_format(date, '%m') qmonth, date_format(date, '%d') qday, count(*) as shouts
+				(select date_format(date_add(date, interval 1 hour), '%Y-%m-%d') day, date_format(date_add(date, interval 1 hour), '%Y') qyear, date_format(date_add(date, interval 1 hour), '%m') qmonth, date_format(date_add(date, interval 1 hour), '%d') qday, count(*) as shouts
 					from shouts where deleted = 0
 					group by day, qyear, qmonth, qday
 					order by count(*) desc
@@ -115,7 +115,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per month',
-		'query' => "select date_format(date, '%Y-%m') monthx, count(*) as shouts,
+		'query' => "select date_format(date_add(date, interval 1 hour), '%Y-%m') monthx, count(*) as shouts,
 					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where s.month=date_format(sx.date, '%m') and s.year=date_format(sx.date, '%Y') and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
 					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where s.month=date_format(sx.date, '%m') and s.year=date_format(sx.date, '%Y') and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 				from shouts sx
@@ -138,7 +138,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per year',
-		'query' => "select date_format(date, '%Y') yearx, count(*) as shouts,
+		'query' => "select date_format(date_add(date, interval 1 hour), '%Y') yearx, count(*) as shouts,
 					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y')=yearx and deleted=0 group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
 					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y')=yearx and deleted=0 group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 	       		from shouts
