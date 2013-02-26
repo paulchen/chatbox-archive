@@ -9,6 +9,6 @@ foreach($data as $row) {
 //	if($row['id'] % 100 == 0) {
 		echo "Processing message " . $row['id'] . ", epoch " . $row['epoch'] . "...\n";
 //	}
-	process_smilies($row['id'], $row['epoch']);
+	process_words($row['id'], $row['epoch']);
 }
 

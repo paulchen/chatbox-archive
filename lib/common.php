@@ -238,6 +238,74 @@ function process_smilies($id, $epoch) {
 	}
 }
 
+function process_words($id, $epoch) {
+	global $found_smilies;
+
+	$query = 'SELECT message FROM shouts WHERE id = ? AND epoch = ?';
+	$data = db_query($query, array($id, $epoch));
+	if(count($data) != 1) {
+		return;
+	}
+	$message = $data[0]['message'];
+	$message = str_replace(array(',', '.', '!', '?'), array('', '', '', ''), $message);
+
+	$words = preg_split('/[\s]+/', $message);
+	$found_words = array();
+	foreach($words as $index => $word) {
+		$word = mb_strtolower(trim($word), 'UTF-8');
+		if(preg_match('/^[a-z]+$/', $word)) {
+			$query = 'SELECT id FROM words WHERE word = ?';
+			$data = db_query($query, array($word));
+			if(count($data) == 0) {
+				$query = 'INSERT INTO words (word) VALUES (?)';
+				db_query($query, array($word));
+
+				$query = 'SELECT id FROM words WHERE word = ?';
+				$data = db_query($query, array($word));
+			}
+
+			$word_id = $data[0]['id'];
+			if(!isset($found_words[$word_id])) {
+				$found_words[$word_id] = 1;
+			}
+			else {
+				$found_words[$word_id] = $found_words[$word_id] + 1;
+			}
+		}
+	}
+
+	$query = 'SELECT word, `count` FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
+	$data = db_query($query, array($id, $epoch));
+
+	$diff = false;
+	foreach($data as $row) {
+		if(!isset($found_words[$row['word']]) || $found_words[$row['word']] != $row['count']) {
+			$diff = true;
+		}
+	}
+	foreach($found_words as $word => $count) {
+		$found = false;
+		foreach($data as $row) {
+			if($row['word'] == $word && $row['count'] == $count) {
+				$found = true;
+			}
+		}
+		if(!$found) {
+			$diff = true;
+		}
+	}
+
+	if($diff) {
+		$query = 'DELETE FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
+		db_query($query, array($id, $epoch));
+
+		$query = 'INSERT INTO shout_words (shout_id, shout_epoch, word, `count`) VALUES (?, ?, ?, ?)';
+		foreach($found_words as $word => $count) {
+			db_query($query, array($id, $epoch, $word, $count));
+		}
+	}
+}
+
 function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100) {
 	$filters = array('deleted = 0');
 	$params = array();
