@@ -1,5 +1,6 @@
 <?php
 
+chdir(dirname(__FILE__));
 require_once('../lib/common.php');
 
 $query = 'SELECT id, epoch FROM shouts';
