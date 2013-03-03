@@ -152,13 +152,13 @@ function process_chatbox($contents) {
 		$datepos1 = strpos($shout, '[');
 		$datepos2 = strpos($shout, ']');
 		$rawdate = substr($shout, $datepos1+1, $datepos2-$datepos1-1);
-		$date_array = strptime($rawdate, '%d-%m, %H:%M');
+		$date_array = strptime($rawdate, '%d-%m-%y, %H:%M');
 
-		$year = gmdate('y');
-		if(gmdate('m') < $date_array['tm_mon']+1) {
-			$year++;
-		}
-		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
+//		$year = gmdate('y');
+//		if(gmdate('m') < $date_array['tm_mon']+1) {
+//			$year++;
+//		}
+		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $date_array['tm_year']+1900);
 
 		$memberpos1 = strpos($shout, 'member.php?u=')+13;
 		$memberpos2 = strpos($shout, '"', $memberpos1);
@@ -220,10 +220,10 @@ function process_chatbox_archive($contents) {
 		$datepos1 = strpos($shout, '  ', $idpos2);
 		$datepos2 = strpos($shout, '</td>', $datepos1);
 		$rawdate = trim(substr($shout, $datepos1+1, $datepos2-$datepos1-1));
-		$date_array = strptime($rawdate, '%d-%m, %H:%M');
+		$date_array = strptime($rawdate, '%d-%m-%y, %H:%M');
 
-		$year = gmdate('y');
-		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $year);
+//		$year = gmdate('y');
+		$date = mktime($date_array['tm_hour'], $date_array['tm_min'], 0, $date_array['tm_mon']+1, $date_array['tm_mday'], $date_array['tm_year']+1900);
 
 		$memberpos1 = strpos($shout, 'member.php?u=')+13;
 		$memberpos2 = strpos($shout, '"', $memberpos1);
