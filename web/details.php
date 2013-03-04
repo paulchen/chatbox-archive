@@ -259,13 +259,13 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select a.day, a.shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m-%d')=a.day and deleted=0 and $filter group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m-%d')=a.day and deleted=0 and $filter group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
+		'query' => "select a.xday, a.shouts,
+					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m-%d')=a.xday and deleted=0 and $filter group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
+					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m-%d')=a.xday and deleted=0 and $filter group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
 			from
-				(select date_format(date_add(date, interval 1 hour), '%Y-%m-%d') day, count(*) as shouts
+				(select date_format(date_add(date, interval 1 hour), '%Y-%m-%d') xday, count(*) as shouts
 					from shouts s where deleted = 0 and $filter
-					group by day
+					group by xday
 					order by count(*) desc
 					limit 0, 10) a",
 		'params' => array_merge($params, $params, $params),
