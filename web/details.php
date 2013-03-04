@@ -186,10 +186,18 @@ if(isset($_REQUEST['smiley'])) {
 	$what_parts[] = "smiley <img src=\"images/smilies/$smiley_filename\" alt=\"\" />";
 }
 if(isset($_REQUEST['period'])) {
-	// TODO improve this?
-	/* don't use the start date as parameter here as the memcached key would then change every minute */
-	$filter_parts[] = 'unix_timestamp(now())-unix_timestamp(s.date) < 8640*3600';
-	$what_parts[] = 'last 8640 hours';
+	// TODO improve this
+	$last_archive_id = 229152;
+	$last_archive_epoch = 1;
+
+	$data = db_query('SELECT UNIX_TIMESTAMP(date) date FROM shouts WHERE (epoch = ? AND id >= ?) OR (epoch > ?) ORDER BY epoch ASC, id ASC LIMIT 0, 1', array($last_archive_epoch, $last_archive_id, $last_archive_epoch));
+	$date_string = date('Y-m-d', $data[0]['date']);
+
+	$filter_parts[] = '(s.epoch = ? AND s.id >= ?) OR (epoch > ?)';
+	$params[] = $last_archive_epoch;
+	$params[] = $last_archive_id;
+	$params[] = $last_archive_epoch;
+	$what_parts[] = "since $date_string";
 }
 
 $filter = implode(' AND ', $filter_parts);
@@ -338,8 +346,8 @@ if(!isset($_REQUEST['month'])) {
 			),
 		);
 }
-$filter2 = str_replace(array('s.epoch', 's.id', 's.date'), array('s2.epoch', 's2.id', 's2.date'), $filter);
-$filter3 = str_replace(array('s.epoch', 's.id', 's.date'), array('sh.epoch', 'sh.id', 'sh.date'), $filter);
+$filter2 = str_replace(array('s.epoch', 's.id'), array('s2.epoch', 's2.id'), $filter);
+$filter3 = str_replace(array('s.epoch', 's.id'), array('sh.epoch', 'sh.id'), $filter);
 $queries[] = array(
 		'title' => 'Smiley usage',
 		'query' => "select s.filename filename, sum(count),
