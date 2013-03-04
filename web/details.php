@@ -7,6 +7,7 @@ function overview_redirect() {
 }
 
 function add_user_link(&$row) {
+	// TODO simplify this
 	$link_parts = '';
 	if(isset($_REQUEST['day'])) {
 		$link_parts .= '&amp;day=' . $_REQUEST['day'];
@@ -22,6 +23,9 @@ function add_user_link(&$row) {
 	}
 	if(isset($_REQUEST['smiley'])) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
+	}
+	if(isset($_REQUEST['period'])) {
+		$link_parts .= '&amp;period=' . $_REQUEST['period'];
 	}
 
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
@@ -44,6 +48,9 @@ function messages_per_hour(&$row) {
 	if(isset($_REQUEST['smiley'])) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 	}
+	if(isset($_REQUEST['period'])) {
+		$link_parts .= '&amp;period=' . $_REQUEST['period'];
+	}
 
 	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
 	spammer_smiley($row);
@@ -59,6 +66,9 @@ function messages_per_month(&$row) {
 	}
 	if(isset($_REQUEST['smiley'])) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
+	}
+	if(isset($_REQUEST['period'])) {
+		$link_parts .= '&amp;period=' . $_REQUEST['period'];
 	}
 
 	$parts = explode('-', $row[0]['monthx']);
@@ -97,12 +107,15 @@ function messages_per_year(&$row) {
 	if(isset($_REQUEST['smiley'])) {
 		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 	}
+	if(isset($_REQUEST['period'])) {
+		$link_parts .= '&amp;period=' . $_REQUEST['period'];
+	}
 
 	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "$link_parts\">" . $row[0]['yearx'] . '</a>';
 	spammer_smiley($row);
 }
 
-if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley'])) {
+if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period'])) {
 	overview_redirect();
 }
 if(isset($_REQUEST['day']) && !isset($_REQUEST['month'])) {
@@ -172,6 +185,13 @@ if(isset($_REQUEST['smiley'])) {
 	$params[] = $smiley_id;
 	$what_parts[] = "smiley <img src=\"images/smilies/$smiley_filename\" alt=\"\" />";
 }
+if(isset($_REQUEST['period'])) {
+	// TODO improve this?
+	$filter_parts[] = 's.date >= ?';
+	$params[] = date('Y-m-d H:i', time() - 8641*3600);
+	$what_parts[] = 'last 8640 hours';
+}
+
 $filter = implode(' AND ', $filter_parts);
 $what = implode(', ', $what_parts);
 
@@ -252,6 +272,9 @@ $queries[] = array(
 				if(isset($_REQUEST['smiley'])) {
 					$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
 				}
+				if(isset($_REQUEST['period'])) {
+					$link_parts .= '&amp;period=' . $_REQUEST['period'];
+				}
 
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
@@ -315,8 +338,8 @@ if(!isset($_REQUEST['month'])) {
 			),
 		);
 }
-$filter2 = str_replace(array('s.epoch', 's.id'), array('s2.epoch', 's2.id'), $filter);
-$filter3 = str_replace(array('s.epoch', 's.id'), array('sh.epoch', 'sh.id'), $filter);
+$filter2 = str_replace(array('s.epoch', 's.id', 's.date'), array('s2.epoch', 's2.id', 's2.date'), $filter);
+$filter3 = str_replace(array('s.epoch', 's.id', 's.date'), array('sh.epoch', 'sh.id', 'sh.date'), $filter);
 $queries[] = array(
 		'title' => 'Smiley usage',
 		'query' => "select s.filename filename, sum(count),
@@ -357,6 +380,9 @@ $queries[] = array(
 				}
 				if(isset($_REQUEST['user'])) {
 					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
+				}
+				if(isset($_REQUEST['period'])) {
+					$link_parts .= '&amp;period=' . $_REQUEST['period'];
 				}
 
 				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
