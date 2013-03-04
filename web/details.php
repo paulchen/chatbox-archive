@@ -187,8 +187,7 @@ if(isset($_REQUEST['smiley'])) {
 }
 if(isset($_REQUEST['period'])) {
 	// TODO improve this?
-	$filter_parts[] = 's.date >= ?';
-	$params[] = date('Y-m-d H:i', time() - 8641*3600);
+	$filter_parts[] = "datediff(s.date, now()) <= 'interval 8640 hour'";
 	$what_parts[] = 'last 8640 hours';
 }
 
