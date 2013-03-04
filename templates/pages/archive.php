@@ -98,7 +98,7 @@ $(document).ready(function() {
 	<h1>Chatbox archive</h1>
 	<div>
 		<a href="overview.php">Spam overview (all time)</a>
-		<a href="details.php?period=8640h">Spam overview (last 8640 hours)</a>
+		<a href="details.php?period=forum">Spam overview (all messages on informatik-forum.at)</a>
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
