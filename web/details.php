@@ -418,7 +418,7 @@ $query_total = array(
 		'params' => $params,
 	);
 
-$page_title = "Spam overview for $what";
+$page_title = "Spam overview: $what";
 $backlink = array(
 		'url' => 'overview.php',
 		'text' => 'Spam overview',
