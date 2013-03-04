@@ -251,7 +251,7 @@ ALTER TABLE `users`
 -- Constraints der Tabelle `shout_smilies`
 --
 ALTER TABLE `shout_smilies`
-  ADD CONSTRAINT `shout_smilies_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`),
+  ADD CONSTRAINT `shout_smilies_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`) ON DELETE CASCADE,
   ADD CONSTRAINT `shout_smilies_ibfk_2` FOREIGN KEY (`smiley`) REFERENCES `smilies` (`id`);
 
 --
@@ -264,6 +264,6 @@ ALTER TABLE `queries`
 -- Constraints der Tabelle `shout_words`
 --
 ALTER TABLE `shout_words`
-  ADD CONSTRAINT `shout_words_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`),
+  ADD CONSTRAINT `shout_words_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`) ON DELETE CASCADE,
   ADD CONSTRAINT `shout_words_ibfk_2` FOREIGN KEY (`word`) REFERENCES `words` (`id`);
 
