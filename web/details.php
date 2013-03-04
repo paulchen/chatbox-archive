@@ -188,7 +188,7 @@ if(isset($_REQUEST['smiley'])) {
 if(isset($_REQUEST['period'])) {
 	// TODO improve this?
 	/* don't use the start date as parameter here as the memcached key would then change every minute */
-	$filter_parts[] = "datediff(s.date, now()) <= 'interval 8640 hour'";
+	$filter_parts[] = 'unix_timestamp(now())-unix_timestamp(s.date) < 8640*3600';
 	$what_parts[] = 'last 8640 hours';
 }
 
