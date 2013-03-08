@@ -231,6 +231,22 @@ CREATE TABLE IF NOT EXISTS `words` (
   UNIQUE KEY `word` (`word`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `shout_revisions`
+--
+
+CREATE TABLE IF NOT EXISTS `shout_revisions` (
+  `id` int(11) NOT NULL,
+  `epoch` int(11) NOT NULL,
+  `revision` int(11) NOT NULL,
+  `replaced` date NOT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`,`epoch`,`revision`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 --
 -- Constraints der exportierten Tabellen
 --
@@ -266,4 +282,10 @@ ALTER TABLE `queries`
 ALTER TABLE `shout_words`
   ADD CONSTRAINT `shout_words_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`) ON DELETE CASCADE,
   ADD CONSTRAINT `shout_words_ibfk_2` FOREIGN KEY (`word`) REFERENCES `words` (`id`);
+
+--
+-- Constraints der Tabelle `shout_revisions`
+--
+ALTER TABLE `shout_revisions`
+  ADD CONSTRAINT `shout_revisions_ibfk_1` FOREIGN KEY (`id`, `epoch`) REFERENCES `shouts` (`id`, `epoch`);
 
