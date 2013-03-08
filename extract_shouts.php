@@ -10,7 +10,7 @@ if($argc != 2) {
 
 require_once('lib/common.php');
 
-db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE, words WRITE, shout_words WRITE');
+db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE, words WRITE, shout_words WRITE, shout_revisions WRITE');
 
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
@@ -93,7 +93,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	process_nick($member_id, $member_nick, $nick_color);
 
-	$query = 'SELECT id, epoch FROM shouts WHERE id = ? AND epoch = ?';
+	$query = 'SELECT id, epoch, message FROM shouts WHERE id = ? AND epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 
 	$max_id = max($id, $max_id);
@@ -121,8 +121,22 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		return 1;
 	}
 
-	$query = 'UPDATE shouts SET user = ?, message = ? WHERE id = ? AND epoch = ?';
-	db_query($query, array($member_id, $message, $id, $epoch));
+	$old_message = $data[0]['message'];
+	if($old_message == $message) {
+		return 0;
+	}
+
+	$query = 'SELECT MAX(revision) revision FROM shout_revisions WHERE id = ? AND epoch = ?';
+	$data = db_query($query, array($id, $epoch));
+	$revision = $data[0]['revision'] + 1;
+	
+	$replaced = time()-3600;
+
+	$query = 'INSERT INTO shout_revisions (id, epoch, revision, replaced, text) VALUES (?, ?, ?, FROM_UNIXTIME(?), ?)';
+	db_query($query, array($id, $epoch, $revision, $replaced, $old_message));
+
+	$query = 'UPDATE shouts SET message = ? WHERE id = ? AND epoch = ?';
+	db_query($query, array($message, $id, $epoch));
 
 	process_smilies($id, $epoch);
 	process_words($id, $epoch);
