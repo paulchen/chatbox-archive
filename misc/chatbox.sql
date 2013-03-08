@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS `shout_revisions` (
   `id` int(11) NOT NULL,
   `epoch` int(11) NOT NULL,
   `revision` int(11) NOT NULL,
-  `replaced` date NOT NULL,
+  `replaced` datetime NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`id`,`epoch`,`revision`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
