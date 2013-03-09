@@ -52,23 +52,30 @@ function refresh() {
 	$.ajax({
 		url : url,
 		success : function(data, textStatus, xhr) {
-			var pos = data.indexOf('$$');
-			var parts = data.substring(0, pos).split(' ');
-			data = data.substring(pos+2);
+			if($('table.bubbletip').css('display') == 'none') {
+				var pos = data.indexOf('$$');
+				var parts = data.substring(0, pos).split(' ');
+				data = data.substring(pos+2);
 
-			pos = data.indexOf('$$');
-			var ids = data.substring(0, pos).split(' ');
-			data = data.substring(pos+2);
-			$.each(ids, function(index, value) {
-				bubbletip(value);
-			});
-			$('#content').children().remove();
-			$('#content').append(data);
-			$('#shouts_filtered').text(parts[1]);
-			$('#shouts_total').text(parts[2]);
-			$('.page_count').text(parts[0]);
-			$('.next_link').attr('href', "<?php echo $generic_link ?>" + Math.min(parts[0], <?php echo $page+1 ?>));
-			$('.last_link').attr('href', "<?php echo $generic_link ?>" + parts[0]);
+				pos = data.indexOf('$$');
+				var ids = data.substring(0, pos).split(' ');
+				data = data.substring(pos+2);
+				$('.revisions').removeBubbletip();
+
+				$('#content').children().remove();
+				$('#content').append(data);
+				$('#shouts_filtered').text(parts[1]);
+				$('#shouts_total').text(parts[2]);
+				$('.page_count').text(parts[0]);
+				$('.next_link').attr('href', "<?php echo $generic_link ?>" + Math.min(parts[0], <?php echo $page+1 ?>));
+				$('.last_link').attr('href', "<?php echo $generic_link ?>" + parts[0]);
+
+				$.each(ids, function(index, value) {
+					if(value != '') {
+						bubbletip(value);
+					}
+				});
+			}
 		},
 		complete : function(xhr, textStatus) {
 			update_refresh();
@@ -147,7 +154,7 @@ $(document).ready(function() {
 <?php else:
 	echo "$page_count $filtered_shouts $total_shouts$$";
 	foreach($messages as $message):
-		if(count($messages['revisions'] > 0)):
+		if(count($message['revisions']) > 0):
 			echo $message['id'] . '_' . $message['epoch'] . ' ';
 		endif;
 	endforeach;
@@ -167,6 +174,19 @@ endif; /* if(!$ajax) */ ?>
 					</tr>
 				<?php endforeach; ?>
 			</table>
+			<?php foreach($messages as $message): ?>
+				<?php if(count($message['revisions']) > 0): ?>
+					<div id="revisions_<?php echo $message['id'] . '_' . $message['epoch'] ?>" style="display: none;">
+						Change log:
+						<ol>
+							<?php foreach($message['revisions'] as $revision): ?>
+								<li><?php echo $revision['text'] ?></li>
+							<?php endforeach; ?>
+							<li><?php echo $message['message'] ?> (<em>current</em>)</li>
+						</ol>
+					</div>
+				<?php endif; ?>
+			<?php endforeach; ?>
 <?php if(!$ajax): ?>
 		</div>
 		<div style="padding-top: 15px; padding-left: 5px; white-space: nowrap;">
@@ -177,19 +197,6 @@ endif; /* if(!$ajax) */ ?>
 	<p>
 		<a href="http://validator.w3.org/check?uri=referer"><img src="images/xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
 	</p>
-	<?php foreach($messages as $message): ?>
-		<?php if(count($message['revisions']) > 0): ?>
-			<div id="revisions_<?php echo $message['id'] . '_' . $message['epoch'] ?>" style="display: none;">
-				Change log:
-				<ol>
-					<?php foreach($message['revisions'] as $revision): ?>
-						<li><?php echo $revision['text'] ?></li>
-					<?php endforeach; ?>
-					<li><?php echo $message['message'] ?> (<em>current</em>)</li>
-				</ol>
-			</div>
-		<?php endif; ?>
-	<?php endforeach; ?>
 </body>
 </html>
 <?php endif; /* if(!$ajax) */ ?>
