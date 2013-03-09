@@ -22,10 +22,17 @@ if(!$ajax):
 	td.date > a:hover { color: red; }
 	a:hover { color: red; }
 	img { border: none; }
+	a.revisions { color: #666; font-size: 80%; }
+	a.revisions:hover { text-decoration: underline; }
 	</style>
         <link href="css/redmond/jquery-ui-1.10.0.custom.min.css" rel="stylesheet" type="text/css"></link>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui-1.10.0.custom.min.js"></script>
+	<script src="js/jQuery.bubbletip-1.0.6.js" type="text/javascript"></script>
+	<link href="css/bubbletip/bubbletip.css" rel="stylesheet" type="text/css" />
+	<!--[if IE]>
+	<link href="css/bubbletip/bubbletip-IE.css" rel="stylesheet" type="text/css" />
+	<![endif]-->
 	<script type="text/javascript">
 <!--
 var timeout;
@@ -89,6 +96,14 @@ $(document).ready(function() {
 		firstDay : 1,
 		dateFormat : 'yy-mm-dd',
 	});
+
+	<?php foreach($messages as $message): ?>
+		<?php if(count($message['revisions']) > 0): ?>
+			$('#revisions_link_<?php echo $message['id'] . '_' . $message['epoch'] ?>').bubbletip(
+				$('#revisions_<?php echo $message['id'] . '_' . $message['epoch'] ?>')
+			);
+		<?php endif; ?>
+	<?php endforeach; ?>
 });
 
 // -->
@@ -124,7 +139,12 @@ endif; /* if(!$ajax) */ ?>
 					<tr>
 						<td class="date"><a id="message<?php echo $message['id'] . '_' . $message['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['id'] . '&amp;epoch=' . $message['epoch'] ?>"><?php echo $message['date'] ?></a></td>
 						<td class="user"><a class="<?php echo $message['color'] ?>" href="<?php echo $message['user_link'] ?>"><?php echo $message['user_name'] ?></a></td>
-						<td class="message"><?php echo $message['message'] ?></td>
+						<td class="message">
+							<?php echo $message['message'] ?>
+							<?php if(count($message['revisions']) > 0): ?>
+								<a class="revisions" href="#" id="revisions_link_<?php echo $message['id'] . '_' . $message['epoch'] ?>">(<?php echo count($message['revisions']) ?> change<?php if(count($message['revisions']) > 1): ?>s<?php endif; ?>)</a>
+							<?php endif; ?>
+						</td>
 					</tr>
 				<?php endforeach; ?>
 			</table>
@@ -138,6 +158,19 @@ endif; /* if(!$ajax) */ ?>
 	<p>
 		<a href="http://validator.w3.org/check?uri=referer"><img src="images/xhtml.png" alt="Valid XHTML 1.1" height="31" width="88" /></a>
 	</p>
+	<?php foreach($messages as $message): ?>
+		<?php if(count($message['revisions']) > 0): ?>
+			<div id="revisions_<?php echo $message['id'] . '_' . $message['epoch'] ?>" style="display: none;">
+				Change log:
+				<ol>
+					<?php foreach($message['revisions'] as $revision): ?>
+						<li><?php echo $revision['text'] ?></li>
+					<?php endforeach; ?>
+					<li><?php echo $message['message'] ?> (<em>current</em>)</li>
+				</ol>
+			</div>
+		<?php endif; ?>
+	<?php endforeach; ?>
 </body>
 </html>
 <?php endif; /* if(!$ajax) */ ?>

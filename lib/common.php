@@ -306,6 +306,30 @@ function process_words($id, $epoch) {
 	}
 }
 
+function clean_text($message) {
+	// TODO scan for < and > inside href attributes
+
+	$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', function($match) { return "images/smilies/" . basename($match[0]); }, $message);
+	$message = str_replace('/http:', 'http:', $message);
+	$message = str_replace(' target="_blank"', '', $message);
+	$message = str_replace(' border="0"', '', $message);
+	$message = str_replace('"style="', '" style="', $message);
+	$message = str_replace('</A>', '</a>', $message);
+	for($a=14; $a<32; $a++) {
+		$message = str_replace(chr($a), '', $message);
+	}
+
+	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
+	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
+
+	$message = preg_replace('/<a /', '<a target="_blank" ', $message);
+
+	// TODO problems with <embed> tag?
+	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
+
+	return $message;
+}
+
 function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100) {
 	$filters = array('deleted = 0');
 	$params = array();
@@ -323,7 +347,14 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	}
 
 	$filter = implode(' AND ', $filters);
-	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message FROM shouts s JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id) WHERE $filter ORDER BY s.epoch DESC, s.id DESC LIMIT ?, ?";
+	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message, COUNT(sr.revision) revision_count
+			FROM shouts s
+				JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id)
+				LEFT JOIN shout_revisions sr ON (s.id = sr.id AND s.epoch = sr.epoch)
+			WHERE $filter
+			GROUP BY id, epoch, date, color, user_id, user_name, message
+			ORDER BY s.epoch DESC, s.id
+			DESC LIMIT ?, ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
 	$db_data = db_query($query, $params);
@@ -343,27 +374,19 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			$link .= '&amp;text=' . urlencode($text);
 		}
 
-		// TODO scan for < and > inside href attributes
+		$message = clean_text($row['message']);
 
-		$message = $row['message'];
-		$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', function($match) { return "images/smilies/" . basename($match[0]); }, $message);
-		$message = str_replace('/http:', 'http:', $message);
-		$message = str_replace(' target="_blank"', '', $message);
-		$message = str_replace(' border="0"', '', $message);
-		$message = str_replace('"style="', '" style="', $message);
-		$message = str_replace('</A>', '</a>', $message);
-		for($a=14; $a<32; $a++) {
-			$message = str_replace(chr($a), '', $message);
+		$revisions = array();
+		if($row['revision_count'] > 0) {
+			$sql = 'SELECT revision, text FROM shout_revisions WHERE id = ? AND epoch = ? ORDER BY revision DESC';
+			$revisions = db_query($sql, array($row['id'], $row['epoch']));
+
+			foreach($revisions as &$revision) {
+				$revision['text'] = clean_text($revision['text']);
+			}
 		}
 
-		$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
-		$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
-
-		$message = preg_replace('/<a /', '<a target="_blank" ', $message);
-
-		// TODO problems with <embed> tag?
-		$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
-		$data[] = array('unixdate' => $datetime->getTimestamp(), 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch']);
+		$data[] = array('unixdate' => $datetime->getTimestamp(), 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch'], 'revisions' => $revisions);
 	}
 
 	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
