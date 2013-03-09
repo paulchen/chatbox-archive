@@ -71,18 +71,20 @@ function process_nick_color($nick_color) {
 }
 
 function process_nick($member_id, $member_nick, $nick_color) {
-	$id = process_nick_color($nick_color);
+	$category = process_nick_color($nick_color);
 
-	$query = 'SELECT id FROM users WHERE id = ?';
+	$query = 'SELECT id, name, category FROM users WHERE id = ?';
 	$data = db_query($query, array($member_id));
 
 	if(count($data) > 0) {
-		$query = 'UPDATE users SET name = ?, category = ? WHERE id = ?';
-		db_query($query, array($member_nick, $id, $member_id));
+		if($member_nick != $data[0]['name'] || $category != $data[0]['category']) {
+			$query = 'UPDATE users SET name = ?, category = ? WHERE id = ?';
+			db_query($query, array($member_nick, $category, $member_id));
+		}
 	}
 	else {
 		$query = 'INSERT INTO users (id, name, category) VALUES (?, ?, ?)';
-		db_query($query, array($member_id, $member_nick, $id));
+		db_query($query, array($member_id, $member_nick, $category));
 	}
 }
 
