@@ -54,8 +54,16 @@ function refresh() {
 		success : function(data, textStatus, xhr) {
 			var pos = data.indexOf('$$');
 			var parts = data.substring(0, pos).split(' ');
+			data = data.substring(pos+2);
+
+			pos = data.indexOf('$$');
+			var ids = data.substring(0, pos).split(' ');
+			data = data.substring(pos+2);
+			$.each(ids, function(index, value) {
+				bubbletip(value);
+			});
 			$('#content').children().remove();
-			$('#content').append(data.substring(pos+2));
+			$('#content').append(data);
 			$('#shouts_filtered').text(parts[1]);
 			$('#shouts_total').text(parts[2]);
 			$('.page_count').text(parts[0]);
@@ -84,6 +92,10 @@ function reset_form() {
 	}
 }
 
+function bubbletip(id) {
+	$('#revisions_link_' + id).bubbletip($('#revisions_' + id));
+}
+
 $(document).ready(function() {
 	update_refresh();
 
@@ -102,9 +114,7 @@ $(document).ready(function() {
 
 	<?php foreach($messages as $message): ?>
 		<?php if(count($message['revisions']) > 0): ?>
-			$('#revisions_link_<?php echo $message['id'] . '_' . $message['epoch'] ?>').bubbletip(
-				$('#revisions_<?php echo $message['id'] . '_' . $message['epoch'] ?>')
-			);
+			bubbletip('<?php echo $message['id'] . '_' . $message['epoch'] ?>');
 		<?php endif; ?>
 	<?php endforeach; ?>
 });
@@ -136,6 +146,12 @@ $(document).ready(function() {
 		<div id="content">
 <?php else:
 	echo "$page_count $filtered_shouts $total_shouts$$";
+	foreach($messages as $message):
+		if(count($messages['revisions'] > 0)):
+			echo $message['id'] . '_' . $message['epoch'] . ' ';
+		endif;
+	endforeach;
+	echo '$$';
 endif; /* if(!$ajax) */ ?>
 			<table>
 				<?php foreach($messages as $message): ?>
