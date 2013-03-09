@@ -38,12 +38,15 @@ if(!$ajax):
 var timeout;
 
 function refresh() {
-	var url;
-	if(document.location.href.indexOf('?') == -1) {
-		var url = document.location.href + "?ajax=on";
+	var url = document.location.href;
+	if(url.indexOf('#') > -1) {
+		url = url.substring(0, url.indexOf('#'));
+	}
+	if(url.indexOf('?') == -1) {
+		url += "?ajax=on";
 	}
 	else {
-		var url = document.location.href + "&ajax=on";
+		url += "&ajax=on";
 	}
 
 	$.ajax({
