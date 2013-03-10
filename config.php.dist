@@ -22,3 +22,5 @@ $email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';
 
 $refresh_time = 10;
 
+$table_locks = false;
+

@@ -10,7 +10,9 @@ if($argc != 2) {
 
 require_once('lib/common.php');
 
-db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE, words WRITE, shout_words WRITE, shout_revisions WRITE');
+if($table_locks) {
+	db_query('LOCK TABLES shouts WRITE, users WRITE, user_categories WRITE, settings WRITE, smilies WRITE, shout_smilies WRITE, words WRITE, shout_words WRITE, shout_revisions WRITE');
+}
 
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
@@ -25,7 +27,9 @@ else if(strpos($contents, 'vsa_chatbox_archive_bit') !== false) {
 	$ret = process_chatbox_archive($contents);
 }
 else {
-	db_query('UNLOCK TABLES');
+	if($table_locks) {
+		db_query('UNLOCK TABLES');
+	}
 	die();
 }
 
@@ -51,7 +55,9 @@ foreach($deleted_ids as $id) {
 }
  */
 
-db_query('UNLOCK TABLES');
+if($table_locks) {
+	db_query('UNLOCK TABLES');
+}
 
 die($ret);
 
