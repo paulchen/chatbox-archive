@@ -347,10 +347,10 @@
 
 					// find the surrounding table.bubbletip
 					elem = $('#' + tipsActive[i][0]).get(0).parentNode;
-					while (elem != null && elem.tagName.toLowerCase() != 'table') {
+					while (elem != null && elem.tagName != undefined && elem.tagName.toLowerCase() != 'table') {
 						elem = elem.parentNode;
 					}
-					if (elem == null) {
+					if (elem == null || elem.tagName == undefined) {
 						continue;
 					}
 					// attach the tip element to body and hide
