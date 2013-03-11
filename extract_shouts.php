@@ -59,6 +59,8 @@ if($table_locks) {
 	db_query('UNLOCK TABLES');
 }
 
+touch($success_file);
+
 die($ret);
 
 function process_nick_color($nick_color) {

@@ -16,6 +16,7 @@ $lockfile = 'tmp/chatbox.lock';
 $logfile = 'log';
 $tokenfile = 'tmp/securitytoken';
 $tmpdir = 'tmp';
+$success_file = 'tmp/last_update';
 
 $report_email = 'paulchen@rueckgr.at';
 $email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';
