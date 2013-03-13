@@ -52,7 +52,7 @@ function refresh() {
 	$.ajax({
 		url : url,
 		success : function(data, textStatus, xhr) {
-			if($('table.bubbletip').css('display') == 'none') {
+			if($('table.bubbletip').size() == 0 || $('table.bubbletip').css('display') == 'none') {
 				var pos = data.indexOf('$$');
 				var parts = data.substring(0, pos).split(' ');
 				data = data.substring(pos+2);
