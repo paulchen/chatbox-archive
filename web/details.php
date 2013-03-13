@@ -1,6 +1,17 @@
 <?php
 require_once(dirname(__FILE__) . '/../lib/common.php');
 
+function build_link_from_request() {
+	$keys = func_get_args();
+	$link_parts = '';
+	foreach($keys as $key) {
+		if(isset($_REQUEST[$key])) {
+			$link_parts .= "&amp;$key=" . urlencode($_REQUEST[$key]);
+		}
+	}
+	return $link_parts;
+}
+
 function overview_redirect() {
 	header('Location: overview.php');
 	die();
@@ -8,68 +19,20 @@ function overview_redirect() {
 
 function add_user_link(&$row) {
 	// TODO simplify this
-	$link_parts = '';
-	if(isset($_REQUEST['day'])) {
-		$link_parts .= '&amp;day=' . $_REQUEST['day'];
-	}
-	if(isset($_REQUEST['month'])) {
-		$link_parts .= '&amp;month=' . $_REQUEST['month'];
-	}
-	if(isset($_REQUEST['year'])) {
-		$link_parts .= '&amp;year=' . $_REQUEST['year'];
-	}
-	if(isset($_REQUEST['hour'])) {
-		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
-	}
-	if(isset($_REQUEST['smiley'])) {
-		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
-	}
-	if(isset($_REQUEST['period'])) {
-		$link_parts .= '&amp;period=' . $_REQUEST['period'];
-	}
+	$link_parts = build_link_from_request('day', 'month', 'year', 'hour', 'smiley', 'period');
 
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
 }
 
 function messages_per_hour(&$row) {
-	$link_parts = '';
-	if(isset($_REQUEST['day'])) {
-		$link_parts .= '&amp;day=' . $_REQUEST['day'];
-	}
-	if(isset($_REQUEST['month'])) {
-		$link_parts .= '&amp;month=' . $_REQUEST['month'];
-	}
-	if(isset($_REQUEST['year'])) {
-		$link_parts .= '&amp;year=' . $_REQUEST['year'];
-	}
-	if(isset($_REQUEST['user'])) {
-		$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-	}
-	if(isset($_REQUEST['smiley'])) {
-		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
-	}
-	if(isset($_REQUEST['period'])) {
-		$link_parts .= '&amp;period=' . $_REQUEST['period'];
-	}
+	$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'smiley', 'period');
 
 	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
 	spammer_smiley($row);
 }
 
 function messages_per_month(&$row) {
-	$link_parts = '';
-	if(isset($_REQUEST['user'])) {
-		$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-	}
-	if(isset($_REQUEST['hour'])) {
-		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
-	}
-	if(isset($_REQUEST['smiley'])) {
-		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
-	}
-	if(isset($_REQUEST['period'])) {
-		$link_parts .= '&amp;period=' . $_REQUEST['period'];
-	}
+	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
 
 	$parts = explode('-', $row[0]['monthx']);
 	$year = $parts[0];
@@ -97,19 +60,7 @@ function spammer_smiley(&$row) {
 }
 
 function messages_per_year(&$row) {
-	$link_parts = '';
-	if(isset($_REQUEST['user'])) {
-		$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-	}
-	if(isset($_REQUEST['hour'])) {
-		$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
-	}
-	if(isset($_REQUEST['smiley'])) {
-		$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
-	}
-	if(isset($_REQUEST['period'])) {
-		$link_parts .= '&amp;period=' . $_REQUEST['period'];
-	}
+	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
 
 	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "$link_parts\">" . $row[0]['yearx'] . '</a>';
 	spammer_smiley($row);
@@ -270,19 +221,7 @@ $queries[] = array(
 					limit 0, 10) a",
 		'params' => array_merge($params, $params, $params),
 		'processing_function' => function(&$row) {
-				$link_parts = '';
-				if(isset($_REQUEST['hour'])) {
-					$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
-				}
-				if(isset($_REQUEST['user'])) {
-					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-				}
-				if(isset($_REQUEST['smiley'])) {
-					$link_parts .= '&amp;smiley=' . $_REQUEST['smiley'];
-				}
-				if(isset($_REQUEST['period'])) {
-					$link_parts .= '&amp;period=' . $_REQUEST['period'];
-				}
+				$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
 
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
@@ -373,26 +312,7 @@ $queries[] = array(
 					}
 				}
 
-				$link_parts = '';
-				if(isset($_REQUEST['hour'])) {
-					$link_parts .= '&amp;hour=' . $_REQUEST['hour'];
-				}
-				if(isset($_REQUEST['day'])) {
-					$link_parts .= '&amp;day=' . $_REQUEST['day'];
-				}
-				if(isset($_REQUEST['month'])) {
-					$link_parts .= '&amp;month=' . $_REQUEST['month'];
-				}
-				if(isset($_REQUEST['year'])) {
-					$link_parts .= '&amp;year=' . $_REQUEST['year'];
-				}
-				if(isset($_REQUEST['user'])) {
-					$link_parts .= '&amp;user=' . urlencode($_REQUEST['user']);
-				}
-				if(isset($_REQUEST['period'])) {
-					$link_parts .= '&amp;period=' . $_REQUEST['period'];
-				}
-
+				$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'hour', 'period');
 				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
 
 				$top = explode('$$', $row[0]['top']);
