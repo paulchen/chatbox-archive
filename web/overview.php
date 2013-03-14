@@ -42,7 +42,7 @@ function messages_per_year(&$row) {
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
-		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info
+		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info, b.word_info
 			from (select a.name, a.shouts, a.smilies,
 				(select unix_timestamp(min(date)) from shouts where user=a.id and deleted=0) as first_shout,
 				(select unix_timestamp(max(date)) from shouts where user=a.id and deleted=0) as last_shout,
@@ -51,23 +51,29 @@ $queries[] = array(
 					where s.user = a.id and deleted = 0
 					group by ss.smiley, sm.filename
 					order by sum(ss.count) desc
-					limit 0, 1) as smiley_info
+					limit 0, 1) as smiley_info,
+				(select concat(sw.word, '$$', w.word, '$$', sum(sw.count))
+					from shouts s join shout_words sw on (s.id = sw.shout_id and s.epoch = sw.shout_epoch) join words w on (sw.word = w.id)
+					where s.user = a.id and deleted = 0
+					group by sw.word, w.word
+					order by sum(sw.count) desc
+					limit 0, 1) as word_info
 				from (select u.id, u.name, count(distinct s.id) as shouts, coalesce(sum(ss.count), 0) as smilies from shouts s join users u
 				on (s.user = u.id) left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
 				where deleted = 0 group by u.id, u.name) a) b, (select @row:=0) c
 			order by b.shouts desc, average_shouts_per_day desc, b.name asc",
-		'processing_function' => array('add_user_link', 'smiley_column'),
+		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 		'processing_function_all' => 'ex_aequo2',
-		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
-		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
+		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 		'derived_queries' => array(
 			array(
 				'title' => 'Top spammers, ordered by messages per day',
 				'transformation_function' => 'top_spammers',
-				'processing_function' => array('add_user_link', 'smiley_column'),
+				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 				'processing_function_all' => 'ex_aequo3',
-				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
-				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 			),
 		),
 	);
@@ -190,9 +196,34 @@ $queries[] = array(
 				$user_id = $top[0];
 				$username = $top[1];
 				$frequency = $top[2];
-				$row[0]['top'] = "$username (${frequency}x)";
+				$link = 'details.php?user=' . urlencode($username);
+				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
 			},
 		'columns' => array('Smiley', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'right', 'left'),
+	);
+$queries[] = array(
+		'title' => 'Word usage',
+		'query' => "select w.word word, sum(count),
+			(select concat(u.id, '$$', u.name, '$$', sum(sw2.count))
+				from users u join shouts s2 on (u.id = s2.user) join shout_words sw2 on (s2.id = sw2.shout_id and s2.epoch = sw2.shout_epoch)
+				where sw2.word = w.id and s2.deleted = 0
+				group by s2.user
+				order by sum(sw2.count) desc
+				limit 0, 1) top
+			from shout_words sw join words w on (sw.word = w.id) join shouts sh on (sw.shout_epoch = sh.epoch and sw.shout_id = sh.id) where sh.deleted = 0 group by sw.word, w.word order by sum(count) desc limit 0, 20",
+		'processing_function' => function(&$row) {
+				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
+
+				$top = explode('$$', $row[0]['top']);
+				$user_id = $top[0];
+				$username = $top[1];
+				$frequency = $top[2];
+				$link = 'details.php?user=' . urlencode($username);
+				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+			},
+		'params' => array_merge($params, $params),
+		'columns' => array('Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'left'),
 	);
 

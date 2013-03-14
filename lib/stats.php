@@ -36,7 +36,21 @@ function smiley_column(&$row) {
 	$filename = $smiley_info[1];
 	$count = $smiley_info[2];
 
-	$row[0]['smiley_info'] = "<img src=\"images/smilies/$filename\" alt=\"\" />&nbsp;(${count}x)";
+	$row[0]['smiley_info'] = "<a href=\"details.php?smiley=$id\"><img src=\"images/smilies/$filename\" alt=\"\" /></a>&nbsp;(${count}x)";
+}
+
+function word_column(&$row) {
+	$word_info = explode('$$', $row[0]['word_info']);
+	if(count($word_info) == 1) {
+		$row[0]['word'] = '-';
+		return;
+	}
+
+	$id = $word_info[0];
+	$word = $word_info[1];
+	$count = $word_info[2];
+	$link = 'details.php?word=' . urlencode($word);
+	$row[0]['word_info'] = "<a href=\"$link\">$word</a>&nbsp;(${count}x)";
 }
 
 function top_spammers($data) {

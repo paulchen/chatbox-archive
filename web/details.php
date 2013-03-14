@@ -19,20 +19,20 @@ function overview_redirect() {
 
 function add_user_link(&$row) {
 	// TODO simplify this
-	$link_parts = build_link_from_request('day', 'month', 'year', 'hour', 'smiley', 'period');
+	$link_parts = build_link_from_request('day', 'month', 'year', 'hour', 'smiley', 'period', 'word');
 
 	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
 }
 
 function messages_per_hour(&$row) {
-	$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'smiley', 'period');
+	$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'smiley', 'period', 'word');
 
 	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
 	spammer_smiley($row);
 }
 
 function messages_per_month(&$row) {
-	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
+	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
 	$parts = explode('-', $row[0]['monthx']);
 	$year = $parts[0];
@@ -60,13 +60,13 @@ function spammer_smiley(&$row) {
 }
 
 function messages_per_year(&$row) {
-	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
+	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
 	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "$link_parts\">" . $row[0]['yearx'] . '</a>';
 	spammer_smiley($row);
 }
 
-if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period'])) {
+if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period']) && !isset($_REQUEST['word'])) {
 	overview_redirect();
 }
 if(isset($_REQUEST['day']) && !isset($_REQUEST['month'])) {
@@ -93,6 +93,15 @@ if(isset($_REQUEST['smiley'])) {
 		overview_redirect();
 	}
 	$smiley_filename = $smiley_data[0]['filename'];
+}
+if(isset($_REQUEST['word'])) {
+	$word = $_REQUEST['word'];
+
+	$word_data = db_query('SELECT id FROM words WHERE word = ?', array($word));
+	if(count($word_data) != 1) {
+		overview_redirect();
+	}
+	$word_id = $word_data[0]['id'];
 }
 if(isset($_REQUEST['year'])) {
 	if(isset($_REQUEST['day'])) {
@@ -136,6 +145,11 @@ if(isset($_REQUEST['smiley'])) {
 	$params[] = $smiley_id;
 	$what_parts[] = "smiley <img src=\"images/smilies/$smiley_filename\" alt=\"\" />";
 }
+if(isset($_REQUEST['word'])) {
+	$filter_parts[] = "(s.id, s.epoch) in (select shout_id, shout_epoch from shout_words where word = ?)";
+	$params[] = $word_id;
+	$what_parts[] = "word \"" . htmlentities($_REQUEST['word'], ENT_QUOTES, 'UTF-8') . "\"";
+}
 if(isset($_REQUEST['period'])) {
 	// TODO improve this
 	$last_archive_id = 229152;
@@ -157,7 +171,7 @@ $what = implode(', ', $what_parts);
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
-		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info
+		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info, b.word_info
 			from (select a.name, a.shouts, a.smilies,
 				(select unix_timestamp(min(date)) from shouts s where s.user=a.id and deleted=0 and $filter) as first_shout,
 				(select unix_timestamp(max(date)) from shouts s where s.user=a.id and deleted=0 and $filter) as last_shout,
@@ -166,24 +180,30 @@ $queries[] = array(
 					where s.user = a.id and deleted = 0 and $filter
 					group by ss.smiley, sm.filename
 					order by sum(ss.count) desc
-					limit 0, 1) as smiley_info
+					limit 0, 1) as smiley_info,
+				(select concat(sw.word, '$$', w.word, '$$', sum(sw.count))
+					from shouts s join shout_words sw on (s.id = sw.shout_id and s.epoch = sw.shout_epoch) join words w on (sw.word = w.id)
+					where s.user = a.id and deleted = 0 and $filter
+					group by sw.word, w.word
+					order by sum(sw.count) desc
+					limit 0, 1) as word_info
 				from (select u.id, u.name, count(distinct s.id) as shouts, coalesce(sum(ss.count), 0) as smilies from shouts s join users u
 				on (s.user = u.id) left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
 				where deleted = 0 and $filter group by u.id, u.name) a) b, (select @row:=0) c
 			order by b.shouts desc, average_shouts_per_day desc, b.name asc",
-		'params' => array_merge($params, $params, $params, $params),
-		'processing_function' => array('add_user_link', 'smiley_column'),
+		'params' => array_merge($params, $params, $params, $params, $params),
+		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 		'processing_function_all' => 'ex_aequo2',
-		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
-		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
+		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 		'derived_queries' => array(
 			array(
 				'title' => 'Top spammers, ordered by messages per day',
 				'transformation_function' => 'top_spammers',
-				'processing_function' => array('add_user_link', 'smiley_column'),
+				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 				'processing_function_all' => 'ex_aequo3',
-				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley'),
-				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 			),
 		),
 	);
@@ -319,10 +339,36 @@ $queries[] = array(
 				$user_id = $top[0];
 				$username = $top[1];
 				$frequency = $top[2];
-				$row[0]['top'] = "$username (${frequency}x)";
+				$link = 'details.php?user=' . urlencode($username);
+				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
 			},
 		'params' => array_merge($params, $params),
 		'columns' => array('Smiley', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'right', 'left'),
+	);
+$queries[] = array(
+		'title' => 'Word usage',
+		'query' => "select w.word word, sum(count),
+			(select concat(u.id, '$$', u.name, '$$', sum(sw2.count))
+				from users u join shouts s2 on (u.id = s2.user) join shout_words sw2 on (s2.id = sw2.shout_id and s2.epoch = sw2.shout_epoch)
+				where sw2.word = w.id and s2.deleted = 0 and $filter2
+				group by s2.user
+				order by sum(sw2.count) desc
+				limit 0, 1) top
+			from shout_words sw join words w on (sw.word = w.id) join shouts sh on (sw.shout_epoch = sh.epoch and sw.shout_id = sh.id) where sh.deleted = 0 and $filter3 group by sw.word, w.word order by sum(count) desc limit 0, 20",
+		'processing_function' => function(&$row) {
+				$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'hour', 'period');
+				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . $link_parts . '">' . $row[0]['word'] . '</a>';
+
+				$top = explode('$$', $row[0]['top']);
+				$user_id = $top[0];
+				$username = $top[1];
+				$frequency = $top[2];
+				$link = 'details.php?user=' . urlencode($username);
+				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+			},
+		'params' => array_merge($params, $params),
+		'columns' => array('Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'left'),
 	);
 /*
