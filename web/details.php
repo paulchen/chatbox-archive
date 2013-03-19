@@ -37,14 +37,14 @@ function messages_per_month(&$row) {
 	$parts = explode('-', $row[0]['monthx']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['monthx'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['monthx'] . '</a>';
+	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
 	spammer_smiley($row);
 }
 
 function messages_per_year(&$row) {
 	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
-	$row[0]['yearx'] = "<a href=\"details.php?year=" . $row[0]['yearx'] . "$link_parts\">" . $row[0]['yearx'] . '</a>';
+	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
 	spammer_smiley($row);
 }
 
@@ -294,8 +294,8 @@ $queries[] = array(
 				spammer_smiley($row);
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
-		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley'),
-		'column_styles' => array('right', 'left', 'right', 'left', 'left'),
+		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+		'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
 	);
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
@@ -335,16 +335,16 @@ if(!isset($_REQUEST['day'])) {
 			'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
 			'processing_function' => 'messages_per_month',
 			'processing_function_all' => 'duplicates0',
-			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley'),
-			'column_styles' => array('left', 'right', 'left', 'left'),
+			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+			'column_styles' => array('left', 'right', 'left', 'left', 'left'),
 			'derived_queries' => array(
 				array(
 					'title' => 'Messages per month, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_month',
 					'processing_function_all' => array('duplicates1', 'ex_aequo2'),
-					'columns' => array('Position', 'Month', 'Messages', 'Top spammer', 'Most popular smiley'),
-					'column_styles' => array('right', 'left', 'right', 'left', 'left'),
+					'columns' => array('Position', 'Month', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+					'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
 				),
 			),
 		);
@@ -387,16 +387,16 @@ if(!isset($_REQUEST['month'])) {
 			'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
 			'processing_function' => 'messages_per_year',
 			'processing_function_all' => 'duplicates0',
-			'columns' => array('Year', 'Messages', 'Top spammer', 'Most popular smiley'),
-			'column_styles' => array('left', 'right', 'left', 'left'),
+			'columns' => array('Year', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+			'column_styles' => array('left', 'right', 'left', 'left', 'left'),
 			'derived_queries' => array(
 				array(
 					'title' => 'Messages per year, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_year',
 					'processing_function_all' => array('duplicates0', 'ex_aequo2'),
-					'columns' => array('Position', 'Year', 'Messages', 'Top spammer', 'Most popular smiley'),
-					'column_styles' => array('right', 'left', 'right', 'left', 'left'),
+					'columns' => array('Position', 'Year', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+					'column_styles' => array('right', 'left', 'right', 'left', 'left', 'left'),
 				),
 			),
 		);
