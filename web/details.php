@@ -117,20 +117,22 @@ if(isset($_REQUEST['hour'])) {
 	$params[] = $hour;
 	$what_parts[] = "hour $hour";
 }
-if(isset($_REQUEST['day'])) {
-	$filter_parts[] = 'day = ?';
-	$params[] = $_REQUEST['day'];
-	$what_parts[] = $date;
+if(isset($_REQUEST['year'])) {
+	$filter_parts[] = 'year = ?';
+	$params[] = $_REQUEST['year'];
+	$what_parts[] = $_REQUEST['year'];
 }
 if(isset($_REQUEST['month'])) {
 	$filter_parts[] = 'month = ?';
 	$params[] = $_REQUEST['month'];
-	$what_parts[] = $date;
+	array_pop($what_parts);
+	$what_parts[] = $_REQUEST['year'] . '-' . $_REQUEST['month'];
 }
-if(isset($_REQUEST['year'])) {
-	$filter_parts[] = 'year = ?';
-	$params[] = $_REQUEST['year'];
-	$what_parts[] = $date;
+if(isset($_REQUEST['day'])) {
+	$filter_parts[] = 'day = ?';
+	$params[] = $_REQUEST['day'];
+	array_pop($what_parts);
+	$what_parts[] = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
 }
 if(isset($_REQUEST['user'])) {
 	$filter_parts[] = '"user" = ?';
@@ -199,7 +201,7 @@ $queries[] = array(
 				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
 		'params' => array_merge($params, $params, $params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
-		'processing_function_all' => array('first_per_user', 'insert_position', 'ex_aequo2'),
+		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
 		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 		'derived_queries' => array(
@@ -207,7 +209,7 @@ $queries[] = array(
 				'title' => 'Top spammers, ordered by messages per day',
 				'transformation_function' => 'top_spammers',
 				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
-				'processing_function_all' => 'ex_aequo3',
+				'processing_function_all' => array('duplicates0', 'ex_aequo3'),
 				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
 				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 			),
