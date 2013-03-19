@@ -19,6 +19,14 @@ function spammer_smiley(&$row) {
 	else {
 		$row[0]['popular_smiley'] = '-';
 	}
+
+	if($row[0]['popular_word'] != '') {
+		$parts = explode('$$', $row[0]['popular_word']);
+		$row[0]['popular_word'] = "<a href=\"details.php?word=" . urlencode($parts[0]) . "\">{$parts[1]}</a> ({$parts[2]}x)";
+	}
+	else {
+		$row[0]['popular_word'] = '-';
+	}
 }
 
 function messages_per_hour(&$row) {
@@ -40,6 +48,7 @@ function messages_per_year(&$row) {
 }
 
 $queries = array();
+/*
 $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "select d.name, d.shouts,
@@ -86,27 +95,57 @@ $queries[] = array(
 			),
 		),
 	);
-/*
+ */
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select a.hour \"hour\", coalesce(a.shouts, 0) shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where cast(s.hour as text)=a.hour and deleted=0 group by s.user, u.name order by count(s.id) desc limit 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where cast(s.hour as text)=a.hour and deleted=0 group by ss.smiley, sm.filename order by sum(ss.count) desc limit 1) popular_smiley
-				from (select lpad(cast(hour as text), 2, '0') as hour, count(*) as shouts from shouts where deleted = 0 group by hour) a right join hours_of_day h on (a.hour = h.hour)
-				order by hour asc",
+		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", j.count, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+					concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
+				from hours_of_day h
+					left join
+					(select hour, count(s.id) count from shouts s where deleted=0 group by hour) j on (h.hour=j.hour)
+					left join
+					(
+						(select hour, max(count) max from (select \"user\", hour, count(*) count from shouts where deleted=0 group by \"user\", hour) a group by hour) b
+						left join
+						(select \"user\", hour, count(*) count from shouts where deleted=0 group by \"user\", hour) c
+						on (b.hour=c.hour and b.max=c.count)
+					) on (j.hour=b.hour)
+					left join users u on (c.user=u.id)
+					left join
+					(
+						(select e.hour, max(e.count) max
+							from (select s.hour, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.hour, sm.smiley) e
+							group by e.hour) d
+						left join
+						(select s.hour, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.hour, sm.smiley) f
+						on (d.hour = f.hour and d.max = f.count)
+					) on (j.hour=d.hour)
+					left join smilies sm on (f.smiley = sm.id)
+					left join
+					(
+						(select h.hour, max(h.count) max
+							from (select s.hour, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.hour, sw.word) h
+							group by h.hour) g
+						left join
+						(select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.hour, sw.word) i
+						on (g.hour = i.hour and g.max = i.count)
+					) on (j.hour=g.hour)
+					left join words w on (i.word = w.id)
+					order by h.hour asc;",
 		'processing_function' => 'messages_per_hour',
-		'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley'),
-		'column_styles' => array('left', 'right', 'left', 'left'),
+		'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+		'column_styles' => array('left', 'right', 'left', 'left', 'left'),
 		'derived_queries' => array(
 			array(
 				'title' => 'Busiest hours',
 				'transformation_function' => 'busiest_hours',
 				'processing_function' => 'messages_per_hour',
-				'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley'),
-				'column_styles' => array('left', 'right', 'left', 'left'),
+				'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+				'column_styles' => array('left', 'right', 'left', 'left', 'left'),
 			),
 		),
 	);
+/*
 $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "select a.day, a.shouts,
