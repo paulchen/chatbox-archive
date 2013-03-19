@@ -34,7 +34,7 @@ function messages_per_hour(&$row) {
 function messages_per_month(&$row) {
 	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
-	$parts = explode('-', $row[0]['monthx']);
+	$parts = explode('-', $row[0]['month']);
 	$year = $parts[0];
 	$month = $parts[1];
 	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
