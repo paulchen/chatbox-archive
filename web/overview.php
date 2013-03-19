@@ -81,7 +81,7 @@ $queries[] = array(
 					left join words w on (g.word = w.id)
 				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
-		'processing_function_all' => array('first_per_user', 'insert_position', 'ex_aequo2'),
+		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
 		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 		'derived_queries' => array(
@@ -215,28 +215,30 @@ $queries[] = array(
  */
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select d.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+		'query' => "select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
 				from
-					(select sm.id, sm.filename, coalesce(sum(ss.count), 0) count
-						from smilies sm left join shout_smilies ss on (sm.id=ss.smiley)
-						group by sm.id, sm.filename) d
+					(select ss.smiley, coalesce(sum(ss.count), 0) count
+						from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+						where deleted=0
+						group by ss.smiley) d
 				left join
 					(
 						(select a.smiley, max(count) max
 							from
-								(select s.user, ss2.smiley, sum(count) count
-									from shouts s join shout_smilies ss2 on (s.id=ss2.shout_id and s.epoch=ss2.shout_epoch)
+								(select s.user, ss.smiley, sum(count) count
+									from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
 									where s.deleted=0 
-									group by s.user, ss2.smiley) a
+									group by s.user, ss.smiley) a
 							group by a.smiley) b
 					left join
-						(select s.user, ss2.smiley, sum(count) count
-							from shouts s join shout_smilies ss2 on (s.id=ss2.shout_id and s.epoch=ss2.shout_epoch)
+						(select s.user, ss.smiley, sum(count) count
+							from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
 							where s.deleted=0
-							group by s.user, ss2.smiley) c
+							group by s.user, ss.smiley) c
 					on (b.smiley=c.smiley and b.max=c.count))
-				on (d.id=b.smiley)
+				on (d.smiley=b.smiley)
 				left join users u on (c.user=u.id)
+				left join smilies sm on (d.smiley=sm.id)
 				order by d.count desc",
 		'processing_function' => function(&$row) {
 				global $smilies;
@@ -262,21 +264,40 @@ $queries[] = array(
 				$link = 'details.php?user=' . urlencode($username);
 				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
 			},
-		'columns' => array('Smiley', 'Occurrences', 'Top user'),
-		'column_styles' => array('right', 'right', 'left'),
+		'processing_function_all' => array('duplicates0', 'insert_position'),
+		'columns' => array('Position', 'Smiley', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'right', 'right', 'left'),
 	);
 /*
 $queries[] = array(
-		'title' => 'Word usage',
-		'query' => "select w.word, a.count,
-			(select concat(u.id, '$$', u.name, '$$', sum(sw2.count))
-				from users u join shouts s2 on (u.id = s2.user) join shout_words sw2 on (s2.id = sw2.shout_id and s2.epoch = sw2.shout_epoch)
-				where sw2.word = a.word and s2.deleted = 0
-				group by u.id, u.name
-				order by sum(sw2.count) desc
-				limit 1) top
-			from (select sw.word, sum(sw.count) count from shout_words sw group by sw.word order by sum(sw.count) desc limit 20) a join words w on (a.word=w.id)",
-		'processing_function' => function(&$row) {
+		'title' => 'Word usage (top 20)',
+		'query' => "select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+				from
+					(select sw.word, coalesce(sum(sw.count), 0) count
+						from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
+						where deleted=0
+						group by sw.word
+						limit 20) d
+				left join
+					(
+						(select a.word, max(count) max
+							from
+								(select s.user, sw.word, sum(count) count
+									from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
+									where s.deleted=0 
+									group by s.user, sw.word) a
+							group by a.word) b
+					left join
+						(select s.user, sw.word, sum(count) count
+							from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
+							where s.deleted=0
+							group by s.user, sw.word) c
+					on (b.word=c.word and b.max=c.count))
+				on (d.word=b.word)
+				left join users u on (c.user=u.id)
+				join words w on (d.word=w.id)
+				order by d.count desc",
+		'processing_function' => array(function(&$row) {
 				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
 
 				$top = explode('$$', $row[0]['top']);
@@ -285,11 +306,13 @@ $queries[] = array(
 				$frequency = $top[2];
 				$link = 'details.php?user=' . urlencode($username);
 				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
-			},
-		'params' => array_merge($params, $params),
-		'columns' => array('Word', 'Occurrences', 'Top user'),
-		'column_styles' => array('right', 'right', 'left'),
+			}),
+		'processing_function_all' => array('duplicates0', 'insert_position'),
+		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'left', 'right', 'left'),
 	);
+ */
+/*
  */
 
 /*

@@ -25,10 +25,33 @@ function ex_aequo(&$data, $col) {
 	unset($row);
 }
 
-function first_per_user(&$data) {
+function duplicates0(&$data) {
+	duplicates($data, array(0));
+}
+
+function duplicates(&$data, $columns) {
+	if(count($data[0]) == 0) {
+		return;
+	}
+
+	$column_names = array_keys($data[0][0]);
+	$names = array();
+	foreach($columns as $column) {
+		$names[] = $column_names[$column];
+	}
+
 	foreach($data[0] as $index => $row) {
-		if(isset($last_row) && $last_row['name'] == $row['name']) {
-			unset($data[0][$index]);
+		if(isset($last_row)) {
+			$equal = true;
+			foreach($names as $name) {
+				if($last_row[$name] != $row[$name]) {
+					$equal = false;
+					break;
+				}
+			}
+			if($equal) {
+				unset($data[0][$index]);
+			}
 		}
 		$last_row = $row;
 	}
