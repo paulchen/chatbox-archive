@@ -99,23 +99,10 @@ if(isset($_REQUEST['word'])) {
 
 	$word_data = db_query('SELECT id FROM words WHERE word = ?', array($word));
 	if(count($word_data) != 1) {
+		die();
 		overview_redirect();
 	}
 	$word_id = $word_data[0]['id'];
-}
-if(isset($_REQUEST['year'])) {
-	if(isset($_REQUEST['day'])) {
-		$date_format = 'YYYY-MM-DD';
-		$date = sprintf('%04d-%02d-%02d', $_REQUEST['year'], $_REQUEST['month'], $_REQUEST['day']);
-	}
-	else if(isset($_REQUEST['month'])) {
-		$date_format = 'YY-MM';
-		$date = sprintf('%04d-%02d', $_REQUEST['year'], $_REQUEST['month']);
-	}
-	else {
-		$date_format = 'YY';
-		$date = sprintf('%04d', $_REQUEST['year']);
-	}
 }
 if(isset($_REQUEST['hour'])) {
 	$hour = $_REQUEST['hour'];
@@ -126,13 +113,23 @@ $params = array();
 $what_parts = array();
 
 if(isset($_REQUEST['hour'])) {
-	$filter_parts[] = "lpad((extract hour from date) % 24, 2, '0') = ?";
+	$filter_parts[] = "lpad(cast(\"hour\" % 24 as text), 2, '0') = ?";
 	$params[] = $hour;
 	$what_parts[] = "hour $hour";
 }
+if(isset($_REQUEST['day'])) {
+	$filter_parts[] = 'day = ?';
+	$params[] = $_REQUEST['day'];
+	$what_parts[] = $date;
+}
+if(isset($_REQUEST['month'])) {
+	$filter_parts[] = 'month = ?';
+	$params[] = $_REQUEST['month'];
+	$what_parts[] = $date;
+}
 if(isset($_REQUEST['year'])) {
-	$filter_parts[] = "to_char(date+interval '1 hour', '$date_format') = ?";
-	$params[] = $date;
+	$filter_parts[] = 'year = ?';
+	$params[] = $_REQUEST['year'];
 	$what_parts[] = $date;
 }
 if(isset($_REQUEST['user'])) {
@@ -155,7 +152,7 @@ if(isset($_REQUEST['period'])) {
 	$last_archive_id = 229152;
 	$last_archive_epoch = 1;
 
-	$data = db_query('SELECT UNIX_TIMESTAMP(date) date FROM shouts WHERE (epoch = ? AND id >= ?) OR (epoch > ?) ORDER BY epoch ASC, id ASC LIMIT 0, 1', array($last_archive_epoch, $last_archive_id, $last_archive_epoch));
+	$data = db_query('SELECT UNIX_TIMESTAMP(date) date FROM shouts WHERE (epoch = ? AND id >= ?) OR (epoch > ?) ORDER BY epoch ASC, id ASC LIMIT 1', array($last_archive_epoch, $last_archive_id, $last_archive_epoch));
 	$date_string = date('Y-m-d', $data[0]['date']);
 
 	$filter_parts[] = '(s.epoch = ? AND s.id >= ?) OR (epoch > ?)';
