@@ -95,7 +95,6 @@ $queries[] = array(
 			),
 		),
 	);
- */
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", j.count, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
@@ -145,7 +144,6 @@ $queries[] = array(
 			),
 		),
 	);
-/*
 $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "select a.day, a.shouts,
@@ -214,16 +212,32 @@ $queries[] = array(
 			),
 		),
 	);
+ */
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select s.filename filename, sum(count),
-			(select concat(u.id, '$$', u.name, '$$', sum(ss2.count))
-				from users u join shouts s2 on (u.id = s2.user) join shout_smilies ss2 on (s2.id = ss2.shout_id and s2.epoch = ss2.shout_epoch)
-				where ss2.smiley = s.id and s2.deleted = 0
-				group by u.id, u.name
-				order by sum(ss2.count) desc
-				limit 1) top
-			from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 group by ss.smiley, s.filename, s.id order by sum(count) desc",
+		'query' => "select d.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+				from
+					(select sm.id, sm.filename, coalesce(sum(ss.count), 0) count
+						from smilies sm left join shout_smilies ss on (sm.id=ss.smiley)
+						group by sm.id, sm.filename) d
+				left join
+					(
+						(select a.smiley, max(count) max
+							from
+								(select s.user, ss2.smiley, sum(count) count
+									from shouts s join shout_smilies ss2 on (s.id=ss2.shout_id and s.epoch=ss2.shout_epoch)
+									where s.deleted=0 
+									group by s.user, ss2.smiley) a
+							group by a.smiley) b
+					left join
+						(select s.user, ss2.smiley, sum(count) count
+							from shouts s join shout_smilies ss2 on (s.id=ss2.shout_id and s.epoch=ss2.shout_epoch)
+							where s.deleted=0
+							group by s.user, ss2.smiley) c
+					on (b.smiley=c.smiley and b.max=c.count))
+				on (d.id=b.smiley)
+				left join users u on (c.user=u.id)
+				order by d.count desc",
 		'processing_function' => function(&$row) {
 				global $smilies;
 
@@ -251,6 +265,7 @@ $queries[] = array(
 		'columns' => array('Smiley', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'left'),
 	);
+/*
 $queries[] = array(
 		'title' => 'Word usage',
 		'query' => "select w.word, a.count,
