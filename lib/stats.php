@@ -25,6 +25,32 @@ function ex_aequo(&$data, $col) {
 	unset($row);
 }
 
+function spammer_smiley(&$row) {
+	if($row[0]['top_spammer'] != '') {
+		$parts = explode('$$', $row[0]['top_spammer']);
+		$row[0]['top_spammer'] = "<a href=\"details.php?user={$parts[1]}\">{$parts[1]}</a> ({$parts[2]}x)";
+	}
+	else {
+		$row[0]['top_spammer'] = '-';
+	}
+
+	if($row[0]['popular_smiley'] != '') {
+		$parts = explode('$$', $row[0]['popular_smiley']);
+		$row[0]['popular_smiley'] = "<a href=\"details.php?smiley={$parts[0]}\"><img src=\"images/smilies/{$parts[1]}\" alt=\"\" /></a> ({$parts[2]}x)";
+	}
+	else {
+		$row[0]['popular_smiley'] = '-';
+	}
+
+	if($row[0]['popular_word'] != '') {
+		$parts = explode('$$', $row[0]['popular_word']);
+		$row[0]['popular_word'] = "<a href=\"details.php?word=" . urlencode($parts[1]) . "\">{$parts[1]}</a> ({$parts[2]}x)";
+	}
+	else {
+		$row[0]['popular_word'] = '-';
+	}
+}
+
 function duplicates0(&$data) {
 	duplicates($data, array(0));
 }
