@@ -112,7 +112,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$year = $datetime->format('Y');
 
 	if(count($data) == 0) {
-		$query = 'INSERT INTO shouts (id, epoch, date, user, message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
+		$query = 'INSERT INTO shouts (id, epoch, date, "user", message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
 		db_query($query, array($id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
 		process_smilies($id, $epoch);
