@@ -198,7 +198,6 @@ $queries[] = array(
 			),
 		),
 	);
- */
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
@@ -251,32 +250,55 @@ $queries[] = array(
 			),
 		),
 	);
-/*
+ */
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select a.xday, a.shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m-%d')=a.xday and deleted=0 and $filter group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m-%d')=a.xday and deleted=0 and $filter group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
-			from
-				(select date_format(date_add(date, interval 1 hour), '%Y-%m-%d') xday, count(*) as shouts
-					from shouts s where deleted = 0 and $filter
-					group by xday
-					order by count(*) desc
-					limit 0, 10) a",
-		'params' => array_merge($params, $params, $params),
+		'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+                                        concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
+                                from (select day, month, year, count(s.id) count from shouts s where deleted=0 and $filter group by day, month, year order by count desc limit 10) j
+                                        left join
+                                        (
+                                                (select day, month, year, max(count) max from (select \"user\", day, month, year, count(*) count from shouts s where deleted=0 and $filter group by \"user\", day, month, year) a group by day, month, year) b
+                                                left join
+                                                (select \"user\", day, month, year, count(*) count from shouts s where deleted=0 and $filter group by \"user\", day, month, year) c
+                                                on (b.day=c.day and b.month=c.month and b.year=c.year and b.max=c.count)
+                                        ) on (j.day=b.day and j.month=b.month and j.year=b.year)
+                                        left join users u on (c.user=u.id)
+                                        left join
+                                        (
+                                                (select e.day, e.month, e.year, max(e.count) max
+                                                        from (select s.day, s.month, s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.day, s.month, s.year, sm.smiley) e
+                                                        group by e.day, e.month, e.year) d
+                                                left join
+                                                (select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.day, s.month, s.year, sm.smiley) f
+                                                on (d.day = f.day and d.month = f.month and d.year = f.year and d.max = f.count)
+                                        ) on (j.day=d.day and j.month=d.month and j.year=d.year)
+                                        left join smilies sm on (f.smiley = sm.id)
+                                        left join
+                                        (
+                                                (select h.day, h.month, h.year, max(h.count) max
+                                                        from (select s.day, s.month, s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.day, s.month, s.year, sw.word) h
+                                                        group by h.day, h.month, h.year) g
+                                                left join
+                                                (select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.day, s.month, s.year, sw.word) i
+                                                on (g.day = i.day and g.month = i.month and g.year = i.year and g.max = i.count)
+                                        ) on (j.day=g.day and j.month=g.month and j.year=g.year)
+                                        left join words w on (i.word = w.id)
+                                        order by j.count desc, j.year asc, j.month asc, j.day asc",
+		'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
 		'processing_function' => function(&$row) {
-				$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period');
-
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
 				$month = $parts[1];
 				$day = $parts[2];
-				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year$link_parts\">" . $row[0]['day'] . '</a>';
+				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row[0]['day'] . '</a>';
 				spammer_smiley($row);
 			},
-		'columns' => array('Day', 'Messages', 'Top spammer', 'Most popular smiley'),
-		'column_styles' => array('left', 'right', 'left', 'left'),
+		'processing_function_all' => array('duplicates0', 'insert_position'),
+		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley'),
+		'column_styles' => array('right', 'left', 'right', 'left', 'left'),
 	);
+/*
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
