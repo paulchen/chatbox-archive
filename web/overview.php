@@ -50,23 +50,24 @@ $queries[] = array(
 					(select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
 						from users u join shouts s on (u.id=s.user)
 						left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
+						where deleted=0
 						group by u.name, u.id) d
 					left join
 					(
 						(select a.user, max(a.count) max
-							from (select s.user, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) group by s.user, sm.smiley) a
+							from (select s.user, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.user, sm.smiley) a
 							group by a.user) b
 						left join
-						(select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) group by s.user, sm.smiley) c
+						(select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.user, sm.smiley) c
 						on (b.user = c.user and b.max = c.count)) on (d.id = b.user)
 					left join smilies sm on (c.smiley = sm.id)
 					left join
 					(
 						(select e.user, max(e.count) max
-							from (select s.user, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) group by s.user, sw.word) e
+							from (select s.user, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.user, sw.word) e
 							group by e.user) f
 						left join
-						(select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) group by s.user, sw.word) g
+						(select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.user, sw.word) g
 						on (f.user = g.user and f.max = g.count)) on (d.id = f.user)
 					left join words w on (g.word = w.id)
 				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
