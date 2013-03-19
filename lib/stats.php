@@ -25,13 +25,30 @@ function ex_aequo(&$data, $col) {
 	unset($row);
 }
 
+function first_per_user(&$data) {
+	foreach($data[0] as $index => $row) {
+		if(isset($last_row) && $last_row['name'] == $row['name']) {
+			unset($data[0][$index]);
+		}
+		$last_row = $row;
+	}
+}
+
+function insert_position(&$data) {
+	$index = 0;
+	foreach($data[0] as &$row) {
+		$index++;
+		array_unshift($row, "$index.");
+	}
+}
+
 function smiley_column(&$row) {
-	$smiley_info = explode('$$', $row[0]['smiley_info']);
-	if(count($smiley_info) == 1) {
+	if($row[0]['smiley_info'] == '$$$$') {
 		$row[0]['smiley_info'] = '-';
 		return;
 	}
 
+	$smiley_info = explode('$$', $row[0]['smiley_info']);
 	$id = $smiley_info[0];
 	$filename = $smiley_info[1];
 	$count = $smiley_info[2];
@@ -40,12 +57,12 @@ function smiley_column(&$row) {
 }
 
 function word_column(&$row) {
-	$word_info = explode('$$', $row[0]['word_info']);
-	if(count($word_info) == 1) {
-		$row[0]['word'] = '-';
+	if($row[0]['word_info'] == '$$$$') {
+		$row[0]['word_info'] = '-';
 		return;
 	}
 
+	$word_info = explode('$$', $row[0]['word_info']);
 	$id = $word_info[0];
 	$word = $word_info[1];
 	$count = $word_info[2];
@@ -55,6 +72,13 @@ function word_column(&$row) {
 
 function top_spammers($data) {
 	$data = $data[0];
+	foreach($data as $index => $row) {
+		if(isset($last_row) && $last_row['name'] == $row['name']) {
+			unset($data[$index]);
+		}
+		$last_row = $row;
+	}
+
 	usort($data, function($a, $b) {
 		if($a['average_shouts_per_day'] == $b['average_shouts_per_day']) {
 			if($a['shouts'] == $b['shouts']) {
@@ -74,10 +98,8 @@ function top_spammers($data) {
 		return -1;
 	});
 
-	$keys = array_keys($data[0]);
-	$first_row_name = $keys[0];
 	foreach($data as $index => &$row) {
-		$row[$first_row_name] = ($index+1) . '.';
+		array_unshift($data[$index], ($index+1) . '.');
 	}
 
 	return $data;
@@ -164,6 +186,17 @@ for($index=0; $index<count($queries); $index++) {
 foreach($queries as $index => $query) {
 	$data = $query['data'];
 
+	if(isset($query['processing_function_all'])) {
+		if(is_array($query['processing_function_all'])) {
+			foreach($query['processing_function_all'] as $func) {
+				call_user_func($func, array(&$data));
+			}
+		}
+		else {
+			call_user_func($query['processing_function_all'], array(&$data));
+		}
+	}
+
 	if(isset($query['processing_function'])) {
 		if(is_array($query['processing_function'])) {
 			foreach($query['processing_function'] as $func) {
@@ -181,9 +214,6 @@ foreach($queries as $index => $query) {
 		}
 	}
 
-	if(isset($query['processing_function_all'])) {
-		call_user_func($query['processing_function_all'], array(&$data));
-	}
 	$queries[$index]['data'] = $data;
 }
 

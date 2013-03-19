@@ -348,14 +348,14 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Word usage',
-		'query' => "select w.word word, sum(count),
+		'query' => "select w.word, a.count,
 			(select concat(u.id, '$$', u.name, '$$', sum(sw2.count))
 				from users u join shouts s2 on (u.id = s2.user) join shout_words sw2 on (s2.id = sw2.shout_id and s2.epoch = sw2.shout_epoch)
-				where sw2.word = w.id and s2.deleted = 0 and $filter2
+				where sw2.word = a.word and s2.deleted = 0 and $filter2
 				group by s2.user
 				order by sum(sw2.count) desc
 				limit 0, 1) top
-			from shout_words sw join words w on (sw.word = w.id) join shouts sh on (sw.shout_epoch = sh.epoch and sw.shout_id = sh.id) where sh.deleted = 0 and $filter3 group by sw.word, w.word order by sum(count) desc limit 0, 20",
+			from (select sw.word, sum(sw.count) count from shout_words sw shouts sh on (sw.shout_epoch = sh.epoch and sw.shout_id = sh.id) where sh.deleted = 0 and $filter3 group by sw.word order by sum(sw.count) desc limit 0, 20) a join words w on (a.word=w.id)",
 		'processing_function' => function(&$row) {
 				$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'hour', 'period');
 				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . $link_parts . '">' . $row[0]['word'] . '</a>';

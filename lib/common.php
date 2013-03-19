@@ -5,8 +5,9 @@ require_once(dirname(__FILE__) . '/../config.php');
 require_once('Mail/mime.php');
 require_once('Mail.php');
 
-$db = new PDO("mysql:dbname=$db_name;host=$db_host", $db_user, $db_pass);
-db_query('SET NAMES utf8');
+$db = new PDO("pgsql:dbname=$db_name;host=$db_host", $db_user, $db_pass);
+// TODO
+// db_query('SET NAMES utf8');
 
 /* HTTP basic authentication */
 if(!defined('STDIN') && !isset($argc)) {
@@ -57,9 +58,9 @@ function db_query($query, $parameters = array()) {
 	}
 	$query_end = microtime(true);
 
-	if(preg_match('/LOCK TABLES/i', $query)) {
-		$db_locked = true;
-	}
+//	if(preg_match('/LOCK TABLES/i', $query)) {
+//		$db_locked = true;
+//	}
 
 	if(!isset($db_queries)) {
 		$db_queries = array();
@@ -97,16 +98,17 @@ function dump_r($variable) {
 function db_last_insert_id() {
 	global $db;
 
-	return $db->lastInsertId();
+	$data = db_query('SELECT lastval() id');
+	return $data[0]['id'];
 }
 
 function log_data() {
 	global $db_locked, $db_queries, $start_time;
 
-	if($db_locked) {
-		db_query('UNLOCK TABLES');
-		$db_locked = false;
-	}
+//	if($db_locked) {
+//		db_query('UNLOCK TABLES');
+//		$db_locked = false;
+//	}
 
 	$end_time = microtime(true);
 
@@ -145,15 +147,20 @@ function unicode_character($matches) {
 }
 
 function get_setting($key) {
-	$query = 'SELECT value FROM settings WHERE `key` = ?';
+	$query = 'SELECT value FROM settings WHERE "key" = ?';
 	$data = db_query($query, array($key));
 
 	return $data[0]['value'];
 }
 
 function set_setting($key, $value) {
-	$query = 'INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?';
-	db_query($query, array($key, $value, $value));
+	// TODO transaction
+	$query = 'UPDATE settings SET value = ? WHERE "key" = ?;';
+	db_query($query, array($value, $key));
+	$query = 'INSERT INTO settings ("key", value) SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM settings WHERE "key" = ?)';
+	db_query($query, array($key, $value, $key));
+//	$query = 'INSERT INTO settings ("key", value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = ?';
+//	db_query($query, array($value, $key, $key, $value, $key));
 }
 
 function process_message_smiley($match) {
@@ -206,7 +213,7 @@ function process_smilies($id, $epoch) {
 	$found_smilies = array();
 	$message = preg_replace_callback('+"/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
 
-	$query = 'SELECT smiley, `count` FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
+	$query = 'SELECT smiley, "count" FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 
 	$diff = false;
@@ -231,7 +238,7 @@ function process_smilies($id, $epoch) {
 		$query = 'DELETE FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
 		db_query($query, array($id, $epoch));
 
-		$query = 'INSERT INTO shout_smilies (shout_id, shout_epoch, smiley, `count`) VALUES (?, ?, ?, ?)';
+		$query = 'INSERT INTO shout_smilies (shout_id, shout_epoch, smiley, "count") VALUES (?, ?, ?, ?)';
 		foreach($found_smilies as $smiley => $count) {
 			db_query($query, array($id, $epoch, $smiley, $count));
 		}
@@ -274,7 +281,7 @@ function process_words($id, $epoch) {
 		}
 	}
 
-	$query = 'SELECT word, `count` FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
+	$query = 'SELECT word, "count" FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 
 	$diff = false;
@@ -299,7 +306,7 @@ function process_words($id, $epoch) {
 		$query = 'DELETE FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
 		db_query($query, array($id, $epoch));
 
-		$query = 'INSERT INTO shout_words (shout_id, shout_epoch, word, `count`) VALUES (?, ?, ?, ?)';
+		$query = 'INSERT INTO shout_words (shout_id, shout_epoch, word, "count") VALUES (?, ?, ?, ?)';
 		foreach($found_words as $word => $count) {
 			db_query($query, array($id, $epoch, $word, $count));
 		}
@@ -342,7 +349,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$params[] = $user;
 	}
 	if($date != '') {
-		$filters[] = "DATE_FORMAT(DATE_ADD(s.date, INTERVAL 1 HOUR), '%Y-%m-%d') = ?";
+		$filters[] = "TO_CHAR(s.date+INTERVAL '1 hour', 'YYYY-MM-DD') = ?";
 		$params[] = $date;
 	}
 
@@ -352,9 +359,9 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 				JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id)
 				LEFT JOIN shout_revisions sr ON (s.id = sr.id AND s.epoch = sr.epoch)
 			WHERE $filter
-			GROUP BY id, epoch, date, color, user_id, user_name, message
-			ORDER BY s.epoch DESC, s.id
-			DESC LIMIT ?, ?";
+			GROUP BY s.id, s.epoch, date, color, user_id, user_name, message
+			ORDER BY s.epoch DESC, s.id DESC
+			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
 	$db_data = db_query($query, $params);
