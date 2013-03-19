@@ -105,15 +105,15 @@ if(isset($_REQUEST['word'])) {
 }
 if(isset($_REQUEST['year'])) {
 	if(isset($_REQUEST['day'])) {
-		$date_format = '%Y-%m-%d';
+		$date_format = 'YYYY-MM-DD';
 		$date = sprintf('%04d-%02d-%02d', $_REQUEST['year'], $_REQUEST['month'], $_REQUEST['day']);
 	}
 	else if(isset($_REQUEST['month'])) {
-		$date_format = '%Y-%m';
+		$date_format = 'YY-MM';
 		$date = sprintf('%04d-%02d', $_REQUEST['year'], $_REQUEST['month']);
 	}
 	else {
-		$date_format = '%Y';
+		$date_format = 'YY';
 		$date = sprintf('%04d', $_REQUEST['year']);
 	}
 }
@@ -126,17 +126,17 @@ $params = array();
 $what_parts = array();
 
 if(isset($_REQUEST['hour'])) {
-	$filter_parts[] = "lpad((date_format(date, '%H')+1) % 24, 2, '0') = ?";
+	$filter_parts[] = "lpad((extract hour from date) % 24, 2, '0') = ?";
 	$params[] = $hour;
 	$what_parts[] = "hour $hour";
 }
 if(isset($_REQUEST['year'])) {
-	$filter_parts[] = "date_format(date_add(date, interval 1 hour), '$date_format') = ?";
+	$filter_parts[] = "to_char(date+interval '1 hour', '$date_format') = ?";
 	$params[] = $date;
 	$what_parts[] = $date;
 }
 if(isset($_REQUEST['user'])) {
-	$filter_parts[] = "user = ?";
+	$filter_parts[] = '"user" = ?';
 	$params[] = $user_id;
 	$what_parts[] = $user;
 }
@@ -171,29 +171,38 @@ $what = implode(', ', $what_parts);
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
-		'query' => "select concat(@row:=@row+1, '.'), b.name, b.shouts, coalesce(b.shouts/ceil((b.last_shout-b.first_shout)/86400), 1) as average_shouts_per_day, b.smilies, b.smilies/b.shouts as average_smilies_per_message, b.smiley_info, b.word_info
-			from (select a.name, a.shouts, a.smilies,
-				(select unix_timestamp(min(date)) from shouts s where s.user=a.id and deleted=0 and $filter) as first_shout,
-				(select unix_timestamp(max(date)) from shouts s where s.user=a.id and deleted=0 and $filter) as last_shout,
-				(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count))
-					from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id)
-					where s.user = a.id and deleted = 0 and $filter
-					group by ss.smiley, sm.filename
-					order by sum(ss.count) desc
-					limit 0, 1) as smiley_info,
-				(select concat(sw.word, '$$', w.word, '$$', sum(sw.count))
-					from shouts s join shout_words sw on (s.id = sw.shout_id and s.epoch = sw.shout_epoch) join words w on (sw.word = w.id)
-					where s.user = a.id and deleted = 0 and $filter
-					group by sw.word, w.word
-					order by sum(sw.count) desc
-					limit 0, 1) as word_info
-				from (select u.id, u.name, count(distinct s.id) as shouts, coalesce(sum(ss.count), 0) as smilies from shouts s join users u
-				on (s.user = u.id) left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
-				where deleted = 0 and $filter group by u.id, u.name) a) b, (select @row:=0) c
-			order by b.shouts desc, average_shouts_per_day desc, b.name asc",
+		'query' => "select d.name, d.shouts,
+					round(cast(d.shouts/greatest(ceil((d.last_shout-d.first_shout)/86400.0), 1) as numeric), 4) as average_shouts_per_day,
+					d.smilies, round(cast(d.smilies/cast(d.shouts as float) as numeric), 4),
+					concat(c.smiley, '$$', sm.filename, '$$', c.count) smiley_info, concat(g.word, '$$', w.word, '$$', g.count) word_info
+				from
+					(select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
+						from users u join shouts s on (u.id=s.user)
+						left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
+						where deleted=0 and $filter
+						group by u.name, u.id) d
+					left join
+					(
+						(select a.user, max(a.count) max
+							from (select s.user, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.user, sm.smiley) a
+							group by a.user) b
+						left join
+						(select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.user, sm.smiley) c
+						on (b.user = c.user and b.max = c.count)) on (d.id = b.user)
+					left join smilies sm on (c.smiley = sm.id)
+					left join
+					(
+						(select e.user, max(e.count) max
+							from (select s.user, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.user, sw.word) e
+							group by e.user) f
+						left join
+						(select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.user, sw.word) g
+						on (f.user = g.user and f.max = g.count)) on (d.id = f.user)
+					left join words w on (g.word = w.id)
+				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
 		'params' => array_merge($params, $params, $params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
-		'processing_function_all' => 'ex_aequo2',
+		'processing_function_all' => array('first_per_user', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
 		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
 		'derived_queries' => array(
@@ -207,6 +216,7 @@ $queries[] = array(
 			),
 		),
 	);
+/*
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "select h.hour hour, coalesce(a.shouts, 0) shouts,
@@ -371,6 +381,7 @@ $queries[] = array(
 		'columns' => array('Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'left'),
 	);
+ */
 /*
 $queries[] = array(
 		'title' => '',
