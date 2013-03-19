@@ -150,7 +150,6 @@ $filter = implode(' AND ', $filter_parts);
 $what = implode(', ', $what_parts);
 
 $queries = array();
-/*
 $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "select d.name, d.shouts,
@@ -457,7 +456,6 @@ $queries[] = array(
 		'columns' => array('Position', 'Smiley', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'right', 'right', 'left'),
 	);
- */
 $queries[] = array(
 		'title' => 'Word usage (top 20)',
 		'query' => "select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
