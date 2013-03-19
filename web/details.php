@@ -250,7 +250,6 @@ $queries[] = array(
 			),
 		),
 	);
- */
 $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
@@ -298,19 +297,45 @@ $queries[] = array(
 		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley'),
 		'column_styles' => array('right', 'left', 'right', 'left', 'left'),
 	);
-/*
+ */
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "select date_format(date_add(date, interval 1 hour), '%Y-%m') monthx, count(*) as shouts,
-						(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where date_format(date, '%Y-%m')=monthx and deleted=0 and $filter group by s.user order by count(s.id) desc limit 0, 1) top_spammer,
-						(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where date_format(date, '%Y-%m')=monthx and deleted=0 and $filter group by ss.smiley order by sum(ss.count) desc limit 0, 1) popular_smiley
-					from shouts s
-					where deleted = 0 and $filter 
-					group by monthx
-					order by monthx asc",
-			'params' => array_merge($params, $params, $params),
+			'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
+					from (select month, year, count(s.id) count from shouts s where deleted=0 and $filter group by month, year) j
+						left join
+						(
+							(select month, year, max(count) max from (select \"user\", month, year, count(*) count from shouts s where deleted=0 and $filter group by \"user\", month, year) a group by month, year) b
+							left join
+							(select \"user\", month, year, count(*) count from shouts s where deleted=0 and $filter group by \"user\", month, year) c
+							on (b.month=c.month and b.year=c.year and b.max=c.count)
+						) on (j.month=b.month and j.year=b.year)
+						left join users u on (c.user=u.id)
+						left join
+						(
+							(select e.month, e.year, max(e.count) max
+								from (select s.month, s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.month, s.year, sm.smiley) e
+								group by e.month, e.year) d
+							left join
+							(select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 and $filter group by s.month, s.year, sm.smiley) f
+							on (d.month = f.month and d.year = f.year and d.max = f.count)
+						) on (j.month=d.month and j.year=d.year)
+						left join smilies sm on (f.smiley = sm.id)
+						left join
+						(
+							(select h.month, h.year, max(h.count) max
+								from (select s.month, s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.month, s.year, sw.word) h
+								group by h.month, h.year) g
+							left join
+							(select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 and $filter group by s.month, s.year, sw.word) i
+							on (g.month = i.month and g.year = i.year and g.max = i.count)
+						) on (j.month=g.month and j.year=g.year)
+						left join words w on (i.word = w.id)
+						order by j.year asc, j.month asc",
+			'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
 			'processing_function' => 'messages_per_month',
+			'processing_function_all' => 'duplicates0',
 			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley'),
 			'column_styles' => array('left', 'right', 'left', 'left'),
 			'derived_queries' => array(
@@ -318,13 +343,14 @@ if(!isset($_REQUEST['day'])) {
 					'title' => 'Messages per month, ordered by number of messages',
 					'transformation_function' => 'busiest_time',
 					'processing_function' => 'messages_per_month',
-					'processing_function_all' => 'ex_aequo2',
+					'processing_function_all' => array('duplicates1', 'ex_aequo2'),
 					'columns' => array('Position', 'Month', 'Messages', 'Top spammer', 'Most popular smiley'),
 					'column_styles' => array('right', 'left', 'right', 'left', 'left'),
 				),
 			),
 		);
 }
+/*
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
