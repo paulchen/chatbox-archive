@@ -349,7 +349,6 @@ if(!isset($_REQUEST['day'])) {
 			),
 		);
 }
- */
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
@@ -402,19 +401,37 @@ if(!isset($_REQUEST['month'])) {
 			),
 		);
 }
-/*
+ */
 $filter2 = str_replace(array('s.epoch', 's.id'), array('s2.epoch', 's2.id'), $filter);
 $filter3 = str_replace(array('s.epoch', 's.id'), array('sh.epoch', 'sh.id'), $filter);
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select s.filename filename, sum(count),
-			(select concat(u.id, '$$', u.name, '$$', sum(ss2.count))
-				from users u join shouts s2 on (u.id = s2.user) join shout_smilies ss2 on (s2.id = ss2.shout_id and s2.epoch = ss2.shout_epoch)
-				where ss2.smiley = s.id and s2.deleted = 0 and $filter2
-				group by s2.user
-				order by sum(ss2.count) desc
-				limit 0, 1) top
-			from shout_smilies ss join smilies s on (ss.smiley = s.id) join shouts sh on (ss.shout_epoch = sh.epoch and ss.shout_id = sh.id) where sh.deleted = 0 and $filter3 group by ss.smiley, s.filename order by sum(count) desc",
+		'query' => "select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+				from
+					(select ss.smiley, coalesce(sum(ss.count), 0) count
+						from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+						where deleted=0 and $filter
+						group by ss.smiley) d
+				left join
+					(
+						(select a.smiley, max(count) max
+							from
+								(select s.user, ss.smiley, sum(count) count
+									from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+									where s.deleted=0 and $filter 
+									group by s.user, ss.smiley) a
+							group by a.smiley) b
+					left join
+						(select s.user, ss.smiley, sum(count) count
+							from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+							where s.deleted=0 and $filter
+							group by s.user, ss.smiley) c
+					on (b.smiley=c.smiley and b.max=c.count))
+				on (d.smiley=b.smiley)
+				left join users u on (c.user=u.id)
+				left join smilies sm on (d.smiley=sm.id)
+				order by d.count desc",
+		'params' => array_merge($params, $params, $params),
 		'processing_function' => function(&$row) {
 				global $smilies;
 
@@ -430,8 +447,7 @@ $queries[] = array(
 					}
 				}
 
-				$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'hour', 'period');
-				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . $link_parts . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
+				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
 
 				$top = explode('$$', $row[0]['top']);
 				$user_id = $top[0];
@@ -440,10 +456,11 @@ $queries[] = array(
 				$link = 'details.php?user=' . urlencode($username);
 				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
 			},
-		'params' => array_merge($params, $params),
-		'columns' => array('Smiley', 'Occurrences', 'Top user'),
-		'column_styles' => array('right', 'right', 'left'),
+		'processing_function_all' => array('duplicates0', 'insert_position'),
+		'columns' => array('Position', 'Smiley', 'Occurrences', 'Top user'),
+		'column_styles' => array('right', 'right', 'right', 'left'),
 	);
+/*
 $queries[] = array(
 		'title' => 'Word usage',
 		'query' => "select w.word, a.count,
