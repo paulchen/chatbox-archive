@@ -22,7 +22,7 @@ function spammer_smiley(&$row) {
 
 	if($row[0]['popular_word'] != '') {
 		$parts = explode('$$', $row[0]['popular_word']);
-		$row[0]['popular_word'] = "<a href=\"details.php?word=" . urlencode($parts[0]) . "\">{$parts[1]}</a> ({$parts[2]}x)";
+		$row[0]['popular_word'] = "<a href=\"details.php?word=" . urlencode($parts[1]) . "\">{$parts[1]}</a> ({$parts[2]}x)";
 	}
 	else {
 		$row[0]['popular_word'] = '-';
