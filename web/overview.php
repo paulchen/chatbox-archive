@@ -48,7 +48,6 @@ function messages_per_year(&$row) {
 }
 
 $queries = array();
-/*
 $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "select d.name, d.shouts,
@@ -146,19 +145,40 @@ $queries[] = array(
 			),
 		),
 	);
- */
-/*
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select a.day, a.shouts,
-					(select concat(s.user, '$$', u.name, '$$', count(s.id)) from shouts s join users u on (s.user = u.id) where cast(s.day as text)=a.qday and cast(s.month as text)=a.qmonth and cast(s.year as text)=a.qyear and deleted = 0 group by s.user, u.name order by count(s.id) desc limit 1) top_spammer,
-					(select concat(ss.smiley, '$$', sm.filename, '$$', sum(ss.count)) from shouts s join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch) join smilies sm on (ss.smiley = sm.id) where cast(s.day as text)=a.qday and cast(s.month as text)=a.qmonth and cast(s.year as text)=a.qyear and deleted=0 group by ss.smiley, sm.filename order by sum(ss.count) desc limit 1) popular_smiley
-			from
-			(select to_char(date+interval '1 hour', 'YYYY-MM-DD') \"day\", to_char(date+interval '1 hour', 'YYYY') qyear, to_char(date+interval '1 hour', 'MM') qmonth, to_char(date+interval '1 hour', 'DD') qday, count(*) as shouts
-					from shouts where deleted = 0
-					group by date, qyear, qmonth, qday
-					order by count(*) desc
-					limit 10) a",
+		'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+                                        concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
+                                from (select day, month, year, count(s.id) count from shouts s where deleted=0 group by day, month, year order by count desc limit 10) j
+                                        left join
+                                        (
+                                                (select day, month, year, max(count) max from (select \"user\", day, month, year, count(*) count from shouts where deleted=0 group by \"user\", day, month, year) a group by day, month, year) b
+                                                left join
+                                                (select \"user\", day, month, year, count(*) count from shouts where deleted=0 group by \"user\", day, month, year) c
+                                                on (b.day=c.day and b.month=c.month and b.year=c.year and b.max=c.count)
+                                        ) on (j.day=b.day and j.month=b.month and j.year=b.year)
+                                        left join users u on (c.user=u.id)
+                                        left join
+                                        (
+                                                (select e.day, e.month, e.year, max(e.count) max
+                                                        from (select s.day, s.month, s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.day, s.month, s.year, sm.smiley) e
+                                                        group by e.day, e.month, e.year) d
+                                                left join
+                                                (select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where deleted=0 group by s.day, s.month, s.year, sm.smiley) f
+                                                on (d.day = f.day and d.month = f.month and d.year = f.year and d.max = f.count)
+                                        ) on (j.day=d.day and j.month=d.month and j.year=d.year)
+                                        left join smilies sm on (f.smiley = sm.id)
+                                        left join
+                                        (
+                                                (select h.day, h.month, h.year, max(h.count) max
+                                                        from (select s.day, s.month, s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.day, s.month, s.year, sw.word) h
+                                                        group by h.day, h.month, h.year) g
+                                                left join
+                                                (select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where deleted=0 group by s.day, s.month, s.year, sw.word) i
+                                                on (g.day = i.day and g.month = i.month and g.year = i.year and g.max = i.count)
+                                        ) on (j.day=g.day and j.month=g.month and j.year=g.year)
+                                        left join words w on (i.word = w.id)
+                                        order by j.count desc, j.year asc, j.month asc, j.day asc",
 		'processing_function' => function(&$row) {
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
@@ -167,10 +187,10 @@ $queries[] = array(
 				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row[0]['day'] . '</a>';
 				spammer_smiley($row);
 			},
-		'columns' => array('Day', 'Messages', 'Top spammer', 'Most popular smiley'),
-		'column_styles' => array('left', 'right', 'left', 'left'),
+		'processing_function_all' => array('duplicates0', 'insert_position'),
+		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley'),
+		'column_styles' => array('right', 'left', 'right', 'left', 'left'),
 	);
- */
 $queries[] = array(
 		'title' => 'Messages per month',
 		'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
@@ -220,7 +240,6 @@ $queries[] = array(
 			),
 		),
 	);
-/*
 $queries[] = array(
 		'title' => 'Messages per year',
 		'query' => "select j.year, j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
@@ -367,9 +386,6 @@ $queries[] = array(
 		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'left', 'right', 'left'),
 	);
- */
-/*
- */
 
 /*
 $queries[] = array(
