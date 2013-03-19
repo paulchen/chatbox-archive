@@ -29,6 +29,10 @@ function duplicates0(&$data) {
 	duplicates($data, array(0));
 }
 
+function duplicates1(&$data) {
+	duplicates($data, array(1));
+}
+
 function duplicates(&$data, $columns) {
 	if(count($data[0]) == 0) {
 		return;
