@@ -52,7 +52,6 @@ echo '<?xml version="1.0" ?>';
 			?>
 				<tr>
 				<?php foreach($row as $key => $value): ?>
-					<!-- TODO <td class="<?php echo $query['column_styles'][$a] ?>"><?php echo htmlentities($value, ENT_QUOTES, 'UTF-8'); ?></td> -->
 					<td class="<?php echo $query['column_styles'][$a] ?>"><?php echo $value ?></td>
 				<?php $a++; endforeach; ?>
 				</tr>
