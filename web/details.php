@@ -200,7 +200,7 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", coalesce(j.count, 0) shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 					concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
 				from hours_of_day h
 					left join
