@@ -244,9 +244,9 @@ $queries[] = array(
 				'title' => 'Busiest hours',
 				'transformation_function' => 'busiest_hours',
 				'processing_function' => 'messages_per_hour',
-				'processing_function_all' => 'duplicates0',
-				'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
-				'column_styles' => array('left', 'right', 'left', 'left', 'left'),
+				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo0'),
+				'columns' => array('Position', 'Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
+				'column_styles' => array('right', 'right', 'right', 'left', 'left', 'left'),
 			),
 		),
 	);

@@ -162,7 +162,13 @@ function busiest_hours($data) {
 	$data = $data[0];
 	usort($data, function($a, $b) {
 		if($a['shouts'] == $b['shouts']) {
-			return 0;
+			if($a['hour'] == $b['hour']) {
+				return 0;
+			}
+			if($a['hour'] < $b['hour']) {
+				return 1;
+			}
+			return -1;
 		}
 		if($a['shouts'] < $b['shouts']) {
 			return 1;
