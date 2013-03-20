@@ -427,7 +427,7 @@ $queries[] = array(
 				on (d.smiley=b.smiley)
 				left join users u on (c.user=u.id)
 				left join smilies sm on (d.smiley=sm.id)
-				order by d.count desc",
+				order by d.count desc, sm.filename asc",
 		'params' => array_merge($params, $params, $params),
 		'processing_function' => function(&$row) {
 				global $smilies;
@@ -484,7 +484,7 @@ $queries[] = array(
 				on (d.word=b.word)
 				left join users u on (c.user=u.id)
 				join words w on (d.word=w.id)
-				order by d.count desc",
+				order by d.count desc, w.word asc",
 		'params' => array_merge($params, $params, $params),
 		'processing_function' => array(function(&$row) {
 				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
