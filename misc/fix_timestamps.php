@@ -12,7 +12,7 @@ foreach($ranges as $index => $range) {
 	$start = $range['start'];
 	$end = $range['end'];
 
-	$data = db_query("SELECT id, date FROM shouts WHERE id >= ? AND id <= ? AND date_format(date, '%Y') <> ?", array($start, $end, $range['year']));
+	$data = db_query("SELECT id, date FROM shouts WHERE id >= ? AND id <= ? AND year <> ?", array($start, $end, $range['year']));
 	$count = 0;
 	foreach($data as $row) {
 		$count++;
