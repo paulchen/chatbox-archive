@@ -108,6 +108,7 @@ ob_clean();
 if(!$ajax) {
 	xml_validate($data);
 }
+ob_start("ob_gzhandler");
 echo $data;
 
 log_data();

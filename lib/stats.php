@@ -291,5 +291,6 @@ ob_clean();
 
 xml_validate($data);
 header('Content-Type: application/xhtml+xml; charset=utf-8');
+ob_start("ob_gzhandler");
 echo $data;
 
