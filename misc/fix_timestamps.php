@@ -21,7 +21,7 @@ foreach($ranges as $index => $range) {
 		$new_date = preg_replace('/^201[0-9]/', $range['year'], $old_date);
 
 		echo "$id $old_date $new_date\n";
-		db_query('UPDATE shouts SET date = ? WHERE id = ?', array($new_date, $id));
+		db_query('UPDATE shouts SET date = ?, year = ? WHERE id = ?', array($new_date, $range['year'], $id));
 	}
 	$ranges[$index]['rows'] = $count;
 }
