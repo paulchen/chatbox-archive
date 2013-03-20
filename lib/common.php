@@ -6,8 +6,6 @@ require_once('Mail/mime.php');
 require_once('Mail.php');
 
 $db = new PDO("pgsql:dbname=$db_name;host=$db_host", $db_user, $db_pass);
-// TODO
-// db_query('SET NAMES utf8');
 
 /* HTTP basic authentication */
 if(!defined('STDIN') && !isset($argc)) {
