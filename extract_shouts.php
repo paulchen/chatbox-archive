@@ -13,8 +13,6 @@ require_once('lib/common.php');
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
 
-$processed_ids = array();
-
 $contents = file_get_contents($argv[1]);
 if(strpos($contents, 'vsa_chatbox_bit') !== false) {
 	$ret = process_chatbox($contents);
@@ -28,26 +26,6 @@ else {
 
 set_setting('max_shout_id', $max_id);
 
-sort($processed_ids);
-$min = $processed_ids[0];
-$max = $processed_ids[count($processed_ids)-1];
-
-$query = 'SELECT id FROM shouts WHERE id >= ? AND id <= ?';
-$data = db_query($query, array($min, $max));
-$deleted_ids = array();
-foreach($data as $row) {
-	if(!in_array($row['id'], $processed_ids)) {
-		$deleted_ids[] = $row['id'];
-	}
-}
-
-/*
-$query = ('UPDATE shouts SET deleted = 1 WHERE id = ?';
-foreach($deleted_ids as $id) {
-	db_query($query, array($id));
-}
- */
-
 touch($success_file);
 
 die($ret);
@@ -59,10 +37,10 @@ function process_nick_color($nick_color) {
 	if(count($data) == 0) {
 		$query = 'INSERT INTO user_categories (name, color) VALUES (?, ?)';
 		db_query($query, array($nick_color, $nick_color));
-	}
 
-	$query = 'SELECT id FROM user_categories WHERE color = ?';
-	$data = db_query($query, array($nick_color));
+		$query = 'SELECT id FROM user_categories WHERE color = ?';
+		$data = db_query($query, array($nick_color));
+	}
 
 	return $data[0]['id'];
 }
@@ -86,9 +64,7 @@ function process_nick($member_id, $member_nick, $nick_color) {
 }
 
 function process_shout($id, $date, $member_id, $member_nick, $nick_color, $message) {
-	global $mysqli, $processed_ids, $max_id, $epoch;
-
-	$processed_ids[] = $id;
+	global $mysqli, $max_id, $epoch;
 
 	process_nick($member_id, $member_nick, $nick_color);
 
