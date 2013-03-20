@@ -36,7 +36,7 @@ foreach($memcached_servers as $server) {
 }
 
 function db_query($query, $parameters = array()) {
-	global $db, $db_locked, $db_queries;
+	global $db, $db_queries;
 
 	$query_start = microtime(true);
 	if(!($stmt = $db->prepare($query))) {
@@ -57,10 +57,6 @@ function db_query($query, $parameters = array()) {
 		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
 	$query_end = microtime(true);
-
-//	if(preg_match('/LOCK TABLES/i', $query)) {
-//		$db_locked = true;
-//	}
 
 	if(!isset($db_queries)) {
 		$db_queries = array();
@@ -103,12 +99,7 @@ function db_last_insert_id() {
 }
 
 function log_data() {
-	global $db_locked, $db_queries, $start_time;
-
-//	if($db_locked) {
-//		db_query('UNLOCK TABLES');
-//		$db_locked = false;
-//	}
+	global $db_queries, $start_time;
 
 	$end_time = microtime(true);
 
