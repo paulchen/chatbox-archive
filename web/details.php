@@ -13,7 +13,7 @@ function build_link_from_request() {
 }
 
 function overview_redirect() {
-	header('Location: ' . $_SERVER['SCRIPT_FILENAME']);
+	header('Location: ' . basename($_SERVER['SCRIPT_FILENAME']));
 	die();
 }
 
@@ -133,18 +133,13 @@ if(isset($_REQUEST['word'])) {
 	$what_parts[] = "word \"" . htmlentities($_REQUEST['word'], ENT_QUOTES, 'UTF-8') . "\"";
 }
 if(isset($_REQUEST['period'])) {
-	// TODO improve this
-	$last_archive_id = 229152;
-	$last_archive_epoch = 1;
+	$data = db_query('SELECT query, title FROM periods WHERE name = ?', array($_REQUEST['period']));
+	if(count($data) != 1) {
+		overview_redirect();
+	}
 
-	$data = db_query('SELECT UNIX_TIMESTAMP(date) date FROM shouts WHERE (epoch = ? AND id >= ?) OR (epoch > ?) ORDER BY epoch ASC, id ASC LIMIT 1', array($last_archive_epoch, $last_archive_id, $last_archive_epoch));
-	$date_string = date('Y-m-d', $data[0]['date']);
-
-	$filter_parts[] = '(s.epoch = ? AND s.id >= ?) OR (epoch > ?)';
-	$params[] = $last_archive_epoch;
-	$params[] = $last_archive_id;
-	$params[] = $last_archive_epoch;
-	$what_parts[] = "since $date_string";
+	$filter_parts[] = $data[0]['query'];
+	$what_parts[] = $data[0]['title'];
 }
 
 $filter = implode(' AND ', $filter_parts);
