@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+#%# family=manual
+#%# capabilities=autoconf
+#
+
+use strict;
+
+# Perl trim function to remove whitespace from the start and end of the string
+sub trim($) {
+	my $string = shift;
+	$string =~ s/^\s+//;
+	$string =~ s/\s+$//;
+	return $string;
+}
+
+my $filename = $0;
+my @parts = split(/_/, $filename);
+my $time = ' ' . pop(@parts);
+$time = pop(@parts) . $time;
+shift(@parts);
+my $dbname = join('_', @parts);
+
+if ($ARGV[0] and $ARGV[0] eq "config") {
+	print "graph_title Query time (Database $dbname, last $time)\n";
+	print "graph_args --lower-limit 0\n";
+	print "graph_vlabel seconds\n";
+	print "graph_category chatbox\n";
+	print "max.label Maximum\n";
+	print "min.label Minimum\n";
+	print "avg.label Average\n";
+        exit 0;
+}
+
+if ($ARGV[0] and $ARGV[0] eq "autoconf") {
+	print "yes\n";
+	exit 0
+}
+
+my $command = "psql '$dbname' -c \"select coalesce(max(execution_time), 0), coalesce(min(execution_time), 0), coalesce(avg(execution_time), 0) from queries where timestamp>now()-interval '$time';\"|tail -n 3|head -n 1|sed -e \"s/ //g\"";
+my $data = trim(`$command`);
+@parts = split(/\|/, $data);
+
+print "max.value " . $parts[0] . "\n"; 
+print "min.value " . $parts[1] . "\n"; 
+print "avg.value " . $parts[2] . "\n"; 
+
+exit 0
+
+# vim:syntax=perl
