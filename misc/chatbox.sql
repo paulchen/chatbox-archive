@@ -1,291 +1,692 @@
--- phpMyAdmin SQL Dump
--- version 3.5.4
--- http://www.phpmyadmin.net
 --
--- Host: localhost
--- Erstellungszeit: 29. Dez 2012 um 20:45
--- Server Version: 5.5.28-1
--- PHP-Version: 5.4.4-10
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
---
--- Datenbank: `chatbox`
+-- PostgreSQL database dump
 --
 
--- --------------------------------------------------------
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
 
 --
--- Tabellenstruktur für Tabelle `accounts`
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
-CREATE TABLE IF NOT EXISTS `accounts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` text NOT NULL,
-  `hash` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `shouts`
---
-
-CREATE TABLE IF NOT EXISTS `shouts` (
-  `id` int(11) NOT NULL,
-  `epoch` int(11) NOT NULL,
-  `date` datetime NOT NULL,
-  `user` int(11) NOT NULL,
-  `message` mediumtext NOT NULL,
-  `deleted` tinyint(4) NOT NULL,
-  `hour` int(11) NOT NULL,
-  `day` int(11) NOT NULL,
-  `month` int(11) NOT NULL,
-  `year` int(11) NOT NULL,
-  PRIMARY KEY (`id`,`epoch`),
-  KEY `user` (`user`),
-  KEY `deleted` (`deleted`)
-  KEY `hour` (`hour`),
-  KEY `day` (`day`),
-  KEY `month` (`month`),
-  KEY `year` (`year`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `users`
---
-
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL,
-  `name` text NOT NULL,
-  `category` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `user_categories`
---
-
-CREATE TABLE IF NOT EXISTS `user_categories` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` text NOT NULL,
-  `color` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `hours_of_day`
---
-
-CREATE TABLE IF NOT EXISTS `hours_of_day` (
-  `hour` varchar(2) NOT NULL,
-  PRIMARY KEY (`hour`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Daten für Tabelle `hours_of_day`
---
-
-INSERT INTO `hours_of_day` (`hour`) VALUES
-('00'),
-('01'),
-('02'),
-('03'),
-('04'),
-('05'),
-('06'),
-('07'),
-('08'),
-('09'),
-('10'),
-('11'),
-('12'),
-('13'),
-('14'),
-('15'),
-('16'),
-('17'),
-('18'),
-('19'),
-('20'),
-('21'),
-('22'),
-('23');
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `settings`
---
-
-CREATE TABLE IF NOT EXISTS `settings` (
-  `key` varchar(50) NOT NULL,
-  `value` text NOT NULL,
-  PRIMARY KEY (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Daten für Tabelle `settings`
---
-
-INSERT INTO `settings` (`key`, `value`) VALUES
-('current_epoch', '1'),
-('max_shout_id', '0');
-
---
--- Tabellenstruktur für Tabelle `shout_smilies`
---
-
-CREATE TABLE IF NOT EXISTS `shout_smilies` (
-  `shout_id` int(11) NOT NULL,
-  `shout_epoch` int(11) NOT NULL,
-  `smiley` int(11) NOT NULL,
-  `count` int(11) NOT NULL,
-  PRIMARY KEY (`shout_id`,`shout_epoch`,`smiley`),
-  KEY `smiley` (`smiley`),
-  KEY `shout_id` (`shout_id`,`shout_epoch`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `smilies`
---
-
-CREATE TABLE IF NOT EXISTS `smilies` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `filename` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `filename` (`filename`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `queries`
---
-
-CREATE TABLE IF NOT EXISTS `queries` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `request` int(11) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `query` text NOT NULL,
-  `parameters` text NOT NULL,
-  `execution_time` float NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `request` (`request`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `requests`
---
-
-CREATE TABLE IF NOT EXISTS `requests` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `url` text NOT NULL,
-  `ip` text NOT NULL,
-  `request_time` float NOT NULL,
-  `browser` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `shout_words`
---
-
-CREATE TABLE IF NOT EXISTS `shout_words` (
-  `shout_id` int(11) NOT NULL,
-  `shout_epoch` int(11) NOT NULL,
-  `word` int(11) NOT NULL,
-  `count` int(11) NOT NULL,
-  PRIMARY KEY (`shout_id`,`shout_epoch`,`word`),
-  KEY `smiley` (`word`),
-  KEY `shout_id` (`shout_id`,`shout_epoch`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `words`
---
-
-CREATE TABLE IF NOT EXISTS `words` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `word` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `word` (`word`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
-
--- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `shout_revisions`
---
-
-CREATE TABLE IF NOT EXISTS `shout_revisions` (
-  `id` int(11) NOT NULL,
-  `epoch` int(11) NOT NULL,
-  `revision` int(11) NOT NULL,
-  `replaced` datetime NOT NULL,
-  `text` text NOT NULL,
-  PRIMARY KEY (`id`,`epoch`,`revision`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Constraints der exportierten Tabellen
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
 
---
--- Constraints der Tabelle `shouts`
---
-ALTER TABLE `shouts`
-  ADD CONSTRAINT `shouts_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`id`);
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
 
 --
--- Constraints der Tabelle `users`
+-- Name: from_unixtime(integer); Type: FUNCTION; Schema: public; Owner: chatbox
 --
-ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`category`) REFERENCES `user_categories` (`id`);
+
+CREATE FUNCTION from_unixtime(integer) RETURNS timestamp without time zone
+    LANGUAGE sql
+    AS $_$
+ SELECT to_timestamp($1)::timestamp AS result
+$_$;
+
+
+ALTER FUNCTION public.from_unixtime(integer) OWNER TO chatbox;
 
 --
--- Constraints der Tabelle `shout_smilies`
+-- Name: unix_timestamp(timestamp without time zone); Type: FUNCTION; Schema: public; Owner: chatbox
 --
-ALTER TABLE `shout_smilies`
-  ADD CONSTRAINT `shout_smilies_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`) ON DELETE CASCADE,
-  ADD CONSTRAINT `shout_smilies_ibfk_2` FOREIGN KEY (`smiley`) REFERENCES `smilies` (`id`);
+
+CREATE FUNCTION unix_timestamp(timestamp without time zone) RETURNS bigint
+    LANGUAGE sql
+    AS $_$
+SELECT EXTRACT(EPOCH FROM $1)::bigint AS result;
+$_$;
+
+
+ALTER FUNCTION public.unix_timestamp(timestamp without time zone) OWNER TO chatbox;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
 
 --
--- Constraints der Tabelle `queries`
+-- Name: accounts; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
 --
-ALTER TABLE `queries`
-  ADD CONSTRAINT `queries_ibfk_1` FOREIGN KEY (`request`) REFERENCES `requests` (`id`);
+
+CREATE TABLE accounts (
+    id integer NOT NULL,
+    username text NOT NULL,
+    hash text NOT NULL
+);
+
+
+ALTER TABLE public.accounts OWNER TO chatbox;
 
 --
--- Constraints der Tabelle `shout_words`
+-- Name: accounts_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
 --
-ALTER TABLE `shout_words`
-  ADD CONSTRAINT `shout_words_ibfk_1` FOREIGN KEY (`shout_id`, `shout_epoch`) REFERENCES `shouts` (`id`, `epoch`) ON DELETE CASCADE,
-  ADD CONSTRAINT `shout_words_ibfk_2` FOREIGN KEY (`word`) REFERENCES `words` (`id`);
+
+CREATE SEQUENCE accounts_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.accounts_id_seq1 OWNER TO chatbox;
 
 --
--- Constraints der Tabelle `shout_revisions`
+-- Name: accounts_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
 --
-ALTER TABLE `shout_revisions`
-  ADD CONSTRAINT `shout_revisions_ibfk_1` FOREIGN KEY (`id`, `epoch`) REFERENCES `shouts` (`id`, `epoch`);
+
+ALTER SEQUENCE accounts_id_seq1 OWNED BY accounts.id;
+
+
+--
+-- Name: hours_of_day; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE hours_of_day (
+    hour integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public.hours_of_day OWNER TO chatbox;
+
+--
+-- Name: queries; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE queries (
+    id integer NOT NULL,
+    request integer NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL,
+    query text NOT NULL,
+    parameters text NOT NULL,
+    execution_time double precision NOT NULL
+);
+
+
+ALTER TABLE public.queries OWNER TO chatbox;
+
+--
+-- Name: queries_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
+--
+
+CREATE SEQUENCE queries_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.queries_id_seq1 OWNER TO chatbox;
+
+--
+-- Name: queries_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
+--
+
+ALTER SEQUENCE queries_id_seq1 OWNED BY queries.id;
+
+
+--
+-- Name: requests; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE requests (
+    id integer NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL,
+    url text NOT NULL,
+    ip text NOT NULL,
+    request_time double precision NOT NULL,
+    browser text NOT NULL
+);
+
+
+ALTER TABLE public.requests OWNER TO chatbox;
+
+--
+-- Name: requests_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
+--
+
+CREATE SEQUENCE requests_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.requests_id_seq1 OWNER TO chatbox;
+
+--
+-- Name: requests_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
+--
+
+ALTER SEQUENCE requests_id_seq1 OWNED BY requests.id;
+
+
+--
+-- Name: settings; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE settings (
+    key character varying(50) NOT NULL,
+    value text NOT NULL
+);
+
+
+ALTER TABLE public.settings OWNER TO chatbox;
+
+--
+-- Name: shout_revisions; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE shout_revisions (
+    id integer NOT NULL,
+    epoch integer NOT NULL,
+    revision integer NOT NULL,
+    replaced timestamp without time zone NOT NULL,
+    text text NOT NULL
+);
+
+
+ALTER TABLE public.shout_revisions OWNER TO chatbox;
+
+--
+-- Name: shout_smilies; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE shout_smilies (
+    shout_id integer NOT NULL,
+    shout_epoch integer NOT NULL,
+    smiley integer NOT NULL,
+    count integer NOT NULL
+);
+
+
+ALTER TABLE public.shout_smilies OWNER TO chatbox;
+
+--
+-- Name: shout_words; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE shout_words (
+    shout_id integer NOT NULL,
+    shout_epoch integer NOT NULL,
+    word integer NOT NULL,
+    count integer NOT NULL
+);
+
+
+ALTER TABLE public.shout_words OWNER TO chatbox;
+
+--
+-- Name: shouts; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE shouts (
+    id integer NOT NULL,
+    epoch integer NOT NULL,
+    date timestamp without time zone NOT NULL,
+    "user" integer NOT NULL,
+    message text NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL,
+    hour integer NOT NULL,
+    day integer NOT NULL,
+    month integer NOT NULL,
+    year integer NOT NULL
+);
+
+
+ALTER TABLE public.shouts OWNER TO chatbox;
+
+--
+-- Name: smilies; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE smilies (
+    id integer NOT NULL,
+    filename character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.smilies OWNER TO chatbox;
+
+--
+-- Name: smilies_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
+--
+
+CREATE SEQUENCE smilies_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.smilies_id_seq1 OWNER TO chatbox;
+
+--
+-- Name: smilies_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
+--
+
+ALTER SEQUENCE smilies_id_seq1 OWNED BY smilies.id;
+
+
+--
+-- Name: user_categories; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE user_categories (
+    id integer NOT NULL,
+    name text NOT NULL,
+    color text NOT NULL
+);
+
+
+ALTER TABLE public.user_categories OWNER TO chatbox;
+
+--
+-- Name: user_categories_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
+--
+
+CREATE SEQUENCE user_categories_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_categories_id_seq1 OWNER TO chatbox;
+
+--
+-- Name: user_categories_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
+--
+
+ALTER SEQUENCE user_categories_id_seq1 OWNED BY user_categories.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    name text NOT NULL,
+    category integer NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO chatbox;
+
+--
+-- Name: words; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE TABLE words (
+    id integer NOT NULL,
+    word character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.words OWNER TO chatbox;
+
+--
+-- Name: words_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
+--
+
+CREATE SEQUENCE words_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.words_id_seq1 OWNER TO chatbox;
+
+--
+-- Name: words_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
+--
+
+ALTER SEQUENCE words_id_seq1 OWNED BY words.id;
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY accounts ALTER COLUMN id SET DEFAULT nextval('accounts_id_seq1'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY queries ALTER COLUMN id SET DEFAULT nextval('queries_id_seq1'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY requests ALTER COLUMN id SET DEFAULT nextval('requests_id_seq1'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY smilies ALTER COLUMN id SET DEFAULT nextval('smilies_id_seq1'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY user_categories ALTER COLUMN id SET DEFAULT nextval('user_categories_id_seq1'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY words ALTER COLUMN id SET DEFAULT nextval('words_id_seq1'::regclass);
+
+
+--
+-- Data for Name: hours_of_day; Type: TABLE DATA; Schema: public; Owner: chatbox
+--
+
+COPY hours_of_day (hour) FROM stdin;
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+\.
+
+
+--
+-- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: chatbox
+--
+
+COPY settings (key, value) FROM stdin;
+current_epoch	1
+max_shout_id	0
+\.
+
+
+--
+-- Name: accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY accounts
+    ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hours_of_day_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY hours_of_day
+    ADD CONSTRAINT hours_of_day_pkey PRIMARY KEY (hour);
+
+
+--
+-- Name: queries_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY queries
+    ADD CONSTRAINT queries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: requests_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY requests
+    ADD CONSTRAINT requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: settings_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY settings
+    ADD CONSTRAINT settings_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: shout_revisions_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY shout_revisions
+    ADD CONSTRAINT shout_revisions_pkey PRIMARY KEY (id, epoch, revision);
+
+
+--
+-- Name: shout_smilies_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY shout_smilies
+    ADD CONSTRAINT shout_smilies_pkey PRIMARY KEY (shout_id, shout_epoch, smiley);
+
+
+--
+-- Name: shout_words_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY shout_words
+    ADD CONSTRAINT shout_words_pkey PRIMARY KEY (shout_id, shout_epoch, word);
+
+
+--
+-- Name: shouts_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY shouts
+    ADD CONSTRAINT shouts_pkey PRIMARY KEY (id, epoch);
+
+
+--
+-- Name: smilies_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY smilies
+    ADD CONSTRAINT smilies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY user_categories
+    ADD CONSTRAINT user_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: words_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY words
+    ADD CONSTRAINT words_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shout_revisions_id_epoch_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shout_revisions_id_epoch_idx ON shout_revisions USING btree (id, epoch);
+
+
+--
+-- Name: shout_smilies_shout_id_shout_epoch_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shout_smilies_shout_id_shout_epoch_idx ON shout_smilies USING btree (shout_id, shout_epoch);
+
+
+--
+-- Name: shout_smilies_smiley_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shout_smilies_smiley_idx ON shout_smilies USING btree (smiley);
+
+
+--
+-- Name: shout_words_shout_id_shout_epoch_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shout_words_shout_id_shout_epoch_idx ON shout_words USING btree (shout_id, shout_epoch);
+
+
+--
+-- Name: shout_words_word_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shout_words_word_idx ON shout_words USING btree (word);
+
+
+--
+-- Name: shouts_day_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shouts_day_idx ON shouts USING btree (day);
+
+
+--
+-- Name: shouts_hour_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shouts_hour_idx ON shouts USING btree (hour);
+
+
+--
+-- Name: shouts_month_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shouts_month_idx ON shouts USING btree (month);
+
+
+--
+-- Name: shouts_year_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+CREATE INDEX shouts_year_idx ON shouts USING btree (year);
+
+
+--
+-- Name: queries_request_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY queries
+    ADD CONSTRAINT queries_request_fkey FOREIGN KEY (request) REFERENCES requests(id);
+
+
+--
+-- Name: shout_revisions_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shout_revisions
+    ADD CONSTRAINT shout_revisions_id_fkey FOREIGN KEY (id, epoch) REFERENCES shouts(id, epoch) ON DELETE CASCADE;
+
+
+--
+-- Name: shout_smilies_shout_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shout_smilies
+    ADD CONSTRAINT shout_smilies_shout_id_fkey FOREIGN KEY (shout_id, shout_epoch) REFERENCES shouts(id, epoch) ON DELETE CASCADE;
+
+
+--
+-- Name: shout_smilies_smiley_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shout_smilies
+    ADD CONSTRAINT shout_smilies_smiley_fkey FOREIGN KEY (smiley) REFERENCES smilies(id);
+
+
+--
+-- Name: shout_words_shout_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shout_words
+    ADD CONSTRAINT shout_words_shout_id_fkey FOREIGN KEY (shout_id, shout_epoch) REFERENCES shouts(id, epoch) ON DELETE CASCADE;
+
+
+--
+-- Name: shout_words_word_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shout_words
+    ADD CONSTRAINT shout_words_word_fkey FOREIGN KEY (word) REFERENCES words(id);
+
+
+--
+-- Name: shouts_user_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY shouts
+    ADD CONSTRAINT shouts_user_fkey FOREIGN KEY ("user") REFERENCES users(id);
+
+
+--
+-- Name: users_category_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_category_fkey FOREIGN KEY (category) REFERENCES user_categories(id);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
 
