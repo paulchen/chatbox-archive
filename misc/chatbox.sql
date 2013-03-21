@@ -100,6 +100,19 @@ CREATE TABLE hours_of_day (
 ALTER TABLE public.hours_of_day OWNER TO chatbox;
 
 --
+-- Name: periods; Type: TABLE; Schema: public; Owner: chatbox_dev; Tablespace: 
+--
+
+CREATE TABLE periods (
+    name character varying(50) NOT NULL,
+    query text NOT NULL,
+    title text NOT NULL
+);
+
+
+ALTER TABLE public.periods OWNER TO chatbox;
+
+--
 -- Name: queries; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
 --
 
@@ -432,6 +445,15 @@ COPY hours_of_day (hour) FROM stdin;
 21
 22
 23
+\.
+
+
+--
+-- Data for Name: periods; Type: TABLE DATA; Schema: public; Owner: chatbox_dev
+--
+
+COPY periods (name, query, title) FROM stdin;
+forum	(s.epoch = 1 AND s.id >= 229152) OR (epoch > 1)	since 2012-03-08
 \.
 
 
