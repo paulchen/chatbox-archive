@@ -2,7 +2,7 @@ web/images/smilies/*.gif
 web/images/smilies/*.png
 web/images/smilies/*.jpg
 config.php
-log
+log/log*
 tmp/chatbox.lock
 tmp/securitytoken
 tmp/cookies.txt

@@ -13,7 +13,7 @@ $memcached_prefix = 'chatbox';
 
 $cookie_file = 'tmp/cookies.txt';
 $lockfile = 'tmp/chatbox.lock';
-$logfile = 'log';
+$logfile = 'log/log';
 $tokenfile = 'tmp/securitytoken';
 $tmpdir = 'tmp';
 $success_file = 'tmp/last_update';
