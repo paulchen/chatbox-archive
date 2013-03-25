@@ -1,0 +1,8 @@
+/home/paulchen/web/chatbox/prod/log {
+	weekly
+	missingok
+	rotate 52
+	compress
+	copytruncate
+	create 660 paulchen paulchen
+}
