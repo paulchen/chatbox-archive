@@ -80,12 +80,18 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		epoch_change_mail();
 	}
 
-	$datetime = new DateTime("@" . ($date+3600)); // TODO simply adding 3600 is sub-optimal
+	// TODO fix this bullshit here
+	$temp_date = date('Y-m-d\TH:i:00.00', $date);
+	$datetime = new DateTime($temp_date, new DateTimeZone('Etc/UTC'));
+
 	$datetime->setTimezone((new DateTime())->getTimezone());
 	$hour = $datetime->format('H');
 	$day = $datetime->format('d');
 	$month = $datetime->format('m');
 	$year = $datetime->format('Y');
+
+	$datetime->setTimezone(new DateTimeZone('Europe/London'));
+	$date += $datetime->format('Z');
 
 	if(count($data) == 0) {
 		$query = 'INSERT INTO shouts (id, epoch, date, "user", message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
