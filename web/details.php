@@ -239,7 +239,7 @@ $queries[] = array(
 				'title' => 'Busiest hours',
 				'transformation_function' => 'busiest_hours',
 				'processing_function' => 'messages_per_hour',
-				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo0'),
+				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 				'columns' => array('Position', 'Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
 				'column_styles' => array('right', 'right', 'right', 'left', 'left', 'left'),
 			),
