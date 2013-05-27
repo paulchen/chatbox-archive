@@ -159,7 +159,8 @@ CREATE TABLE requests (
     url text NOT NULL,
     ip text NOT NULL,
     request_time double precision NOT NULL,
-    browser text NOT NULL
+    browser text NOT NULL,
+    username text NOT NULL DEFAULT ''
 );
 
 
