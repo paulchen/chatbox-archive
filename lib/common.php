@@ -321,7 +321,7 @@ function clean_text($message) {
 	$message = preg_replace('/<a /', '<a target="_blank" ', $message);
 
 	// TODO problems with <embed> tag?
-	$message = str_replace('width=&quot;200&quot; height=&quot;300&quot;', 'width="200" height="300"', $message);
+	$message = preg_replace('/width=&quot;([0-9]+)&quot; height=&quot;([0-9]+)&quot;/', 'width="\\1" height="\\2"', $message);
 
 	return $message;
 }
