@@ -322,6 +322,7 @@ function clean_text($message) {
 
 	// TODO problems with <embed> tag?
 	$message = preg_replace('/width=&quot;([0-9]+)&quot; height=&quot;([0-9]+)&quot;/', 'width="\\1" height="\\2"', $message);
+	$message = preg_replace('/x-shockwave-flash"[^"<>]+>/', 'x-shockwave-flash">', $message);
 
 	return $message;
 }
