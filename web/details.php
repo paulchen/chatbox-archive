@@ -460,6 +460,7 @@ $queries[] = array(
 						from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
 						where $filter
 						group by sw.word
+						order by count desc
 						limit 20) d
 				left join
 					(
