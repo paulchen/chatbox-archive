@@ -453,7 +453,7 @@ $queries[] = array(
 		'column_styles' => array('right', 'right', 'right', 'left'),
 	);
 $queries[] = array(
-		'title' => 'Word usage (top 20)',
+		'title' => 'Word usage (top 100)',
 		'query' => "select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
 				from
 					(select sw.word, coalesce(sum(sw.count), 0) count
@@ -461,7 +461,7 @@ $queries[] = array(
 						where $filter
 						group by sw.word
 						order by count desc
-						limit 20) d
+						limit 100) d
 				left join
 					(
 						(select a.word, max(count) max

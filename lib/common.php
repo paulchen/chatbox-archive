@@ -325,6 +325,8 @@ function clean_text($message) {
 	$message = preg_replace('/x-shockwave-flash"[^"<>]+>/', 'x-shockwave-flash">', $message);
 	$message = preg_replace('/<embed src="/', '<embed src="proxy.php?url=', $message);
 
+	$message = str_replace(chr(2), '', $message);
+
 	return $message;
 }
 
