@@ -306,7 +306,7 @@ function process_words($id, $epoch) {
 function clean_text($message) {
 	// TODO scan for < and > inside href attributes
 
-	$message = preg_replace_callback('+/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', function($match) { return "images/smilies/" . basename($match[0]); }, $message);
+	$message = preg_replace_callback('+<img src="(/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg))+i', function($match) { return '<img src="images/smilies/' . basename($match[1]); }, $message);
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
 	$message = str_replace(' border="0"', '', $message);
