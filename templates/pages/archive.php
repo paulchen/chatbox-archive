@@ -24,6 +24,9 @@ if(!$ajax):
 	img { border: none; }
 	a.revisions { color: #666; font-size: 80%; }
 	a.revisions:hover { text-decoration: underline; }
+	td {
+		padding: 2px;
+	}
 	</style>
         <link href="css/redmond/jquery-ui-1.10.0.custom.min.css" rel="stylesheet" type="text/css"></link>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
@@ -103,7 +106,21 @@ function bubbletip(id) {
 	$('#revisions_link_' + id).bubbletip($('#revisions_' + id));
 }
 
+function highlight(id, color, initial_wait, step_wait, step) {
+	$(window.location.hash).parents('tr').css('background-color', '#' + color.toString(16));
+	if(color < 0xFFFFFF) {
+		new_color = color+step;
+		if(new_color > 0xFFFFFF) {
+			new_color = 0xFFFFFF;
+		}
+		window.setTimeout('highlight("' + id + '",' + new_color + ',0,' + step_wait + ',' + step + ');', initial_wait+step_wait);
+	}
+}
+
 $(document).ready(function() {
+	if(window.location.hash != '') {
+		highlight(window.location.hash, 0xFFFF00, 3000, 100, 0x000005);
+	}
 	update_refresh();
 
 	$('#refresh_checkbox').change(function() {
@@ -134,9 +151,9 @@ $(document).ready(function() {
 	<div>
 		<a href="details.php">Spam overview (all time)</a>
 		<a href="details.php?period=forum">Spam overview (all messages on informatik-forum.at)</a>
+		<table>
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
-		<table>
 		<tr><td>Text:</td><td><input type="text" name="text" value="<?php if(isset($_GET['text'])) echo htmlentities($_GET['text'], ENT_QUOTES, 'UTF-8') ?>" /></td></tr>
 		<tr><td>User:</td><td><input type="text" name="user" value="<?php if(isset($_GET['user'])) echo htmlentities($_GET['user'], ENT_QUOTES, 'UTF-8') ?>" id="name_input" /></td></tr>
 		<tr><td>Messages per page:</td><td><input type="text" name="limit" value="<?php echo $limit; ?>" /></td></tr>
@@ -160,7 +177,7 @@ $(document).ready(function() {
 	endforeach;
 	echo '$$';
 endif; /* if(!$ajax) */ ?>
-			<table>
+			<table style="border-collapse: collapse;">
 				<?php foreach($messages as $message): ?>
 					<tr>
 						<td class="date"><a id="message<?php echo $message['id'] . '_' . $message['epoch'] ?>"></a><a href="?limit=<?php echo $limit ?>&amp;id=<?php echo $message['id'] . '&amp;epoch=' . $message['epoch'] ?>"><?php echo $message['date'] ?></a></td>
