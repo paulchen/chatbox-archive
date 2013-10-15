@@ -139,6 +139,7 @@ function get_setting($key) {
 	$query = 'SELECT value FROM settings WHERE "key" = ?';
 	$data = db_query($query, array($key));
 
+	// TODO undefined setting?
 	return $data[0]['value'];
 }
 
