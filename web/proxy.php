@@ -3,7 +3,7 @@ if(!isset($_GET['url'])) {
 	header('HTTP/1.1 404 Not Found');
 	die('Not found');
 }
-$url = mb_substr($_SERVER['QUERY_STRING'], mb_strpos($_SERVER['QUERY_STRING'], 'url=', 'UTF-8')+4, mb_strlen($_SERVER['QUERY_STRING'], 'UTF-8'), 'UTF-8');
+$url = mb_substr($_SERVER['QUERY_STRING'], mb_strpos($_SERVER['QUERY_STRING'], 'url=', 0, 'UTF-8')+4, mb_strlen($_SERVER['QUERY_STRING'], 'UTF-8'), 'UTF-8');
 
 $curl = curl_init();
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
