@@ -13,11 +13,11 @@ if(!$ajax):
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
-	a.user { color: #417394; }
-	a.purple { color: purple; font-weight: bold; }
-	a.green { color: green; font-weight: bold; }
-	a.red { color: red; font-weight: bold; }
-	a.blue { color: blue; font-weight: bold; }
+	a.user, span.user { color: #417394; }
+	a.purple, span.purple { color: purple; font-weight: bold; }
+	a.green, span.green { color: green; font-weight: bold; }
+	a.red, span.red { color: red; font-weight: bold; }
+	a.blue, span.blue { color: blue; font-weight: bold; }
 	td.date > a { color: black; }
 	td.date > a:hover { color: red; }
 	a:hover { color: red; }
@@ -197,9 +197,17 @@ endif; /* if(!$ajax) */ ?>
 						Change log:
 						<ol>
 							<?php foreach($message['revisions'] as $revision): ?>
-								<li><?php echo $revision['text'] ?></li>
+								<li>
+									<?php echo $revision['date'] ?>
+									<span class="<?php echo $revision['color'] ?>"><?php echo $revision['user_name'] ?></span>
+									<?php echo $revision['text'] ?>
+								</li>
 							<?php endforeach; ?>
-							<li><?php echo $message['message'] ?> (<em>current</em>)</li>
+							<li>
+								<?php echo $message['date'] ?>
+								<span class="<?php echo $message['color'] ?>"><?php echo $message['user_name'] ?></span>
+								<?php echo $message['message'] ?> (<em>current</em>)
+							</li>
 						</ol>
 					</div>
 				<?php endif; ?>

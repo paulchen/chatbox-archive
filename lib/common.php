@@ -381,11 +381,20 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		$revisions = array();
 		if($row['revision_count'] > 0) {
-			$sql = 'SELECT revision, text FROM shout_revisions WHERE id = ? AND epoch = ? ORDER BY revision DESC';
+			$sql = 'SELECT sr.revision revision, sr.text "text", sr.date "date", sr.user "user", c.color color, u.name user_name
+					FROM shout_revisions sr
+						JOIN users u ON (sr.user = u.id) JOIN user_categories c ON (u.category = c.id)
+					WHERE sr.id = ? AND sr.epoch = ?
+					ORDER BY sr.revision DESC';
 			$revisions = db_query($sql, array($row['id'], $row['epoch']));
 
 			foreach($revisions as &$revision) {
 				$revision['text'] = clean_text($revision['text']);
+				$revision['color'] = ($revision['color'] == '-') ? 'user' : $revision['color'];
+
+				$datetime = new DateTime($row['date'], new DateTimeZone('Europe/London'));
+				$datetime->setTimezone((new DateTime())->getTimezone());
+				$revision['date'] = $datetime->format('[d-m-Y H:i]');
 			}
 		}
 
