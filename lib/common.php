@@ -355,7 +355,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 				JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id)
 				LEFT JOIN shout_revisions sr ON (s.id = sr.id AND s.epoch = sr.epoch)
 			WHERE $filter
-			GROUP BY s.id, s.epoch, date, color, user_id, user_name, message
+			GROUP BY s.id, s.epoch, s.date, color, user_id, user_name, message
 			ORDER BY s.epoch DESC, s.id DESC
 			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);

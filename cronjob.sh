@@ -60,7 +60,7 @@ while true; do
 	iconv -f iso-8859-1 -t utf-8 $tmpdir/cb1.xml -o $tmpdir/cb2.xml
 	rm $tmpdir/cb1.xml
 	dos2unix $tmpdir/cb2.xml > /dev/null 2>&1
-	php extract_shouts.php $tmpdir/cb2.xml
+	php extract_shouts.php $tmpdir/cb2.xml >> $logfile 2>&1
 	count=`echo $?`
 	rm $tmpdir/cb2.xml
 	log "$count shout(s) saved"
