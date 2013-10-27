@@ -207,6 +207,8 @@ CREATE TABLE shout_revisions (
     id integer NOT NULL,
     epoch integer NOT NULL,
     revision integer NOT NULL,
+    date timestamp without time zone NOT NULL,
+    "user" integer NOT NULL,
     replaced timestamp without time zone NOT NULL,
     text text NOT NULL
 );
