@@ -148,7 +148,12 @@ $what = implode(', ', $what_parts);
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
-		'query' => "select d.name, d.shouts,
+		'query' => "with smileycount as (
+				select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user, sm.smiley
+			), wordcount as (
+				select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user, sw.word
+			)
+				select d.name, d.shouts,
 					round(cast(d.shouts/greatest(ceil((d.last_shout-d.first_shout)/86400.0), 1) as numeric), 4) as average_shouts_per_day,
 					d.smilies, round(cast(d.smilies/cast(d.shouts as float) as numeric), 4),
 					concat(c.smiley, '$$', sm.filename, '$$', c.count) smiley_info, concat(g.word, '$$', w.word, '$$', g.count) word_info
@@ -161,23 +166,21 @@ $queries[] = array(
 					left join
 					(
 						(select a.user, max(a.count) max
-							from (select s.user, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user, sm.smiley) a
+							from smileycount a
 							group by a.user) b
-						left join
-						(select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user, sm.smiley) c
+						left join smileycount c
 						on (b.user = c.user and b.max = c.count)) on (d.id = b.user)
 					left join smilies sm on (c.smiley = sm.id)
 					left join
 					(
 						(select e.user, max(e.count) max
-							from (select s.user, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user, sw.word) e
+							from wordcount e
 							group by e.user) f
-						left join
-						(select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user, sw.word) g
+						left join wordcount g
 						on (f.user = g.user and f.max = g.count)) on (d.id = f.user)
 					left join words w on (g.word = w.id)
 				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
-		'params' => array_merge($params, $params, $params, $params, $params),
+		'params' => array_merge($params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
@@ -195,41 +198,45 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Messages per hour',
-		'query' => "select lpad(cast(h.hour as text), 2, '0') \"hour\", coalesce(j.count, 0) shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+		'query' => "with smileycount as (
+				select s.hour, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.hour, sm.smiley
+			), wordcount as (
+				select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.hour, sw.word
+			), hours as (
+				select \"user\", hour, count(*) count from shouts s where $filter group by \"user\", hour
+			)
+				select lpad(cast(h.hour as text), 2, '0') \"hour\", coalesce(j.count, 0) shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 					concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
 				from hours_of_day h
 					left join
 					(select hour, count(s.id) count from shouts s where $filter group by hour) j on (h.hour=j.hour)
 					left join
 					(
-						(select hour, max(count) max from (select \"user\", hour, count(*) count from shouts s where $filter group by \"user\", hour) a group by hour) b
-						left join
-						(select \"user\", hour, count(*) count from shouts s where $filter group by \"user\", hour) c
+						(select hour, max(count) max from hours a group by hour) b
+						left join hours c
 						on (b.hour=c.hour and b.max=c.count)
 					) on (j.hour=b.hour)
 					left join users u on (c.user=u.id)
 					left join
 					(
 						(select e.hour, max(e.count) max
-							from (select s.hour, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.hour, sm.smiley) e
+							from smileycount e
 							group by e.hour) d
-						left join
-						(select s.hour, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.hour, sm.smiley) f
+						left join smileycount f
 						on (d.hour = f.hour and d.max = f.count)
 					) on (j.hour=d.hour)
 					left join smilies sm on (f.smiley = sm.id)
 					left join
 					(
 						(select h.hour, max(h.count) max
-							from (select s.hour, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.hour, sw.word) h
+							from wordcount h
 							group by h.hour) g
-						left join
-						(select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.hour, sw.word) i
+						left join wordcount i
 						on (g.hour = i.hour and g.max = i.count)
 					) on (j.hour=g.hour)
 					left join words w on (i.word = w.id)
 					order by h.hour asc",
-		'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
+		'params' => array_merge($params, $params, $params, $params),
 		'processing_function' => 'messages_per_hour',
 		'processing_function_all' => 'duplicates0',
 		'columns' => array('Hour', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
@@ -247,39 +254,43 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Busiest days',
-		'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+		'query' => "with smileycount as (
+				select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.day, s.month, s.year, sm.smiley
+			), wordcount as (
+				select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.day, s.month, s.year, sw.word
+			), hours as (
+				select \"user\", day, month, year, count(*) count from shouts s where $filter group by \"user\", day, month, year
+			)
+				select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
                                         concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
                                 from (select day, month, year, count(s.id) count from shouts s where $filter group by day, month, year order by count desc limit 10) j
                                         left join
                                         (
-                                                (select day, month, year, max(count) max from (select \"user\", day, month, year, count(*) count from shouts s where $filter group by \"user\", day, month, year) a group by day, month, year) b
-                                                left join
-                                                (select \"user\", day, month, year, count(*) count from shouts s where $filter group by \"user\", day, month, year) c
+						(select day, month, year, max(count) max from hours a group by day, month, year) b
+                                                left join hours c
                                                 on (b.day=c.day and b.month=c.month and b.year=c.year and b.max=c.count)
                                         ) on (j.day=b.day and j.month=b.month and j.year=b.year)
                                         left join users u on (c.user=u.id)
                                         left join
                                         (
-                                                (select e.day, e.month, e.year, max(e.count) max
-                                                        from (select s.day, s.month, s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.day, s.month, s.year, sm.smiley) e
+						(select e.day, e.month, e.year, max(e.count) max
+							from smileycount e
                                                         group by e.day, e.month, e.year) d
-                                                left join
-                                                (select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.day, s.month, s.year, sm.smiley) f
+                                                left join smileycount f
                                                 on (d.day = f.day and d.month = f.month and d.year = f.year and d.max = f.count)
                                         ) on (j.day=d.day and j.month=d.month and j.year=d.year)
                                         left join smilies sm on (f.smiley = sm.id)
                                         left join
                                         (
-                                                (select h.day, h.month, h.year, max(h.count) max
-                                                        from (select s.day, s.month, s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.day, s.month, s.year, sw.word) h
+						(select h.day, h.month, h.year, max(h.count) max
+							from wordcount h
                                                         group by h.day, h.month, h.year) g
-                                                left join
-                                                (select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.day, s.month, s.year, sw.word) i
+                                                left join wordcount i
                                                 on (g.day = i.day and g.month = i.month and g.year = i.year and g.max = i.count)
                                         ) on (j.day=g.day and j.month=g.month and j.year=g.year)
                                         left join words w on (i.word = w.id)
                                         order by j.count desc, j.year asc, j.month asc, j.day asc",
-		'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
+		'params' => array_merge($params, $params, $params, $params),
 		'processing_function' => function(&$row) {
 				$parts = explode('-', $row[0]['day']);
 				$year = $parts[0];
@@ -295,39 +306,43 @@ $queries[] = array(
 if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
-			'query' => "select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+			'query' => "with smileycount as (
+				select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.month, s.year, sm.smiley
+			), wordcount as (
+				select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.month, s.year, sw.word
+			), hours as (
+				select \"user\", month, year, count(*) count from shouts s where $filter group by \"user\", month, year
+			)
+					select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
 					from (select month, year, count(s.id) count from shouts s where $filter group by month, year) j
 						left join
 						(
-							(select month, year, max(count) max from (select \"user\", month, year, count(*) count from shouts s where $filter group by \"user\", month, year) a group by month, year) b
-							left join
-							(select \"user\", month, year, count(*) count from shouts s where $filter group by \"user\", month, year) c
+							(select month, year, max(count) max from hours a group by month, year) b
+							left join hours c
 							on (b.month=c.month and b.year=c.year and b.max=c.count)
 						) on (j.month=b.month and j.year=b.year)
 						left join users u on (c.user=u.id)
 						left join
 						(
 							(select e.month, e.year, max(e.count) max
-								from (select s.month, s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.month, s.year, sm.smiley) e
+								from smileycount e
 								group by e.month, e.year) d
-							left join
-							(select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.month, s.year, sm.smiley) f
+							left join smileycount f
 							on (d.month = f.month and d.year = f.year and d.max = f.count)
 						) on (j.month=d.month and j.year=d.year)
 						left join smilies sm on (f.smiley = sm.id)
 						left join
 						(
 							(select h.month, h.year, max(h.count) max
-								from (select s.month, s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.month, s.year, sw.word) h
+								from wordcount h
 								group by h.month, h.year) g
-							left join
-							(select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.month, s.year, sw.word) i
+							left join wordcount i
 							on (g.month = i.month and g.year = i.year and g.max = i.count)
 						) on (j.month=g.month and j.year=g.year)
 						left join words w on (i.word = w.id)
 						order by j.year asc, j.month asc",
-			'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
+			'params' => array_merge($params, $params, $params, $params),
 			'processing_function' => 'messages_per_month',
 			'processing_function_all' => 'duplicates0',
 			'columns' => array('Month', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
@@ -347,39 +362,43 @@ if(!isset($_REQUEST['day'])) {
 if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
-			'query' => "select j.year, j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
+			'query' => "with smileycount as (
+				select s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.year, sm.smiley
+			), wordcount as (
+				select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.year, sw.word
+			), hours as (
+				select \"user\", year, count(*) count from shouts s where $filter group by \"user\", year
+			)
+					select j.year, j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
 					from (select year, count(s.id) count from shouts s where $filter group by year) j
 						left join
 						(
-							(select year, max(count) max from (select \"user\", year, count(*) count from shouts s where $filter group by \"user\", year) a group by year) b
-							left join
-							(select \"user\", year, count(*) count from shouts s where $filter group by \"user\", year) c
+							(select year, max(count) max from hours a group by year) b
+							left join hours c
 							on (b.year=c.year and b.max=c.count)
 						) on (j.year=b.year)
 						left join users u on (c.user=u.id)
 						left join
 						(
 							(select e.year, max(e.count) max
-								from (select s.year, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.year, sm.smiley) e
+								from smileycount e
 								group by e.year) d
-							left join
-							(select s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.year, sm.smiley) f
+							left join smileycount f
 							on (d.year = f.year and d.max = f.count)
 						) on (j.year=d.year)
 						left join smilies sm on (f.smiley = sm.id)
 						left join
 						(
 							(select h.year, max(h.count) max
-								from (select s.year, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.year, sw.word) h
+								from wordcount h
 								group by h.year) g
-							left join
-							(select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.year, sw.word) i
+							left join wordcount i
 							on (g.year = i.year and g.max = i.count)
 						) on (j.year=g.year)
 						left join words w on (i.word = w.id)
 						order by j.year asc",
-			'params' => array_merge($params, $params, $params, $params, $params, $params, $params),
+			'params' => array_merge($params, $params, $params, $params),
 			'processing_function' => 'messages_per_year',
 			'processing_function_all' => 'duplicates0',
 			'columns' => array('Year', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
@@ -398,32 +417,29 @@ if(!isset($_REQUEST['month'])) {
 }
 $queries[] = array(
 		'title' => 'Smiley usage',
-		'query' => "select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+		'query' => "with smileycount as (
+				select s.user, ss.smiley, sum(count) count
+					from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+					where $filter 
+					group by s.user, ss.smiley
+			)
+				select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
 				from
-					(select ss.smiley, coalesce(sum(ss.count), 0) count
-						from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
-						where $filter
-						group by ss.smiley) d
+					(select smiley, coalesce(sum(count), 0) count
+						from smileycount
+						group by smiley) d
 				left join
 					(
 						(select a.smiley, max(count) max
-							from
-								(select s.user, ss.smiley, sum(count) count
-									from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
-									where $filter 
-									group by s.user, ss.smiley) a
+							from smileycount a
 							group by a.smiley) b
-					left join
-						(select s.user, ss.smiley, sum(count) count
-							from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
-							where $filter
-							group by s.user, ss.smiley) c
+					left join smileycount c
 					on (b.smiley=c.smiley and b.max=c.count))
 				on (d.smiley=b.smiley)
 				left join users u on (c.user=u.id)
 				left join smilies sm on (d.smiley=sm.id)
 				order by d.count desc, sm.filename asc",
-		'params' => array_merge($params, $params, $params),
+		'params' => array_merge($params),
 		'processing_function' => function(&$row) {
 				global $smilies;
 
@@ -454,34 +470,31 @@ $queries[] = array(
 	);
 $queries[] = array(
 		'title' => 'Word usage (top 100)',
-		'query' => "select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
-				from
-					(select sw.word, coalesce(sum(sw.count), 0) count
-						from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
-						where $filter
-						group by sw.word
+		'query' => "with wordcount as (
+			select s.user, sw.word, sum(count) count
+				from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
+				where $filter
+				group by s.user, sw.word
+		)
+				select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
+				from 
+					(select word, coalesce(sum(count), 0) count
+						from wordcount
+						group by word
 						order by count desc
 						limit 100) d
 				left join
 					(
 						(select a.word, max(count) max
-							from
-								(select s.user, sw.word, sum(count) count
-									from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
-									where $filter
-									group by s.user, sw.word) a
+							from wordcount a
 							group by a.word) b
-					left join
-						(select s.user, sw.word, sum(count) count
-							from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
-							where $filter
-							group by s.user, sw.word) c
+					left join wordcount c
 					on (b.word=c.word and b.max=c.count))
 				on (d.word=b.word)
 				left join users u on (c.user=u.id)
 				join words w on (d.word=w.id)
 				order by d.count desc, w.word asc",
-		'params' => array_merge($params, $params, $params),
+		'params' => array_merge($params),
 		'processing_function' => array(function(&$row) {
 				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
 
