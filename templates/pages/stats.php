@@ -13,6 +13,7 @@ echo '<?xml version="1.0" ?>';
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
+	h1 > a { color: black; }
 	a:hover { color: red; }
 	a.user { color: #417394; }
 	a.purple { color: purple; font-weight: bold; }
@@ -24,7 +25,7 @@ echo '<?xml version="1.0" ?>';
 </head>
 <body>
 	<?php /* TODO <h1><?php echo htmlentities($page_title, ENT_QUOTES, 'UTF-8') ?></h1> */ ?>
-	<h1><?php echo $page_title ?></h1>
+	<h1><a href="details.php"><?php echo $page_title ?></a></h1>
 	<div>
 		<a href="<?php echo $backlink['url'] ?>"><?php echo htmlentities($backlink['text'], ENT_QUOTES, 'UTF-8') ?></a>
 		<ul>

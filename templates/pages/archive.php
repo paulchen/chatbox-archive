@@ -13,6 +13,7 @@ if(!$ajax):
 	table { border: none; }
 	td.date, td.user { white-space: nowrap; }
 	a { text-decoration: none; color: #417394; }
+	h1 > a { color: black; }
 	a.user, span.user { color: #417394; }
 	a.purple, span.purple { color: purple; font-weight: bold; }
 	a.green, span.green { color: green; font-weight: bold; }
@@ -147,7 +148,7 @@ $(document).ready(function() {
 	</script>
 </head>
 <body>
-	<h1>Chatbox archive</h1>
+	<h1><a href="index.php">Chatbox archive</a></h1>
 	<div>
 		<a href="details.php">Spam overview (all time)</a>
 		<a href="details.php?period=forum">Spam overview (all messages on informatik-forum.at)</a>
