@@ -32,7 +32,7 @@ echo '<?xml version="1.0" ?>';
 	<div>
 		<ul>
 			<?php foreach($user_egos as $id => $ego): ?>
-				<li><a class="<?php echo $users[$id]['color'] ?>" href="./?text=ego&amp;user=<?php echo htmlentities($users[$id]['name'], ENT_QUOTES, 'UTF-8') ?>&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on"><?php echo htmlentities($users[$id]['name'], ENT_QUOTES, 'UTF-8'); ?></a>: <?php echo $ego ?></li>	
+				<li><a class="<?php echo $users[$id]['color'] ?>" href="./?text=ego&amp;user=<?php echo urlencode($users[$id]['name']) ?>&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on"><?php echo $users[$id]['name']; ?></a>: <?php echo $ego ?></li>	
 			<?php endforeach; ?>
 		</ul>
 	</div>
