@@ -16,21 +16,25 @@ $rows = db_query("SELECT u.id AS id, s.message AS message
 		ORDER BY s.id ASC");
 $user_egos = array();
 foreach($rows as $row) {
-	if(preg_match('/ego\s*\+\+/', $row['message'])) {
+	if(preg_match_all('/ego\s*\+\+/', $row['message'], $matches, PREG_SET_ORDER)) {
 		init_ego($user_egos, $row['id']);
-		$user_egos[$row['id']]++;
+		$user_egos[$row['id']] += count($matches);
 	}
-	if(preg_match('/ego\s*\-\-/', $row['message'])) {
+	if(preg_match_all('/ego\s*\-\-/', $row['message'], $matches, PREG_SET_ORDER)) {
 		init_ego($user_egos, $row['id']);
-		$user_egos[$row['id']]--;
+		$user_egos[$row['id']] -= count($matches);
 	}
-	if(preg_match('/ego\s*\+=\s*([0-9]+)/', $row['message'], $matches)) {
+	if(preg_match_all('/ego\s*\+=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
 		init_ego($user_egos, $row['id']);
-		$user_egos[$row['id']] += $matches[1];
+		foreach($matches as $match) {
+			$user_egos[$row['id']] += $match[1];
+		}
 	}
-	if(preg_match('/ego\s*\-=\s*([0-9]+)/', $row['message'], $matches)) {
+	if(preg_match_all('/ego\s*\-=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
 		init_ego($user_egos, $row['id']);
-		$user_egos[$row['id']] -= $matches[1];
+		foreach($matches as $match) {
+			$user_egos[$row['id']] -= $match[1];
+		}
 	}
 }
 // $user_egos = array_filter($user_egos, function($a) { return $a != 0; });

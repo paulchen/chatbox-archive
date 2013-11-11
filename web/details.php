@@ -48,6 +48,12 @@ function messages_per_year(&$row) {
 	spammer_smiley($row);
 }
 
+function init_ego(&$user_egos, $id) {
+	if(!isset($user_egos[$id])) {
+		$user_egos[$id] = 0;
+	}
+}
+
 $main_page = false;
 if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period']) && !isset($_REQUEST['word'])) {
 	$main_page = true;
@@ -439,7 +445,7 @@ $queries[] = array(
 				left join users u on (c.user=u.id)
 				left join smilies sm on (d.smiley=sm.id)
 				order by d.count desc, sm.filename asc",
-		'params' => array_merge($params),
+		'params' => $params,
 		'processing_function' => function(&$row) {
 				global $smilies;
 
@@ -494,7 +500,7 @@ $queries[] = array(
 				left join users u on (c.user=u.id)
 				join words w on (d.word=w.id)
 				order by d.count desc, w.word asc",
-		'params' => array_merge($params),
+		'params' => $params,
 		'processing_function' => array(function(&$row) {
 				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
 
@@ -508,6 +514,69 @@ $queries[] = array(
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'left', 'right', 'left'),
+	);
+$queries[] = array(
+		'title' => "Users' egos",
+		'query' => "SELECT u.id AS id, s.message AS message
+	                FROM shouts s
+        	                JOIN users u ON (s.user = u.id)
+                	WHERE s.deleted = 0
+	                        AND s.message LIKE '%ego%'
+				AND $filter
+        	        ORDER BY s.id ASC",
+		'params' => $params,
+		'processing_function_all' => array(function(&$data) {
+				$user_egos = array();
+				foreach($data[0] as $row) {
+					if(preg_match_all('/ego\s*\+\+/', $row['message'], $matches, PREG_SET_ORDER)) {
+						init_ego($user_egos, $row['id']);
+						$user_egos[$row['id']] += count($matches);
+					}
+					if(preg_match_all('/ego\s*\-\-/', $row['message'], $matches, PREG_SET_ORDER)) {
+						init_ego($user_egos, $row['id']);
+						$user_egos[$row['id']] -= count($matches);
+					}
+					if(preg_match_all('/ego\s*\+=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
+						init_ego($user_egos, $row['id']);
+						foreach($matches as $match) {
+							$user_egos[$row['id']] += $match[1];
+						}
+					}
+					if(preg_match_all('/ego\s*\-=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
+						init_ego($user_egos, $row['id']);
+						foreach($matches as $match) {
+							$user_egos[$row['id']] -= $match[1];
+						}
+					}
+				}
+				arsort($user_egos);
+
+				$datax = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
+						FROM users u
+							JOIN user_categories c ON (u.category = c.id)');
+				$users = array();
+				foreach($datax as $row) {
+					if($row['color'] == '-') {
+						$row['color'] = 'user';
+					}
+					$users[$row['id']] = $row;
+				}
+
+				while(count($data[0]) > 0) {
+					array_shift($data[0]);
+				}
+				$pos = 0;
+				foreach($user_egos as $id => $ego) {
+					$data[0][] = array(
+						++$pos,
+						'<a href="./?text=ego&amp;user=' . urlencode($users[$id]['name']) . '&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on" class="' . $users[$id]['color'] . '">' . $users[$id]['name'] . '</a>',
+						$ego
+					);
+				}
+			}),
+		'columns' => array('Position', 'User', 'Ego'),
+		'column_styles' => array(),
+		'cached' => false,
 	);
 /*
 $queries[] = array(
