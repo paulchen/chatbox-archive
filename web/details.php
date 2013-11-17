@@ -614,7 +614,7 @@ $queries[] = array(
 				}
 			}),
 		'columns' => array('Position', 'User', 'Ego'),
-		'column_styles' => array(),
+		'column_styles' => array('right', 'left', 'right'),
 		'cached' => false,
 	);
 /*
