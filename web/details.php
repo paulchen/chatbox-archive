@@ -188,7 +188,8 @@ $queries[] = array(
 					round(cast(d.shouts/greatest(ceil((d.last_shout-d.first_shout)/86400.0), 1) as numeric), 4) as average_shouts_per_day,
 					d.smilies, round(cast(d.smilies/cast(d.shouts as float) as numeric), 4),
 					concat(c.smiley, '$$', sm.filename, '$$', c.count) smiley_info, concat(g.word, '$$', w.word, '$$', g.count) word_info,
-					i.count total_words
+					i.count total_words,
+					round(i.count/d.shouts, 4) avg_words
 				from
 					(select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
 						from users u join shouts s on (u.id=s.user)
@@ -220,24 +221,24 @@ $queries[] = array(
 		'params' => array_merge($params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
-		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
-		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
+		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
+		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
 		'derived_queries' => array(
 			array(
 				'title' => 'Top spammers, ordered by messages per day',
 				'transformation_function' => 'top_spammers',
 				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 				'processing_function_all' => array('duplicates0', 'ex_aequo3'),
-				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
-				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
 			),
 			array(
 				'title' => 'Top spammers, ordered by total words',
 				'transformation_function' => 'total_words',
 				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo8'),
-				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
-				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
 			),
 		),
 	);
