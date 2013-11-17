@@ -277,6 +277,11 @@ foreach($queries as $index => $query) {
 		}
 	}
 
+	foreach($data as $row) {
+		if(count($row) != count($queries[$index]['column_styles'])) {
+			die('Invalid value of array column_styles in query with title: ' . $queries[$index]['title']);
+		}
+	}
 	$queries[$index]['data'] = $data;
 }
 
