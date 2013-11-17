@@ -54,6 +54,31 @@ function init_ego(&$user_egos, $id) {
 	}
 }
 
+function total_words($data) {
+	$data = $data[0];
+
+	usort($data, function($a, $b) {
+		if($a['total_words'] == $b['total_words']) {
+			if($a['shouts'] == $b['shouts']) {
+				if($a['name'] < $b['name']) {
+					return -1;
+				}
+				return 1;
+			}
+			if($a['shouts'] < $b['shouts']) {
+				return 1;
+			}
+			return -1;
+		}
+		if($a['total_words'] < $b['total_words']) {
+			return 1;
+		}
+		return -1;
+	});
+
+	return $data;
+}
+
 $main_page = false;
 if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period']) && !isset($_REQUEST['word'])) {
 	$main_page = true;
@@ -162,7 +187,8 @@ $queries[] = array(
 				select d.name, d.shouts,
 					round(cast(d.shouts/greatest(ceil((d.last_shout-d.first_shout)/86400.0), 1) as numeric), 4) as average_shouts_per_day,
 					d.smilies, round(cast(d.smilies/cast(d.shouts as float) as numeric), 4),
-					concat(c.smiley, '$$', sm.filename, '$$', c.count) smiley_info, concat(g.word, '$$', w.word, '$$', g.count) word_info
+					concat(c.smiley, '$$', sm.filename, '$$', c.count) smiley_info, concat(g.word, '$$', w.word, '$$', g.count) word_info,
+					i.count total_words
 				from
 					(select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
 						from users u join shouts s on (u.id=s.user)
@@ -185,20 +211,33 @@ $queries[] = array(
 						left join wordcount g
 						on (f.user = g.user and f.max = g.count)) on (d.id = f.user)
 					left join words w on (g.word = w.id)
+					left join
+					(
+						select h.user, sum(h.count) count
+							from wordcount h
+							group by h.user) i on (d.id = i.user)
 				order by d.shouts desc, average_shouts_per_day asc, d.name asc",
 		'params' => array_merge($params, $params, $params),
 		'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
-		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
-		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
+		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
+		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
 		'derived_queries' => array(
 			array(
 				'title' => 'Top spammers, ordered by messages per day',
 				'transformation_function' => 'top_spammers',
 				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
 				'processing_function_all' => array('duplicates0', 'ex_aequo3'),
-				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word'),
-				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
+			),
+			array(
+				'title' => 'Top spammers, ordered by total words',
+				'transformation_function' => 'total_words',
+				'processing_function' => array('add_user_link', 'smiley_column', 'word_column'),
+				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo8'),
+				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words'),
+				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'left', 'left', 'left'),
 			),
 		),
 	);
