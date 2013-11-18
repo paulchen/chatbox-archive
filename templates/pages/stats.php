@@ -26,7 +26,7 @@ echo '<?xml version="1.0" ?>';
 	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
 	<script type="text/javascript">
 $(document).ready(function() {
-	$('#table1').tablesorter();
+	$('.sortable_table').tablesorter();
 });
 	</script>
 </head>
@@ -51,7 +51,7 @@ $(document).ready(function() {
 		<div>
 			<a id="query<?php echo $b ?>"></a>
 			<h2><?php echo $query['title'] ?></h2>
-			<table id="table<?php echo $b ?>"><thead><tr>
+			<table class="sortable_table"><thead><tr>
 			<?php $a = 0; foreach($query['columns'] as $column): ?>
 			<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $column; ?></th>
 			<?php $a++; endforeach; ?>
