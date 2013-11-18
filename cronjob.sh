@@ -50,6 +50,7 @@ while true; do
 		log "Fetching chatbox..."
 		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://www.informatik-forum.at/misc.php?show=ccbmessages -O $tmpdir/cb1.xml -q
 		if [ `grep -c "DOCTYPE" $tmpdir/cb1.xml` -ne 0 ]; then
+			rm $tmpdir/cb1.xml
 			log "Unable to fetch chatbox contents, terminating now."
 			exit 1
 		fi
@@ -88,6 +89,32 @@ while true; do
 	else 
 		log "Done."
 	fi
+
+	log "Fetching online users... "
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q
+	if [ `grep -c "DOCTYPE" $tmpdir/cbusers1.xml` -ne 0 ]; then
+		rm $tmpdir/cbusers1.xml
+		log "Re-login required... "
+		login
+		token=`cat $tokenfile`
+		log "Fetching online users..."
+		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q
+		if [ `grep -c "DOCTYPE" $tmpdir/cbusers1.xml` -ne 0 ]; then
+			rm $tmpdir/cbusers1.xml
+			log "Unable to fetch chatbox contents, terminating now."
+			exit 1
+		fi
+	fi
+
+	log "Processing... "
+	rm -f $tmpdir/cbusers2.xml
+	iconv -f iso-8859-1 -t utf-8 $tmpdir/cbusers1.xml -o $tmpdir/cbusers2.xml
+	rm $tmpdir/cbusers1.xml
+	dos2unix $tmpdir/cbusers2.xml > /dev/null 2>&1
+	php online_users.php $tmpdir/cbusers2.xml >> $logfile 2>&1
+	count=`echo $?`
+	rm $tmpdir/cbusers2.xml
+	log "$count user(s) currently online"
 
 	log "Waiting 10 seconds... "
 	sleep 10

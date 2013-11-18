@@ -3,6 +3,7 @@
 --
 
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -49,6 +50,38 @@ $_$;
 
 
 ALTER FUNCTION public.unix_timestamp(timestamp without time zone) OWNER TO chatbox;
+
+--
+-- Name: update_queries(); Type: FUNCTION; Schema: public; Owner: chatbox
+--
+
+CREATE FUNCTION update_queries() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.timestamp := CURRENT_TIMESTAMP; 
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_queries() OWNER TO chatbox;
+
+--
+-- Name: update_requests(); Type: FUNCTION; Schema: public; Owner: chatbox
+--
+
+CREATE FUNCTION update_requests() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.timestamp := CURRENT_TIMESTAMP; 
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_requests() OWNER TO chatbox;
 
 SET default_tablespace = '';
 
@@ -100,7 +133,75 @@ CREATE TABLE hours_of_day (
 ALTER TABLE public.hours_of_day OWNER TO chatbox;
 
 --
--- Name: periods; Type: TABLE; Schema: public; Owner: chatbox_dev; Tablespace: 
+-- Name: invisible_users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE invisible_users (
+    id integer NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL,
+    users integer NOT NULL
+);
+
+
+ALTER TABLE public.invisible_users OWNER TO postgres;
+
+--
+-- Name: invisible_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE invisible_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.invisible_users_id_seq OWNER TO postgres;
+
+--
+-- Name: invisible_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE invisible_users_id_seq OWNED BY invisible_users.id;
+
+
+--
+-- Name: online_users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE online_users (
+    id integer NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT now() NOT NULL,
+    "user" integer NOT NULL
+);
+
+
+ALTER TABLE public.online_users OWNER TO postgres;
+
+--
+-- Name: online_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE online_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.online_users_id_seq OWNER TO postgres;
+
+--
+-- Name: online_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE online_users_id_seq OWNED BY online_users.id;
+
+
+--
+-- Name: periods; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
 --
 
 CREATE TABLE periods (
@@ -160,7 +261,7 @@ CREATE TABLE requests (
     ip text NOT NULL,
     request_time double precision NOT NULL,
     browser text NOT NULL,
-    username text NOT NULL DEFAULT ''
+    username text DEFAULT ''::text
 );
 
 
@@ -207,10 +308,10 @@ CREATE TABLE shout_revisions (
     id integer NOT NULL,
     epoch integer NOT NULL,
     revision integer NOT NULL,
-    date timestamp without time zone NOT NULL,
-    "user" integer NOT NULL,
     replaced timestamp without time zone NOT NULL,
-    text text NOT NULL
+    text text NOT NULL,
+    date timestamp without time zone NOT NULL,
+    "user" integer NOT NULL
 );
 
 
@@ -385,6 +486,20 @@ ALTER TABLE ONLY accounts ALTER COLUMN id SET DEFAULT nextval('accounts_id_seq1'
 
 
 --
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY invisible_users ALTER COLUMN id SET DEFAULT nextval('invisible_users_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY online_users ALTER COLUMN id SET DEFAULT nextval('online_users_id_seq'::regclass);
+
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
 --
 
@@ -420,57 +535,6 @@ ALTER TABLE ONLY words ALTER COLUMN id SET DEFAULT nextval('words_id_seq1'::regc
 
 
 --
--- Data for Name: hours_of_day; Type: TABLE DATA; Schema: public; Owner: chatbox
---
-
-COPY hours_of_day (hour) FROM stdin;
-0
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-\.
-
-
---
--- Data for Name: periods; Type: TABLE DATA; Schema: public; Owner: chatbox_dev
---
-
-COPY periods (name, query, title) FROM stdin;
-forum	(s.epoch = 1 AND s.id >= 229152) OR (epoch > 1)	since 2012-03-08
-\.
-
-
---
--- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: chatbox
---
-
-COPY settings (key, value) FROM stdin;
-current_epoch	1
-max_shout_id	0
-\.
-
-
---
 -- Name: accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
 --
 
@@ -487,19 +551,27 @@ ALTER TABLE ONLY hours_of_day
 
 
 --
--- Name: queries_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+-- Name: invisible_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY queries
-    ADD CONSTRAINT queries_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY invisible_users
+    ADD CONSTRAINT invisible_users_pkey PRIMARY KEY (id);
 
 
 --
--- Name: requests_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+-- Name: online_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY requests
-    ADD CONSTRAINT requests_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY online_users
+    ADD CONSTRAINT online_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: periods_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY periods
+    ADD CONSTRAINT periods_pkey PRIMARY KEY (name);
 
 
 --
@@ -638,11 +710,11 @@ CREATE INDEX shouts_year_idx ON shouts USING btree (year);
 
 
 --
--- Name: queries_request_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+-- Name: online_users_user_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY queries
-    ADD CONSTRAINT queries_request_fkey FOREIGN KEY (request) REFERENCES requests(id);
+ALTER TABLE ONLY online_users
+    ADD CONSTRAINT online_users_user_fkey FOREIGN KEY ("user") REFERENCES users(id);
 
 
 --
