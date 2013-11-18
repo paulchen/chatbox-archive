@@ -133,7 +133,7 @@ CREATE TABLE hours_of_day (
 ALTER TABLE public.hours_of_day OWNER TO chatbox;
 
 --
--- Name: invisible_users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: invisible_users; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
 --
 
 CREATE TABLE invisible_users (
@@ -143,10 +143,10 @@ CREATE TABLE invisible_users (
 );
 
 
-ALTER TABLE public.invisible_users OWNER TO postgres;
+ALTER TABLE public.invisible_users OWNER TO chatbox;
 
 --
--- Name: invisible_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: invisible_users_id_seq; Type: SEQUENCE; Schema: public; Owner: chatbox
 --
 
 CREATE SEQUENCE invisible_users_id_seq
@@ -157,17 +157,17 @@ CREATE SEQUENCE invisible_users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.invisible_users_id_seq OWNER TO postgres;
+ALTER TABLE public.invisible_users_id_seq OWNER TO chatbox;
 
 --
--- Name: invisible_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: invisible_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
 --
 
 ALTER SEQUENCE invisible_users_id_seq OWNED BY invisible_users.id;
 
 
 --
--- Name: online_users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: online_users; Type: TABLE; Schema: public; Owner: chatbox; Tablespace: 
 --
 
 CREATE TABLE online_users (
@@ -177,10 +177,10 @@ CREATE TABLE online_users (
 );
 
 
-ALTER TABLE public.online_users OWNER TO postgres;
+ALTER TABLE public.online_users OWNER TO chatbox;
 
 --
--- Name: online_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: online_users_id_seq; Type: SEQUENCE; Schema: public; Owner: chatbox
 --
 
 CREATE SEQUENCE online_users_id_seq
@@ -191,10 +191,10 @@ CREATE SEQUENCE online_users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.online_users_id_seq OWNER TO postgres;
+ALTER TABLE public.online_users_id_seq OWNER TO chatbox;
 
 --
--- Name: online_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: online_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: chatbox
 --
 
 ALTER SEQUENCE online_users_id_seq OWNED BY online_users.id;
@@ -486,14 +486,14 @@ ALTER TABLE ONLY accounts ALTER COLUMN id SET DEFAULT nextval('accounts_id_seq1'
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
 --
 
 ALTER TABLE ONLY invisible_users ALTER COLUMN id SET DEFAULT nextval('invisible_users_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: id; Type: DEFAULT; Schema: public; Owner: chatbox
 --
 
 ALTER TABLE ONLY online_users ALTER COLUMN id SET DEFAULT nextval('online_users_id_seq'::regclass);
@@ -551,7 +551,7 @@ ALTER TABLE ONLY hours_of_day
 
 
 --
--- Name: invisible_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: invisible_users_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
 --
 
 ALTER TABLE ONLY invisible_users
@@ -559,7 +559,7 @@ ALTER TABLE ONLY invisible_users
 
 
 --
--- Name: online_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: online_users_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
 --
 
 ALTER TABLE ONLY online_users
@@ -710,7 +710,7 @@ CREATE INDEX shouts_year_idx ON shouts USING btree (year);
 
 
 --
--- Name: online_users_user_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: online_users_user_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
 --
 
 ALTER TABLE ONLY online_users
