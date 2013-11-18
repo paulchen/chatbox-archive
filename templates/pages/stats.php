@@ -22,6 +22,13 @@ echo '<?xml version="1.0" ?>';
 	th.left, td.left { text-align: left; }
 	th.right, td.right { text-align: right; }
 	</style>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript">
+$(document).ready(function() {
+	$('#table1').tablesorter();
+});
+	</script>
 </head>
 <body>
 	<?php /* TODO <h1><?php echo htmlentities($page_title, ENT_QUOTES, 'UTF-8') ?></h1> */ ?>
@@ -36,17 +43,19 @@ echo '<?xml version="1.0" ?>';
 	Messages (on this page/total): <?php echo "$filtered_shouts/$total_shouts" ?>
 	<br /><br />
 	Last update: <?php echo date('Y-m-d H:i:s', $last_update) ?>
+	<br /><br />
+	The tables on this page can be sorted by clicking on their column headers.
 	</div>
 	<hr />
 	<?php $b=0; foreach($queries as $query): $b++; ?>
 		<div>
 			<a id="query<?php echo $b ?>"></a>
 			<h2><?php echo $query['title'] ?></h2>
-			<table><tr>
+			<table id="table<?php echo $b ?>"><thead><tr>
 			<?php $a = 0; foreach($query['columns'] as $column): ?>
 			<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $column; ?></th>
 			<?php $a++; endforeach; ?>
-			</tr>
+			</tr></thead><tbody>
 			<?php
 				foreach($query['data'] as $row):
 					$a = 0;
@@ -59,7 +68,7 @@ echo '<?xml version="1.0" ?>';
 			<?php
 				endforeach;
 			?>
-			</table>
+			</tbody></table>
 		</div>
 		<hr />
 	<?php endforeach; ?>
