@@ -48,6 +48,16 @@ foreach($rows as $row) {
 			}
 		}
 	}
+	if(preg_match_all('/ego\s*=\s*ego\s*(\+|\-)\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
+		foreach($matches as $match) {
+			if($match[1] == '+') {
+				increase_ego($user_egos, $available_ego, $row['id'], $match[2]);
+			}
+			if($match[1] == '-') {
+				increase_ego($user_egos, $available_ego, $row['id'], -$match[2]);
+			}
+		}
+	}
 }
 arsort($user_egos);
 
