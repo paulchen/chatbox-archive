@@ -11,8 +11,8 @@ function ex_aequo3(&$data) {
 	ex_aequo($data, 3);
 }
 
-function ex_aequo8(&$data) {
-	ex_aequo($data, 8);
+function ex_aequo9(&$data) {
+	ex_aequo($data, 9);
 }
 
 function ex_aequo(&$data, $col) {
