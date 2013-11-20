@@ -8,9 +8,9 @@ $data = db_query($query);
 
 $periods = array(
 	array('seconds' => 86400, 'name' => 'One day'),
-	array('seconds' => 86400*7, 'name' => 'One week'),
-	array('seconds' => 86400*30, 'name' => 'One month'),
-	array('seconds' => 86400*365, 'name' => 'One year'),
+	array('seconds' => 86400*7, 'name' => '7 days'),
+	array('seconds' => 86400*30, 'name' => '30 days'),
+	array('seconds' => 86400*365, 'name' => '365 days'),
 );
 
 foreach($periods as &$period) {
