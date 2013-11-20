@@ -68,7 +68,17 @@ $(document).ready(function() {
 			<?php
 				endforeach;
 			?>
-			</tbody></table>
+			</tbody>
+			<?php if(isset($query['total'])): $a = 0; ?>
+				<tfoot>
+					<tr>
+						<?php foreach($query['total'] as $value): ?>
+							<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $value ?></th>
+						<?php $a++; endforeach; ?>
+					</tr>
+				</tfoot>
+			<?php endif; ?>
+			</table>
 		</div>
 		<hr />
 	<?php endforeach; ?>

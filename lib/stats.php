@@ -277,6 +277,10 @@ foreach($queries as $index => $query) {
 		}
 	}
 
+	if(isset($query['total'])) {
+		$queries[$index]['total'] = call_user_func($query['total'], array($data));
+	}
+
 	foreach($data as $row) {
 		if(count($row) != count($queries[$index]['column_styles'])) {
 			die('Invalid value of array column_styles in query with title: ' . $queries[$index]['title']);

@@ -79,6 +79,32 @@ function total_words($data) {
 	return $data;
 }
 
+function top_spammers_total($data) {
+	global $total_days;
+
+	$total_shouts = 0;
+	$total_smilies = 0;
+	$total_words = 0;
+	foreach($data[0] as $row) {
+		$total_shouts += $row['shouts'];
+		$total_smilies += $row['smilies'];
+		$total_words += $row['total_words'];
+	}
+
+	return array('',
+		'Total',
+		$total_shouts,
+		sprintf('%.4f', round($total_shouts/$total_days, 4)),
+		'100.0000 %',
+		$total_smilies,
+		sprintf('%.4f', round($total_smilies/$total_shouts, 4)),
+		'',
+		'',
+		$total_words,
+		sprintf('%.4f', round($total_words/$total_shouts, 4))
+	);
+}
+
 $main_page = false;
 if(!isset($_REQUEST['user']) && !isset($_REQUEST['year']) && !isset($_REQUEST['hour']) && !isset($_REQUEST['smiley']) && !isset($_REQUEST['period']) && !isset($_REQUEST['word'])) {
 	$main_page = true;
@@ -176,6 +202,9 @@ if(isset($_REQUEST['period'])) {
 $filter = implode(' AND ', $filter_parts);
 $what = implode(', ', $what_parts);
 
+$data = db_query("SELECT GREATEST(CEIL((UNIX_TIMESTAMP(MAX(date))-UNIX_TIMESTAMP(MIN(date)))/86400.0), 1) days FROM shouts s WHERE $filter", $params);
+$total_days = $data[0]['days'];
+
 $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
@@ -226,6 +255,7 @@ $queries[] = array(
 		'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo2'),
 		'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', '% of all msgs', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
 		'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
+		'total' => 'top_spammers_total',
 		'derived_queries' => array(
 			array(
 				'title' => 'Top spammers, ordered by messages per day',
@@ -234,6 +264,7 @@ $queries[] = array(
 				'processing_function_all' => array('duplicates0', 'ex_aequo3'),
 				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', '% of all msgs', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
 				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
+				'total' => 'top_spammers_total',
 			),
 			array(
 				'title' => 'Top spammers, ordered by total words',
@@ -242,6 +273,7 @@ $queries[] = array(
 				'processing_function_all' => array('duplicates0', 'insert_position', 'ex_aequo9'),
 				'columns' => array('Position', 'Username', 'Messages', 'Avg msgs/day', '% of all msgs', 'Total smilies', 'Avg smilies/msg', 'Most popular smiley', 'Most popular word', 'Total words', 'avg words/msg'),
 				'column_styles' => array('right', 'left', 'right', 'right', 'right', 'right', 'right', 'left', 'left', 'right', 'right'),
+				'total' => 'top_spammers_total',
 			),
 		),
 	);
