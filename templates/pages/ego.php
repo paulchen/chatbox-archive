@@ -35,6 +35,7 @@ echo '<?xml version="1.0" ?>';
 				<li><a class="<?php echo $users[$id]['color'] ?>" href="./?text=ego&amp;user=<?php echo urlencode($users[$id]['name']) ?>&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on"><?php echo $users[$id]['name']; ?></a>: <?php echo $ego ?></li>	
 			<?php endforeach; ?>
 		</ul>
+		Currently available ego: <?php echo $available_ego ?>
 	</div>
 	<hr />
 	<p>
