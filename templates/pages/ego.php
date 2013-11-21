@@ -7,7 +7,7 @@ echo '<?xml version="1.0" ?>';
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<!-- TODO HTML tags inside page title -->
-	<title>Chatbox users' ego sizes</title>
+	<title>Ego points</title>
 	<style type="text/css">
 	body { font-family: Tahoma, Calibri, Verdana, Geneva, sans-serif; font-size: 13px; }
 	table { border: none; }
@@ -24,18 +24,31 @@ echo '<?xml version="1.0" ?>';
 	</style>
 </head>
 <body>
-	<h1><a href="ego.php">Chatbox users' ego sizes</a></h1>
+	<h1><a href="ego.php">Ego points</a></h1>
 	<div>
 		<a href="./">Chatbox archive</a>
 	</div>
 	<hr />
 	<div>
+		<h3>Rules</h3>
+		<ul>
+			<li>The smilies <img src="images/smilies/hail.gif" alt=":hail:" title=":hail:" /> (<b>:hail:</b>) makes one ego point available, <img src="images/smilies/multihail.gif" alt=":multihail:" title=":multihail:" /> (<b>:multihail:</b>) makes 16 ego points available.</li>
+			<li>Every user has a certain amount of ego points. The current ego points for each user are shown below. Users that have never increased or decreased their ego points are excluded from the list as they each have <i>0</i> ego points.</li>
+			<li>By writing <b>ego++</b>, a user may increment his ego points by <i>1</i>; she may decrement her ego points by <i>1</i> by writing <b>ego--</b>.</li>
+			<li>By writing <b>ego+=<i>n</i></b>, a user may increment his ego points by <i>n</i>; she may decrement her ego points by <i>n</i> by writing <b>ego-=<i>n</i></b>.</li>
+			<li>Incrementing a user's ego points consumes an appropriate number of available ego points. A user may not consume ego points that have been made available by herself. In case there are not enough ego points available, the user's ego points will only be increased by the number of ego points that may be consumed by this user.</li>
+			<li>Decrementing a user's ego points does not affect the number of available ego points. The size of the decrement of ego points is limited by <i>1000</i>.</li>
+			<li>The number of available ego points is shown at the bottom of this page.</li>
+		</ul>
+	</div>
+	<div>
+		<h3>Current ego points</h3>
 		<ul>
 			<?php foreach($user_egos as $id => $ego): ?>
 				<li><a class="<?php echo $users[$id]['color'] ?>" href="./?text=ego&amp;user=<?php echo urlencode($users[$id]['name']) ?>&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on"><?php echo $users[$id]['name']; ?></a>: <?php echo $ego ?></li>	
 			<?php endforeach; ?>
 		</ul>
-		Currently available ego: <?php echo $available_ego ?>
+		Currently available ego points: <?php echo $available_ego ?>
 	</div>
 	<hr />
 	<p>
