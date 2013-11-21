@@ -10,6 +10,9 @@ function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, 
 		ksort($available_ego_per_person);
 		$to_subtract = $increment;
 		foreach($available_ego_per_person as $key => $value) {
+			if($key == $user_id) {
+				continue;
+			}
 			$egos = min($to_subtract, $value);
 			$available_ego_per_person[$key] = $value-$egos;
 			$to_subtract -= $egos;
