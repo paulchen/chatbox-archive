@@ -1,14 +1,35 @@
 <?php
 
-function increase_ego(&$user_egos, &$available_ego, $user_id, $count) {
-	$increment = min($available_ego, $count);
+function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, $user_id, $count) {
+	if(!isset($available_ego_per_person[$user_id])) {
+		$available_ego_per_person[$user_id] = 0;
+	}
+	$increment = min($available_ego-$available_ego_per_person[$user_id], $count);
 	if($increment > 0) {
 		$available_ego -= $increment;
+		ksort($available_ego_per_person);
+		$to_subtract = $increment;
+		foreach($available_ego_per_person as $key => $value) {
+			$egos = min($to_subtract, $value);
+			$available_ego_per_person[$key] = $value-$egos;
+			$to_subtract -= $egos;
+			if($to_subtract == 0) {
+				break;
+			}
+		}
 	}
 	if(!isset($user_egos[$user_id])) {
 		$user_egos[$user_id] = 0;
 	}
 	$user_egos[$user_id] += $increment;
+}
+
+function make_ego_available(&$available_ego, &$available_ego_per_person, $user_id, $ego) {
+	$available_ego += $ego;
+	if(!isset($available_ego_per_person[$user_id])) {
+		$available_ego_per_person[$user_id] = 0;
+	}
+	$available_ego_per_person[$user_id] += $ego;
 }
 
 require_once(dirname(__FILE__) . '/../lib/common.php');
@@ -21,40 +42,41 @@ $rows = db_query("SELECT u.id AS id, s.message AS message
 		ORDER BY s.id ASC");
 $user_egos = array();
 $available_ego = 0;
+$available_ego_per_person = array();
 foreach($rows as $row) {
 	if(preg_match_all('+/((multi)?hail)\.gif+', $row['message'], $matches, PREG_SET_ORDER)) {
 		foreach($matches as $match) {
 			if($match[1] == 'multihail') {
-				$available_ego += 16;
+				make_ego_available($available_ego, $available_ego_per_person, $row['id'], 16);
 			}
 			else if($match[1] == 'hail') {
-				$available_ego++;
+				make_ego_available($available_ego, $available_ego_per_person, $row['id'], 1);
 			}
 		}
 	}
 	if(preg_match_all('/ego\s*(\+\+|\-\-|(\+|\-)=\s*([0-9]+))/', $row['message'], $matches, PREG_SET_ORDER)) {
 		foreach($matches as $match) {
 			if($match[1] == '++') {
-				increase_ego($user_egos, $available_ego, $row['id'], 1);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], 1);
 			}
 			else if($match[1] == '--') {
-				increase_ego($user_egos, $available_ego, $row['id'], -1);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], -1);
 			}
 			else if($match[2] == '+') {
-				increase_ego($user_egos, $available_ego, $row['id'], $match[3]);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], $match[3]);
 			}
 			else if($match[2] == '-') {
-				increase_ego($user_egos, $available_ego, $row['id'], -$match[3]);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], -$match[3]);
 			}
 		}
 	}
 	if(preg_match_all('/ego\s*=\s*ego\s*(\+|\-)\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
 		foreach($matches as $match) {
 			if($match[1] == '+') {
-				increase_ego($user_egos, $available_ego, $row['id'], $match[2]);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], $match[2]);
 			}
 			if($match[1] == '-') {
-				increase_ego($user_egos, $available_ego, $row['id'], -$match[2]);
+				increase_ego($user_egos, $available_ego, $available_ego_per_person, $row['id'], -$match[2]);
 			}
 		}
 	}
