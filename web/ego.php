@@ -5,6 +5,9 @@ function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, 
 		$available_ego_per_person[$user_id] = 0;
 	}
 	$increment = min($available_ego-$available_ego_per_person[$user_id], $count);
+	if($increment < -1000) {
+		$increment = -1000;
+	}
 	if($increment > 0) {
 		$available_ego -= $increment;
 		ksort($available_ego_per_person);
