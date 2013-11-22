@@ -1,6 +1,8 @@
 <?php
 
 function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, $user_id, $count) {
+	global $debug;
+
 	if(!isset($available_ego_per_person[$user_id])) {
 		$available_ego_per_person[$user_id] = 0;
 	}
@@ -9,6 +11,9 @@ function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, 
 		$increment = -1000;
 	}
 	if($increment > 0) {
+		if($debug) {
+			echo "incrementing ego of user $user_id by $increment... ";
+		}
 		$available_ego -= $increment;
 		ksort($available_ego_per_person);
 		$to_subtract = $increment;
@@ -31,6 +36,12 @@ function increase_ego(&$user_egos, &$available_ego, &$available_ego_per_person, 
 }
 
 function make_ego_available(&$available_ego, &$available_ego_per_person, $user_id, $ego) {
+	global $debug;
+
+	if($debug) {
+		echo "making $ego ego available... ";
+	}
+
 	$available_ego += $ego;
 	if(!isset($available_ego_per_person[$user_id])) {
 		$available_ego_per_person[$user_id] = 0;
@@ -39,7 +50,12 @@ function make_ego_available(&$available_ego, &$available_ego_per_person, $user_i
 }
 
 function destroy_available_ego(&$available_ego, &$available_ego_per_person, $ego) {
+	global $debug;
+
 	$decrement = min($ego, $available_ego);
+	if($debug) {
+		echo "removing $decrement ego... ";
+	}
 	$available_ego -= $decrement;
 	$to_subtract = $decrement;
 	ksort($available_ego_per_person);
@@ -57,16 +73,19 @@ function destroy_available_ego(&$available_ego, &$available_ego_per_person, $ego
 
 require_once(dirname(__FILE__) . '/../lib/common.php');
 
-$rows = db_query("SELECT u.id AS id, s.message AS message
+$rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message
 		FROM shouts s
 			JOIN users u ON (s.user = u.id)
 		WHERE s.deleted = 0
-			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%')
+			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
 		ORDER BY s.id ASC");
 $user_egos = array();
 $available_ego = 0;
 $available_ego_per_person = array();
 foreach($rows as $row) {
+	if($debug) {
+		echo "processing row with id '${row['shout_id']}'... ";
+	}
 	if(preg_match_all('+/((multi|anti)?hail)\.(gif|png)+', $row['message'], $matches, PREG_SET_ORDER)) {
 		foreach($matches as $match) {
 			if($match[1] == 'multihail') {
@@ -106,9 +125,15 @@ foreach($rows as $row) {
 			}
 		}
 	}
+	if($debug) {
+		echo "ego now available: $available_ego\n";
+	}
 }
 arsort($user_egos);
 
+if($debug) {
+	die();
+}
 $data = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
 		FROM users u
 			JOIN user_categories c ON (u.category = c.id)');
