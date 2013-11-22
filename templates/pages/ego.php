@@ -33,6 +33,7 @@ echo '<?xml version="1.0" ?>';
 		<h3>Rules</h3>
 		<ul>
 			<li>The smiley <img src="images/smilies/hail.gif" alt=":hail:" title=":hail:" /> (<b>:hail:</b>) makes one ego point available, <img src="images/smilies/multihail.gif" alt=":multihail:" title=":multihail:" /> (<b>:multihail:</b>) makes 16 ego points available.</li>
+			<li>The smiley <img src="images/smilies/antihail.png" alt=":nohail:" title=":nohail:" /> (<b>:nohail:</b>) decrements the number of available ego points by <i>1</i> if there is at least one ego point available.</li>
 			<li>Every user has a certain amount of ego points. The current ego points for each user are shown below. Users that have never increased or decreased their ego points are excluded from the list as they each have <i>0</i> ego points.</li>
 			<li>By writing <b>ego++</b>, a user may increment his ego points by <i>1</i>; she may decrement her ego points by <i>1</i> by writing <b>ego--</b>.</li>
 			<li>By writing <b>ego+=<i>n</i></b>, a user may increment his ego points by <i>n</i>; she may decrement her ego points by <i>n</i> by writing <b>ego-=<i>n</i></b>.</li>

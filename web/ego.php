@@ -38,6 +38,23 @@ function make_ego_available(&$available_ego, &$available_ego_per_person, $user_i
 	$available_ego_per_person[$user_id] += $ego;
 }
 
+function destroy_available_ego(&$available_ego, &$available_ego_per_person, $ego) {
+	$decrement = min($ego, $available_ego);
+	$available_ego -= $decrement;
+	$to_subtract = $decrement;
+	ksort($available_ego_per_person);
+	foreach($available_ego_per_person as $key => $value) {
+		if($value > 0) {
+			$person_decrement = max($value, $to_subtract);
+			$to_subtract -= $person_decrement;
+			$available_ego_per_person[$key] = $value-$person_decrement;
+		}
+		if($to_subtract == 0) {
+			break;
+		}
+	}
+}
+
 require_once(dirname(__FILE__) . '/../lib/common.php');
 
 $rows = db_query("SELECT u.id AS id, s.message AS message
@@ -50,10 +67,13 @@ $user_egos = array();
 $available_ego = 0;
 $available_ego_per_person = array();
 foreach($rows as $row) {
-	if(preg_match_all('+/((multi)?hail)\.gif+', $row['message'], $matches, PREG_SET_ORDER)) {
+	if(preg_match_all('+/((multi|anti)?hail)\.(gif|png)+', $row['message'], $matches, PREG_SET_ORDER)) {
 		foreach($matches as $match) {
 			if($match[1] == 'multihail') {
 				make_ego_available($available_ego, $available_ego_per_person, $row['id'], 16);
+			}
+			else if($match[1] == 'antihail') {
+				destroy_available_ego($available_ego, $available_ego_per_person, 1);
 			}
 			else if($match[1] == 'hail') {
 				make_ego_available($available_ego, $available_ego_per_person, $row['id'], 1);
