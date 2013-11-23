@@ -35,7 +35,14 @@ function return_headers($headers) {
 
 	foreach($headers as $key => $value) {
 		if(in_array($key, $forward_headers)) {
-			header("$key: $value");
+			if(is_array($value)) {
+				foreach($value as $item) {
+					header("$key: $item");
+				}
+			}
+			else {
+				header("$key: $value");
+			}
 		}
 	}
 }
