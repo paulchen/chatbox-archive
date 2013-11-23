@@ -130,7 +130,7 @@ function calculate_ego($rows) {
 		die();
 	}
 
-	return $user_egos;
+	return array('user_egos' => $user_egos, 'available_ego' => $available_ego);
 }
 
 

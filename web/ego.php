@@ -8,7 +8,9 @@ $rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message
 		WHERE s.deleted = 0
 			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
 		ORDER BY s.id ASC");
-$user_egos = calculate_ego($rows);
+$result = calculate_ego($rows);
+$user_egos = $result['user_egos'];
+$available_ego = $result['available_ego'];
 
 $data = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
 		FROM users u
