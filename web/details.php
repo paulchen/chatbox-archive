@@ -1,5 +1,6 @@
 <?php
 require_once(dirname(__FILE__) . '/../lib/common.php');
+require_once(dirname(__FILE__) . '/../lib/ego.php');
 
 function build_link_from_request() {
 	$keys = func_get_args();
@@ -590,69 +591,49 @@ $queries[] = array(
 		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
 		'column_styles' => array('right', 'left', 'right', 'left'),
 	);
-$queries[] = array(
-		'title' => "Users' egos",
-		'query' => "SELECT u.id AS id, s.message AS message
-	                FROM shouts s
-        	                JOIN users u ON (s.user = u.id)
-                	WHERE s.deleted = 0
-	                        AND s.message LIKE '%ego%'
-				AND $filter
-        	        ORDER BY s.id ASC",
-		'params' => $params,
-		'processing_function_all' => array(function(&$data) {
-				$user_egos = array();
-				foreach($data[0] as $row) {
-					if(preg_match_all('/ego\s*\+\+/', $row['message'], $matches, PREG_SET_ORDER)) {
-						init_ego($user_egos, $row['id']);
-						$user_egos[$row['id']] += count($matches);
-					}
-					if(preg_match_all('/ego\s*\-\-/', $row['message'], $matches, PREG_SET_ORDER)) {
-						init_ego($user_egos, $row['id']);
-						$user_egos[$row['id']] -= count($matches);
-					}
-					if(preg_match_all('/ego\s*\+=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
-						init_ego($user_egos, $row['id']);
-						foreach($matches as $match) {
-							$user_egos[$row['id']] += $match[1];
-						}
-					}
-					if(preg_match_all('/ego\s*\-=\s*([0-9]+)/', $row['message'], $matches, PREG_SET_ORDER)) {
-						init_ego($user_egos, $row['id']);
-						foreach($matches as $match) {
-							$user_egos[$row['id']] -= $match[1];
-						}
-					}
-				}
-				arsort($user_egos);
+if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST['user'])) {
+	$queries[] = array(
+			'title' => "Ego points",
+			'query' => "SELECT u.id AS id, s.message AS message
+				FROM shouts s
+					JOIN users u ON (s.user = u.id)
+				WHERE s.deleted = 0
+					AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
+					AND $filter
+				ORDER BY s.id ASC",
+			'params' => $params,
+			'processing_function_all' => array(function(&$data) {
+					$result = calculate_ego($data[0]);
+					$user_egos = $result['user_egos'];
 
-				$datax = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
-						FROM users u
-							JOIN user_categories c ON (u.category = c.id)');
-				$users = array();
-				foreach($datax as $row) {
-					if($row['color'] == '-') {
-						$row['color'] = 'user';
+					$datax = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
+							FROM users u
+								JOIN user_categories c ON (u.category = c.id)');
+					$users = array();
+					foreach($datax as $row) {
+						if($row['color'] == '-') {
+							$row['color'] = 'user';
+						}
+						$users[$row['id']] = $row;
 					}
-					$users[$row['id']] = $row;
-				}
 
-				while(count($data[0]) > 0) {
-					array_shift($data[0]);
-				}
-				$pos = 0;
-				foreach($user_egos as $id => $ego) {
-					$data[0][] = array(
-						++$pos,
-						'<a href="./?text=ego&amp;user=' . urlencode($users[$id]['name']) . '&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on" class="' . $users[$id]['color'] . '">' . $users[$id]['name'] . '</a>',
-						$ego
-					);
-				}
-			}),
-		'columns' => array('Position', 'User', 'Ego'),
-		'column_styles' => array('right', 'left', 'right'),
-		'cached' => false,
-	);
+					while(count($data[0]) > 0) {
+						array_shift($data[0]);
+					}
+					$pos = 0;
+					foreach($user_egos as $id => $ego) {
+						$data[0][] = array(
+							++$pos,
+							'<a href="./?text=ego&amp;user=' . urlencode($users[$id]['name']) . '&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on" class="' . $users[$id]['color'] . '">' . $users[$id]['name'] . '</a>',
+							$ego
+						);
+					}
+				}),
+			'columns' => array('Position', 'User', 'Ego'),
+			'column_styles' => array('right', 'left', 'right'),
+			'cached' => false,
+		);
+}
 /*
 $queries[] = array(
 		'title' => '',
