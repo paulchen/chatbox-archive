@@ -51,6 +51,11 @@ $(document).ready(function() {
 		<div>
 			<a id="query<?php echo $b ?>"></a>
 			<h2><?php echo $query['title'] ?></h2>
+			<?php if(isset($query['note'])): ?>
+				<div style="padding-bottom: 10px;">
+					<?php echo $query['note']; ?>
+				</div>
+			<?php endif; ?>
 			<table class="sortable_table"><thead><tr>
 			<?php $a = 0; foreach($query['columns'] as $column): ?>
 			<th class="<?php echo $query['column_styles'][$a] ?>"><?php echo $column; ?></th>

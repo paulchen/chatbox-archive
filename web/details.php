@@ -632,6 +632,7 @@ if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST[
 			'columns' => array('Position', 'User', 'Ego'),
 			'column_styles' => array('right', 'left', 'right'),
 			'cached' => false,
+			'note' => 'For details about how ego points are calculated, please refer to the <a href="ego.php">global list of ego points</a>.',
 		);
 }
 /*
