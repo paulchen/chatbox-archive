@@ -153,6 +153,7 @@ $(document).ready(function() {
 		<a href="details.php">Spam overview (all time)</a>
 		<a href="details.php?period=forum">Spam overview (all messages on informatik-forum.at)</a>
 		<a href="ego.php">Ego points</a>
+		<a href="banana.php">Devil bananas</a>
 		<fieldset><legend>Filters</legend>
 		<form method="get" action="<?php echo htmlentities($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>">
 		<table>
