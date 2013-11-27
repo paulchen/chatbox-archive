@@ -17,6 +17,7 @@ $logfile = 'log/log';
 $tokenfile = 'tmp/securitytoken';
 $tmpdir = 'tmp';
 $success_file = 'tmp/last_update';
+$timeout = 60;
 
 $report_email = 'paulchen@rueckgr.at';
 $email_from = 'Chatbox Cronjob <chatbox@rueckgr.at>';
