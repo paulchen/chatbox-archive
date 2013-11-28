@@ -117,6 +117,11 @@ if(isset($_REQUEST['month']) && !isset($_REQUEST['year'])) {
 	overview_redirect();
 }
 
+foreach(array('day', 'month', 'year', 'hour', 'smiley') as $item) {
+	if(isset($_REQUEST[$item]) && !preg_match('/^[0-9]+$/', $_REQUEST[$item])) {
+		overview_redirect();
+	}
+}
 if(isset($_REQUEST['user'])) {
 	$user = $_REQUEST['user'];
 
