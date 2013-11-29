@@ -11,6 +11,10 @@ function ex_aequo3(&$data) {
 	ex_aequo($data, 3);
 }
 
+function ex_aequo4(&$data) {
+	ex_aequo($data, 4);
+}
+
 function ex_aequo9(&$data) {
 	ex_aequo($data, 9);
 }

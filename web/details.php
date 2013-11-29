@@ -640,6 +640,43 @@ if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST[
 			'note' => 'For details about how ego points are calculated, please refer to the <a href="ego.php">global list of ego points</a>.',
 		);
 }
+$queries[] = array(
+		'title' => 'First and last posts',
+		'query' => "SELECT u.name, TO_CHAR(MIN(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') min_date, TO_CHAR(MAX(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') max_date, EXTRACT(EPOCH FROM (MAX(s.date)-MIN(s.date))) duration
+				FROM users u
+					JOIN shouts s ON (u.id=s.user)
+				WHERE s.deleted = 0
+					AND $filter
+				GROUP BY u.id, u.name
+				ORDER BY duration DESC",
+		'params' => $params,
+		'processing_function' => array('add_user_link', function(&$row) {
+			if($row[0]['duration'] >= 86400*2) {
+				$row[0]['duration'] = floor($row[0]['duration']/86400) . ' Tage';
+			}
+			else if($row[0]['duration'] >= 86400) {
+				$row[0]['duration'] = 'ein Tag';
+			}
+			else if($row[0]['duration'] >= 7200) {
+				$row[0]['duration'] = floor($row[0]['duration']/3600) . ' Stunden';
+			}
+			else if($row[0]['duration'] >= 3600) {
+				$row[0]['duration'] = 'eine Stunde';
+			}
+			else if($row[0]['duration'] >= 120) {
+				$row[0]['duration'] = floor($row[0]['duration']/60) . ' Minuten';
+			}
+			else if($row[0]['duration'] >= 60) {
+				$row[0]['duration'] = 'eine Minute';
+			}
+			else {
+				$row[0]['duration'] = '-';
+			}
+		}),
+		'processing_function_all' => array('insert_position', 'ex_aequo4'),
+		'columns' => array('Position', 'Username', 'First message', 'Last message', 'Time difference'),
+		'column_styles' => array('right', 'left', 'left', 'left', 'right'),
+	);
 /*
 $queries[] = array(
 		'title' => '',
