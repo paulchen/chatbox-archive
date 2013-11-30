@@ -47,12 +47,36 @@ function return_headers($headers) {
 	}
 }
 
+function internal_server_error() {
+	header('HTTP/1.1 500 Internal Server Error');
+	die('Internal server error');
+}
+
+function redirect($http_code, $url) {
+	$code_names = array(301 => 'Moved Permanently', 302 => 'Found', 303 => 'See Other', 307 => 'Temporary Redirect', 308 => 'Permanent Redirect');
+	if(!isset($code_names[$http_code])) {
+		internal_server_error();
+	}
+
+	header("HTTP/1.1 $http_code {$code_names[$http_code]}");
+	header("Location: proxy.php?url=$url");
+	die();
+}
+
 switch($info['http_code']) {
 	case 200:
 		header('Content-Type: ' . $info['content_type']);
 		header('Content-Length: ' . $info['download_content_length']);
 		return_headers($response_headers);
 		echo $body;
+		die();
+
+	case 301:
+	case 302:
+	case 303:
+	case 307:
+	case 308:
+		redirect($info['http_code'], $info['redirect_url']);
 		die();
 
 	case 304:
@@ -64,8 +88,7 @@ switch($info['http_code']) {
 		die('Not found');
 
 	default:
-		header('HTTP/1.1 500 Internal Server Error');
-		die('Internal server error');
+		internal_server_error();
 }
 
 
