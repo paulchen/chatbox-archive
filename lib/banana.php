@@ -120,7 +120,7 @@ function calculate_bananas($rows) {
 		}
 
 		$total_annihilations += count($user['annihilation_times']);
-		if($total_min_time == -60 || $min_time < $total_min_time) {
+		if($total_min_time == -60 || ($min_time > 0 && $min_time < $total_min_time)) {
 			$total_min_time = $min_time;
 		}
 		if($max_time > $total_max_time) {
