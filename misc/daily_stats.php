@@ -24,19 +24,33 @@ if(date('dm') == '0101') {
 	$queries[] = array('name' => "$year", 'filter' => 'year = ?', 'params' => array($year));
 }
 
+$max_rank = 5;
 foreach($queries as $query) {
-	$data = db_query("SELECT u.name AS name, COUNT(*) count FROM shouts s JOIN users u ON (s.user=u.id) WHERE {$query['filter']} GROUP BY u.id, u.name ORDER BY count DESC", $query['params']);
+	$data = db_query("SELECT u.name AS name, COUNT(*) count FROM shouts s JOIN users u ON (s.user=u.id) WHERE {$query['filter']} GROUP BY u.id, u.name ORDER BY count DESC, u.name ASC", $query['params']);
 	$total = 0;
 	$top_spammers = '';
-	foreach($data as $index => $row) {
-		$total += $row['count'];
-		if($index < 5) {
+	for($rank=1; $rank<=count($data); $rank++) {
+		$current_rank = $rank;
+		$total += $data[$rank-1]['count'];
+		if($rank <= $max_rank) {
+			$usernames = array($data[$rank-1]['name']);
+			while($rank<count($data) && $data[$rank-1]['count'] == $data[$rank]['count']) {
+				$usernames[] = $data[$rank]['name'];
+				$total += $data[$rank]['count'];
+				$rank++;
+			}
+
 			if($top_spammers != '') {
 				$top_spammers .= ', ';
 			}
-			$top_spammers .= ($index+1) . '. ' . $row['name'] . ' (' . $row['count'] . ')';
+			$top_spammers .= "$current_rank. " . implode('/', $usernames) . ' (';
+			if(count($usernames) > 1) {
+				$top_spammers .= 'each ';
+			}
+			$top_spammers .= $data[$rank-1]['count'] . ')';
 		}
 	}
+
 	$messages[] = "Messages in {$query['name']}: $total; top spammers: $top_spammers";
 }
 
