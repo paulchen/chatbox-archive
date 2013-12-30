@@ -19,7 +19,7 @@ if(date('d') == '01') {
 	$queries[] = array('name' => "{$monthnames[$month]} $year", 'filter' => 'month = ? AND year = ?', 'params' => array($month, $year));
 }
 if(date('dm') == '0101') {
-	$messages[] = 'Happy new year!';
+	$messages[] = 'Happy new year! :cheer:';
 	$year = date('Y')-1;
 	$queries[] = array('name' => "$year", 'filter' => 'year = ?', 'params' => array($year));
 }
