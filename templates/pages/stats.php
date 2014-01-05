@@ -22,6 +22,7 @@ echo '<?xml version="1.0" ?>';
 	th.left, td.left { text-align: left; }
 	th.right, td.right { text-align: right; }
 	th { cursor: pointer; }
+	th:hover { color: red; }
 	</style>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
