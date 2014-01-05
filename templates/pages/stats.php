@@ -21,6 +21,7 @@ echo '<?xml version="1.0" ?>';
 	img { border: none; }
 	th.left, td.left { text-align: left; }
 	th.right, td.right { text-align: right; }
+	th { cursor: pointer; }
 	</style>
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
