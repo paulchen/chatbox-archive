@@ -23,7 +23,7 @@ login() {
 	username=`grep forum_user config.php|sed -e "s/^.*= '//g;s/';//g"`
 	password=`grep forum_pass config.php|sed -e "s/^.*= '//g;s/';//g"`
 
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html -q --timeout=$timeout
+	wget --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html -q --timeout=$timeout
 	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://www.informatik-forum.at/faq.php -O faq.html -q --timeout=$timeout
 	grep SECURITYTOKEN faq.html|sed -e 's/^.* "//g;s/".*$//' > $tokenfile
 	rm login.html faq.html
