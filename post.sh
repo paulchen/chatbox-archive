@@ -17,14 +17,15 @@ login() {
 	username=`grep forum_user config.php|sed -e "s/^.*= '//g;s/';//g"`
 	password=`grep forum_pass config.php|sed -e "s/^.*= '//g;s/';//g"`
 
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html -q --timeout=$timeout
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://www.informatik-forum.at/faq.php -O faq.html -q --timeout=$timeout
+	wget --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html --timeout=$timeout -q
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://www.informatik-forum.at/faq.php -O faq.html --timeout=$timeout -q
 	grep SECURITYTOKEN faq.html|sed -e 's/^.* "//g;s/".*$//' > $tokenfile
 	rm login.html faq.html
 }
 
 log() {
 	echo "`date "+%Y-%m-%d %H:%M:%S"` - $1" >> $logfile
+#	echo "`date "+%Y-%m-%d %H:%M:%S"` - $1" 
 }
 
 if [ "$1" == "" ]; then
@@ -39,7 +40,8 @@ fi
 
 rm -f $tmpdir/post.xml
 log "Posting message: $1"
-wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="do=cb_postnew&vsacb_newmessage=$1&do=cb_postnew&securitytoken=$token" http://www.informatik-forum.at/misc.php -O $tmpdir/post.xml -q --timeout=$timeout
+token=`cat $tokenfile`
+wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="do=cb_postnew&vsacb_newmessage=$1&do=cb_postnew&securitytoken=$token" http://www.informatik-forum.at/misc.php -O $tmpdir/post.xml --timeout=$timeout -q
 
 if [ -s $tmpdir/post.xml ]; then
 	rm -f $tmpdir/post.xml
@@ -47,10 +49,11 @@ if [ -s $tmpdir/post.xml ]; then
 	login
 	token=`cat $tokenfile`
 	log "Posting message: $1"
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="do=cb_postnew&vsacb_newmessage=$1&do=cb_postnew&securitytoken=$token" http://www.informatik-forum.at/misc.php -O $tmpdir/post.xml -q --timeout=$timeout
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="do=cb_postnew&vsacb_newmessage=$1&do=cb_postnew&securitytoken=$token" http://www.informatik-forum.at/misc.php -O $tmpdir/post.xml --timeout=$timeout -q
 	if [ -s $tmpdir/post.xml ]; then
 		rm -f $tmpdir/post.xml
 		log "Unable to post the message, sorry"
+		echo "Could not post the message"
 		exit 1
 	fi
 fi
