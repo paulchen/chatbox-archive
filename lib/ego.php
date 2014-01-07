@@ -81,19 +81,27 @@ function calculate_ego($rows) {
 		if($debug) {
 			echo "processing row with id '${row['shout_id']}'... ";
 		}
-		if(preg_match_all('+/((multi|anti)?hail)\.(gif|png)+', $row['message'], $matches, PREG_SET_ORDER)) {
+		if(preg_match_all('+<[^<>]*/((multi|anti)?hail)\.(gif|png)[^<>]*>+', $row['message'], $matches, PREG_SET_ORDER)) {
 			foreach($matches as $match) {
-				if($match[1] == 'multihail') {
+				if($match[0] == '<img src="images/ob/smilies/multihail.gif" border="0" alt="" title="multihail" class="inlineimg" />') {
 					make_ego_available($available_ego, $available_ego_per_person, $row['id'], 16);
 				}
-				else if($match[1] == 'antihail') {
+				else if($match[0] == '<img src="images/ob/smilies/antihail.png" border="0" alt="" title=":nohail:" class="inlineimg" />') {
 					destroy_available_ego($available_ego, $available_ego_per_person, 1);
 				}
-				else if($match[1] == 'hail') {
+				else if($match[0] == '<img src="pics/nb/smilies/hail.gif" border="0" alt="" title="hail" class="inlineimg" />') {
 					make_ego_available($available_ego, $available_ego_per_person, $row['id'], 1);
 				}
+//				else if($match[1] == 'multihail' || $match[1] == 'antihail' || $match[1] == 'hail') {
+//					echo "!" . $match[1] . " " . $row['id'] . "\n";
+//				}
 			}
 		}
+//		else if(preg_match_all('+/((multi|anti)?hail)\.(gif|png)+', $row['message'], $matches, PREG_SET_ORDER)) {
+//			foreach($matches as $match) {
+//				echo 'x' . $match[1] . " " . $row['id'] . "\n";
+//			}
+//		}
 		if(preg_match_all('/ego\s*(\+\+|\-\-|(\+|\-)=\s*([0-9]+))/', $row['message'], $matches, PREG_SET_ORDER)) {
 			foreach($matches as $match) {
 				if($match[1] == '++') {
