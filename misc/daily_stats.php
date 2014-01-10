@@ -3,9 +3,9 @@ require_once(dirname(__FILE__) . '/../lib/common.php');
 
 $messages = array();
 $queries = array();
-$queries[] = array('name' => 'the last 24 hours', 'filter' => "AGE(s.date) < interval '1 days'", 'params' => array());
+$queries[] = array('name' => 'the last 24 hours', 'filter' => "NOW()-s.date < interval '1 days'", 'params' => array());
 if(date('w') == 1) {
-	$queries[] = array('name' => 'the last week', 'filter' => "AGE(s.date) < interval '7 days'", 'params' => array());
+	$queries[] = array('name' => 'the last week', 'filter' => "NOW()-s.date < interval '7 days'", 'params' => array());
 }
 if(date('d') == '01') {
 	$month = date('m')-1;
@@ -26,7 +26,7 @@ if(date('dm') == '0101') {
 
 $max_rank = 5;
 foreach($queries as $query) {
-	$data = db_query("SELECT u.name AS name, COUNT(*) count FROM shouts s JOIN users u ON (s.user=u.id) WHERE {$query['filter']} GROUP BY u.id, u.name ORDER BY count DESC, u.name ASC", $query['params']);
+	$data = db_query("SELECT u.name AS name, COUNT(*) count FROM shouts s JOIN users u ON (s.user=u.id) WHERE s.deleted=0 AND {$query['filter']} GROUP BY u.id, u.name ORDER BY count DESC, u.name ASC", $query['params']);
 	$total = 0;
 	$top_spammers = '';
 	for($rank=1; $rank<=count($data); $rank++) {
