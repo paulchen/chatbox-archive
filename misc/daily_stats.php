@@ -57,7 +57,7 @@ foreach($queries as $query) {
 $script = dirname(__FILE__) . '/../post.sh';
 
 foreach($messages as $message) {
-	$message = rawurlencode($message);
+	$message = rawurlencode(iconv('UTF-8', 'ISO-8859-1//IGNORE', $message));
 	passthru("$script '$message'");
 }
 
