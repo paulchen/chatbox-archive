@@ -462,6 +462,8 @@ function send_mail($template, $subject, $parameters = array(), $fatal = false, $
 }
 
 function xml_validate($data) {
+	global $tmpdir;
+
 	$document = new DOMDocument;
 	$xml_error = false;
 	@$document->LoadXML($data) or $xml_error = true;
