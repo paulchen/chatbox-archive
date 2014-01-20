@@ -55,7 +55,7 @@ function get_user_id($username) {
 	return $user_id;
 }
 
-function login($username, $password) {
+function login($username, $password, $access_token) {
 	global $tmpdir;
 
 	$user_id = get_user_id($username);
@@ -101,8 +101,68 @@ function login($username, $password) {
 	unlink($tmpfile);
 
 	db_query('DELETE FROM user_credentials WHERE id = ?', array($user_id));
-	db_query('INSERT INTO user_credentials (id, password, cookie, securitytoken) VALUES (?, ?, ?, ?)', array($user_id, $_REQUEST['password'], $cookies, $securitytoken));
+	db_query('INSERT INTO user_credentials (id, password, cookie, securitytoken, access_token) VALUES (?, ?, ?, ?, ?)', array($user_id, $password, $cookies, $securitytoken, $access_token));
 
 	return true;
+}
+
+function post($username, $access_token, $message) {
+	global $tmpdir;
+
+	$data = db_query('SELECT uc.password, uc.cookie, uc.securitytoken, uc.access_token FROM users u JOIN user_credentials uc ON (u.id=uc.id) WHERE u.name = ?', array($username));
+	if(count($data) != 1) {
+		return false;
+	}
+	if($data[0]['access_token'] != $access_token) {
+		return false;
+	}
+
+	if(_post($data[0]['cookie'], $data[0]['securitytoken'], $message)) {
+		return true;
+	}
+
+	if(!login($username, $data[0]['password'], $access_token)) {
+		return false;
+	}
+
+	$data = db_query('SELECT uc.password, uc.cookie, uc.securitytoken, uc.access_token FROM users u JOIN user_credentials uc ON (u.id=uc.id) WHERE u.name = ?', array($username));
+	if(count($data) != 1) {
+		return false;
+	}
+
+	if(_post($data[0]['cookie'], $data[0]['securitytoken'], $message)) {
+		return true;
+	}
+
+	return false;
+}
+
+function _post($cookie, $securitytoken, $message) {
+	global $tmpdir;
+
+	$tmpfile = tempnam($tmpdir, 'login_cookies_');
+	file_put_contents($tmpfile, $cookie);
+
+	$post = array(
+		'do' => 'cb_postnew',
+		'vsacb_newmessage' => iconv('UTF-8', 'ISO-8859-15//TRANSLIT', $message),
+		'securitytoken' => $securitytoken,
+	);
+	$curl = curl_init();
+
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_URL, 'http://www.informatik-forum.at/misc.php');
+	curl_setopt($curl, CURLOPT_POST, true);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+	curl_setopt($curl, CURLOPT_COOKIEFILE, $tmpfile);
+	curl_setopt($curl, CURLOPT_COOKIEJAR, $tmpfile);
+
+	$data = curl_exec($curl);
+
+	curl_close($curl);
+
+	unlink($tmpfile);
+
+	return (strlen($data) == 0);
 }
 

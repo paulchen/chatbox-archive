@@ -144,6 +144,36 @@ $(document).ready(function() {
 	<?php endforeach; ?>
 });
 
+function post_status(text) {
+	$('#post_status').html(' &ndash; ' + text);
+}
+
+function post() {
+	post_status('Posting...');
+
+	var text = $('#post_text').val();
+	$('#post_text').val('');
+
+	$.ajax({
+		url: 'post.php',
+		type: 'POST',
+		data: {
+			username: $('#post_username').val(),
+			access_token: $('#post_access_token').val(),
+			message: text
+		},
+		error: function(xhr, text_status, error_thrown) {
+			post_status('Error while posting message');
+		},
+		success: function(data, text_status, xhr) {
+			post_status('Message successfully posted');
+		},
+		complete: function(xhr, text_status) {
+			clearTimeout(timeout);
+			refresh();
+		}
+	});
+}
 // -->
 	</script>
 </head>
@@ -169,7 +199,22 @@ $(document).ready(function() {
 		</fieldset>
 		<div style="padding: 10px 5px 10px 5px;">
 			Messages (filtered/total): <span id="shouts_filtered"><?php echo $filtered_shouts ?></span>/<span id="shouts_total"><?php echo $total_shouts ?></span>
+			<span id="post_status"></span>
 		</div>
+<?php if(isset($_REQUEST['post']) && $_REQUEST['post'] == 'on'): ?>
+		<div id="post_form">
+			<form method="post" onsubmit="post(); return false;">
+				<table style="width: 100%;">
+				<tr>
+					<td><input type="text" name="post_username" id="post_username" /></td>
+					<td><input type="password" name="post_access_token" id="post_access_token" /></td>
+					<td style="width: 100%;"><input type="text" name="post_text" id="post_text" style="width: 100%;" /></td>
+					<td><input type="submit" name="Submit" /></td>
+				</tr>
+				</table>
+			</form>
+		</div>
+<?php endif; /* if(isset($_REQUEST['post']) && $_REQUEST['post'] == 'on') */ ?> 
 		<div id="content">
 <?php else:
 	echo "$page_count $filtered_shouts $total_shouts$$";

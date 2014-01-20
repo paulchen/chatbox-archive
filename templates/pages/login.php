@@ -50,6 +50,14 @@ $(document).ready(function() {
 					<td><input type="password" name="password" /></td>
 				</tr>
 				<tr>
+					<td>Access token</td>
+					<td><input type="password" name="token1" /></td>
+				</tr>
+				<tr>
+					<td>Access token confirmation</td>
+					<td><input type="password" name="token2" /></td>
+				</tr>
+				<tr>
 					<td></td>
 					<td><input type="submit" value="Login" /></td>
 				</tr>
