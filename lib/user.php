@@ -55,8 +55,37 @@ function get_user_id($username) {
 	return $user_id;
 }
 
+function safe_login($username, $password, $access_token) {
+	$data = db_query("SELECT uc.password, uc.cookie, uc.securitytoken, uc.access_token FROM users u JOIN user_credentials uc ON (u.id=uc.id) WHERE u.name = ?", array($username));
+	$ok = true;
+
+	if(count($data) == 0) {
+		$ok = false;
+	}
+	else if($data[0]['password'] != $password) {
+		$ok = false;
+	}
+	else if($data[0]['access_token'] != $access_token) {
+		$ok = false;
+	}
+	else if(trim($data[0]['cookie']) == '') {
+		$ok = false;
+	}
+	else if(trim($data[0]['securitytoken']) == '') {
+		$ok = false;
+	}
+
+	if($ok) {
+		return true;
+	}
+
+	return login($username, $password, $access_token);
+}
+
 function login($username, $password, $access_token) {
 	global $tmpdir;
+
+	echo "logging in...";
 
 	$user_id = get_user_id($username);
 
