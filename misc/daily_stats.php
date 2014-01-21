@@ -51,20 +51,38 @@ if(date('dm') == '0101') {
 	$queries[] = array('name' => "$year", 'filter' => 'year = ?', 'params' => array($year), 'details_link' => "$base_url?year=$year");
 }
 
+$urls = array();
+
+function format_username($user) {
+	global $base_url, $urls;
+
+	$username = $user['name'];
+	$color = $user['color'];
+
+	$url = "$base_url?user=" . iconv('UTF-8', 'ISO-8859-15//IGNORE', $username);
+	$urls[] = $url;
+
+	$ret = $username;
+	if($color != '-') {
+		$ret = "[b][color=$color]{$ret}[/color][/b]";
+	}
+
+	return "[url=$url]{$ret}[/url]";
+}
+
 $max_rank = 5;
 foreach($queries as $query) {
-	$data = db_query("SELECT u.name AS name, COUNT(DISTINCT s.id) count FROM shouts s JOIN users u ON (s.user=u.id) WHERE s.deleted=0 AND {$query['filter']} GROUP BY u.id, u.name ORDER BY count DESC, u.name ASC", $query['params']);
+	$data = db_query("SELECT u.name AS name, uc.color, COUNT(DISTINCT s.id) count FROM shouts s JOIN users u ON (s.user=u.id) JOIN user_categories uc ON (u.category=uc.id) WHERE s.deleted=0 AND {$query['filter']} GROUP BY u.id, u.name, uc.color ORDER BY count DESC, u.name ASC", $query['params']);
 
-	print_r($query);
 	$total = 0;
 	$top_spammers = '';
 	for($rank=1; $rank<=count($data); $rank++) {
 		$current_rank = $rank;
 		$total += $data[$rank-1]['count'];
 		if($rank <= $max_rank) {
-			$usernames = array($data[$rank-1]['name']);
+			$usernames = array(format_username($data[$rank-1]));
 			while($rank<count($data) && $data[$rank-1]['count'] == $data[$rank]['count']) {
-				$usernames[] = $data[$rank]['name'];
+				$usernames[] = format_username($data[$rank]);
 				$total += $data[$rank]['count'];
 				$rank++;
 			}
@@ -96,14 +114,17 @@ foreach($messages as $message) {
 }
 
 $curl = curl_init();
+curl_setopt($curl, CURLOPT_USERPWD, "update:aeBie6in");
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($curl, CURLOPT_USERAGENT, "signanzbot");
 foreach($queries as $query) {
 	if(isset($query['details_link'])) {
-		curl_setopt($curl, CURLOPT_URL, $query['details_link']);
-		curl_setopt($curl, CURLOPT_USERPWD, "update:aeBie6in");
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_USERAGENT, "signanzbot");
-		curl_exec($curl);
+		$urls[] = $query['details_link'];
 	}
+}
+foreach($urls as $url) {
+	curl_setopt($curl, CURLOPT_URL, str_replace(' ', '%20', $url));
+	curl_exec($curl);
 }
 curl_close($curl);
 
