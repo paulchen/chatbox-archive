@@ -1,5 +1,6 @@
 <?php
 require_once(dirname(__FILE__) . '/../lib/common.php');
+require_once(dirname(__FILE__) . '/../lib/user.php');
 
 $base_url = 'https://rueckgr.at/~paulchen/chatbox/details.php';
 
@@ -94,7 +95,6 @@ foreach($messages as $message) {
 	passthru("$script '$message'");
 }
 
-die();
 $curl = curl_init();
 foreach($queries as $query) {
 	if(isset($query['details_link'])) {
@@ -106,4 +106,6 @@ foreach($queries as $query) {
 	}
 }
 curl_close($curl);
+
+log_data();
 
