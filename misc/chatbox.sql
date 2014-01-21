@@ -458,6 +458,20 @@ CREATE TABLE words (
 ALTER TABLE public.words OWNER TO chatbox;
 
 --
+-- Name: user_credentials; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_credentials (
+	    id integer NOT NULL,
+	    password text NOT NULL,
+	    cookie text NOT NULL,
+	    securitytoken text NOT NULL,
+	    access_token text NOT NULL
+);
+
+ALTER TABLE public.user_credentials OWNER TO user_credentials;
+
+--
 -- Name: words_id_seq1; Type: SEQUENCE; Schema: public; Owner: chatbox
 --
 
@@ -647,6 +661,14 @@ ALTER TABLE ONLY words
 
 
 --
+-- Name: user_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: chatbox; Tablespace: 
+--
+
+ALTER TABLE ONLY user_credentials
+    ADD CONSTRAINT user_credentials_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: shout_revisions_id_epoch_idx; Type: INDEX; Schema: public; Owner: chatbox; Tablespace: 
 --
 
@@ -771,6 +793,14 @@ ALTER TABLE ONLY shouts
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_category_fkey FOREIGN KEY (category) REFERENCES user_categories(id);
+
+
+--
+-- Name: user_credentials_fkey; Type: FK CONSTRAINT; Schema: public; Owner: chatbox
+--
+
+ALTER TABLE ONLY user_categories
+    ADD CONSTRAINT user_categories_fkey FOREIGN KEY (id) REFERENCES users(id);
 
 
 --
