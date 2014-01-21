@@ -8,7 +8,9 @@ if($argc != 2) {
 
 safe_login($forum_user, $forum_pass, $forum_pass);
 
-post($forum_user, $forum_pass, $argv[1]);
+$message = rawurlencode(iconv('UTF-8', 'ISO-8859-1//IGNORE', $argv[1]));
+
+post($forum_user, $forum_pass, $message);
 
 log_data();
 
