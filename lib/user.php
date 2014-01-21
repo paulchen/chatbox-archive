@@ -85,8 +85,6 @@ function safe_login($username, $password, $access_token) {
 function login($username, $password, $access_token) {
 	global $tmpdir;
 
-	echo "logging in...";
-
 	$user_id = get_user_id($username);
 
 	$post = array(
