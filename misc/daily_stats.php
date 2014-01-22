@@ -109,7 +109,6 @@ foreach($queries as $query) {
 safe_login($forum_user, $forum_pass, $forum_pass);
 
 foreach($messages as $message) {
-	$message = rawurlencode(iconv('UTF-8', 'ISO-8859-1//IGNORE', $message));
 	post($forum_user, $forum_pass, $message);
 }
 
