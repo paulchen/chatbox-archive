@@ -8,6 +8,7 @@ logfile=`grep logfile config.php|sed -e "s/^.*= '//g;s/';//g"`
 tokenfile=`grep tokenfile config.php|sed -e "s/^.*= '//g;s/';//g"`
 tmpdir=`grep tmpdir config.php|sed -e "s/^.*= '//g;s/';//g"`
 timeout=`grep timeout config.php|sed -e "s/^.*= //g;s/;//g"`
+cronjob_sleep_time=`grep cronjob_sleep_time config.php|sed -e "s/^.*= //g;s/;//g"`
 
 exec 9>$lockfile
 if ! flock -n 9  ; then
@@ -117,7 +118,7 @@ while true; do
 	rm -f $tmpdir/cbusers2.xml
 	log "$count user(s) currently online"
 
-	log "Waiting 10 seconds... "
-	sleep 10
+	log "Waiting $cronjob_sleep_time seconds... "
+	sleep $cronjob_sleep_time
 done
 
