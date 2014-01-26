@@ -59,7 +59,7 @@ function format_username($user) {
 	$username = $user['name'];
 	$color = $user['color'];
 
-	$url = "$base_url?user=" . iconv('UTF-8', 'ISO-8859-15//IGNORE', $username);
+	$url = "$base_url?user=" . urlencode($username);
 	$urls[] = $url;
 
 	$ret = $username;
