@@ -312,6 +312,14 @@ function process_words($id, $epoch) {
 function clean_text($message) {
 	// TODO scan for < and > inside href attributes
 
+	$message = preg_replace_callback('/<a([^>]*) href="([^"]*)"([^>]*)>/', function($match) {
+		return  '<a' . $match[1] . ' href="' . str_replace(array('<', '>'), array('&lt;', '&gt;'), $match[2]) . '" ' . $match[3] . '>';
+	}, $message);
+
+	$message = preg_replace_callback('/<img([^>]*) src="([^"]*)"([^>]*)>/', function($match) {
+		return  '<img' . $match[1] . ' src="' . str_replace(array('<', '>'), array('&lt;', '&gt;'), $match[2]) . '" ' . $match[3] . '>';
+	}, $message);
+
 	$message = preg_replace_callback('+<img src="(/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg))+i', function($match) { return '<img src="images/smilies/' . basename($match[1]); }, $message);
 	$message = str_replace('/http:', 'http:', $message);
 	$message = str_replace(' target="_blank"', '', $message);
