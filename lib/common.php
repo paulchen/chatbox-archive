@@ -329,6 +329,7 @@ function clean_text($message) {
 	for($a=14; $a<32; $a++) {
 		$message = str_replace(chr($a), '', $message);
 	}
+	$message = preg_replace('/<a href="([^:"]+")/', '<a href="http://www.informatik-forum.at/\1', $message);
 
 	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
