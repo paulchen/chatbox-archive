@@ -368,10 +368,10 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$filter = implode(' AND ', $filters);
 	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message, COUNT(sr.revision) revision_count
 			FROM shouts s
-				JOIN users u ON (s.user = u.id) JOIN user_categories c ON (u.category = c.id)
+				JOIN users u ON (s.user_id = u.id) JOIN user_categories c ON (u.category = c.id)
 				LEFT JOIN shout_revisions sr ON (s.id = sr.id AND s.epoch = sr.epoch)
 			WHERE $filter
-			GROUP BY s.id, s.epoch, s.date, color, user_id, user_name, message
+			GROUP BY s.id, s.epoch, s.date, color, u.id, user_name, message
 			ORDER BY s.epoch DESC, s.id DESC
 			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);
@@ -397,9 +397,9 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		$revisions = array();
 		if($row['revision_count'] > 0) {
-			$sql = 'SELECT sr.revision revision, sr.text "text", sr.date "date", sr.user "user", c.color color, u.name user_name
+			$sql = 'SELECT sr.revision revision, sr.text "text", sr.date "date", sr.user_id "user", c.color color, u.name user_name
 					FROM shout_revisions sr
-						JOIN users u ON (sr.user = u.id) JOIN user_categories c ON (u.category = c.id)
+						JOIN users u ON (sr.user_id = u.id) JOIN user_categories c ON (u.category = c.id)
 					WHERE sr.id = ? AND sr.epoch = ?
 					ORDER BY sr.revision DESC';
 			$revisions = db_query($sql, array($row['id'], $row['epoch']));
@@ -421,7 +421,7 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$db_data = db_query($query);
 	$total_shouts = $db_data[0]['shouts'];
 
-	$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user = u.id) WHERE $filter";
+	$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user_id = u.id) WHERE $filter";
 	array_pop($params);
 	array_pop($params);
 	$db_data = db_query($query, $params);

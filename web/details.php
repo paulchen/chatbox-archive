@@ -181,7 +181,7 @@ if(isset($_REQUEST['day'])) {
 	$what_parts[] = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
 }
 if(isset($_REQUEST['user'])) {
-	$filter_parts[] = '"user" = ?';
+	$filter_parts[] = 'user_id = ?';
 	$params[] = $user_id;
 	$what_parts[] = $user;
 }
@@ -215,12 +215,12 @@ $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "with smileycount as (
-				select s.user, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user, sm.smiley
+				select s.user_id \"user\", sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user_id, sm.smiley
 			), wordcount as (
-				select s.user, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user, sw.word
+				select s.user_id \"user\", sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user_id, sw.word
 			), shout_data as (
 				select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
-					from users u join shouts s on (u.id=s.user)
+					from users u join shouts s on (u.id=s.user_id)
 					left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
 					where $filter
 					group by u.name, u.id
@@ -290,7 +290,7 @@ $queries[] = array(
 			), wordcount as (
 				select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.hour, sw.word
 			), hours as (
-				select \"user\", hour, count(*) count from shouts s where $filter group by \"user\", hour
+				select user_id \"user\", hour, count(*) count from shouts s where $filter group by user_id, hour
 			)
 				select lpad(cast(h.hour as text), 2, '0') \"hour\", coalesce(j.count, 0) shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 					concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
@@ -346,7 +346,7 @@ $queries[] = array(
 			), wordcount as (
 				select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.day, s.month, s.year, sw.word
 			), hours as (
-				select \"user\", day, month, year, count(*) count from shouts s where $filter group by \"user\", day, month, year
+				select user_id \"user\", day, month, year, count(*) count from shouts s where $filter group by user_id, day, month, year
 			)
 				select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0'), '-', lpad(cast(j.day as text), 2, '0')) \"day\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
                                         concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
@@ -398,7 +398,7 @@ if(!isset($_REQUEST['day'])) {
 			), wordcount as (
 				select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.month, s.year, sw.word
 			), hours as (
-				select \"user\", month, year, count(*) count from shouts s where $filter group by \"user\", month, year
+				select user_id \"user\", month, year, count(*) count from shouts s where $filter group by user_id, month, year
 			)
 					select concat(cast(j.year as text), '-', lpad(cast(j.month as text), 2, '0')) \"month\", j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
@@ -454,7 +454,7 @@ if(!isset($_REQUEST['month'])) {
 			), wordcount as (
 				select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.year, sw.word
 			), hours as (
-				select \"user\", year, count(*) count from shouts s where $filter group by \"user\", year
+				select user_id \"user\", year, count(*) count from shouts s where $filter group by user_id, year
 			)
 					select j.year, j.count shouts, concat(c.user, '$$', u.name, '$$', c.count) top_spammer,
 						concat(f.smiley, '$$', sm.filename, '$$', f.count) popular_smiley, concat(i.word, '$$', w.word, '$$', i.count) popular_word
@@ -505,10 +505,10 @@ if(!isset($_REQUEST['month'])) {
 $queries[] = array(
 		'title' => 'Smiley usage',
 		'query' => "with smileycount as (
-				select s.user, ss.smiley, sum(count) count
+				select s.user_id \"user\", ss.smiley, sum(count) count
 					from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
 					where $filter 
-					group by s.user, ss.smiley
+					group by s.user_id, ss.smiley
 			)
 				select sm.filename, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
 				from
@@ -558,10 +558,10 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Word usage (top 100)',
 		'query' => "with wordcount as (
-			select s.user, sw.word, sum(count) count
+			select s.user_id \"user\", sw.word, sum(count) count
 				from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
 				where $filter
-				group by s.user, sw.word
+				group by s.user_id, sw.word
 		)
 				select w.word, d.count, concat(u.id, '$$', u.name, '$$', c.count) top
 				from 
@@ -601,7 +601,7 @@ if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST[
 			'title' => "Ego points",
 			'query' => "SELECT u.id AS id, s.message AS message
 				FROM shouts s
-					JOIN users u ON (s.user = u.id)
+					JOIN users u ON (s.user_id = u.id)
 				WHERE s.deleted = 0
 					AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
 					AND $filter
@@ -644,7 +644,7 @@ $queries[] = array(
 		'title' => 'First and last posts',
 		'query' => "SELECT u.name, TO_CHAR(MIN(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') min_date, TO_CHAR(MAX(s.date)+interval '1 hours', 'YYYY-MM-DD HH24:MI') max_date, EXTRACT(EPOCH FROM (MAX(s.date)-MIN(s.date))) duration
 				FROM users u
-					JOIN shouts s ON (u.id=s.user)
+					JOIN shouts s ON (u.id=s.user_id)
 				WHERE s.deleted = 0
 					AND $filter
 				GROUP BY u.id, u.name

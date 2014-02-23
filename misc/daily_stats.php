@@ -72,7 +72,7 @@ function format_username($user) {
 
 $max_rank = 5;
 foreach($queries as $query) {
-	$data = db_query("SELECT u.name AS name, uc.color, COUNT(DISTINCT s.id) count FROM shouts s JOIN users u ON (s.user=u.id) JOIN user_categories uc ON (u.category=uc.id) WHERE s.deleted=0 AND {$query['filter']} GROUP BY u.id, u.name, uc.color ORDER BY count DESC, u.name ASC", $query['params']);
+	$data = db_query("SELECT u.name AS name, uc.color, COUNT(DISTINCT s.id) count FROM shouts s JOIN users u ON (s.user_id=u.id) JOIN user_categories uc ON (u.category=uc.id) WHERE s.deleted=0 AND {$query['filter']} GROUP BY u.id, u.name, uc.color ORDER BY count DESC, u.name ASC", $query['params']);
 
 	$total = 0;
 	$top_spammers = '';

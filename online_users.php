@@ -51,7 +51,7 @@ if(count($matches[1]) > 0) {
 		}
 	}
 
-	$query = 'INSERT INTO online_users ("user") VALUES (' . implode('), (', $placeholders) . ')';
+	$query = 'INSERT INTO online_users (user_id) VALUES (' . implode('), (', $placeholders) . ')';
 	db_query($query, $parameters);
 }
 

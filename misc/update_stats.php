@@ -44,7 +44,7 @@ foreach($periods as &$period) {
 		}
 	}
 
-	$query = 'SELECT u.name, COUNT(*) shouts FROM users u JOIN shouts s ON (u.id = s.user) WHERE ((? = ? AND s.id >= ? AND s.id < ?) OR (? < ? AND ((s.epoch = ? AND s.id >= ?) OR (s.epoch > ? AND s.epoch < ?) OR (s.epoch = ? AND s.id < ?)))) AND deleted = 0 GROUP BY u.id, u.name ORDER BY COUNT(*) DESC LIMIT 1';
+	$query = 'SELECT u.name, COUNT(*) shouts FROM users u JOIN shouts s ON (u.id = s.user_id) WHERE ((? = ? AND s.id >= ? AND s.id < ?) OR (? < ? AND ((s.epoch = ? AND s.id >= ?) OR (s.epoch > ? AND s.epoch < ?) OR (s.epoch = ? AND s.id < ?)))) AND deleted = 0 GROUP BY u.id, u.name ORDER BY COUNT(*) DESC LIMIT 1';
 	$data2 = db_query($query, array($data[$min_start]['epoch'], $data[$min_end]['epoch'], $data[$min_start]['id'], $data[$min_end]['id'], $data[$min_start]['epoch'], $data[$min_end]['epoch'], $data[$min_start]['epoch'], $data[$min_start]['id'], $data[$min_start]['epoch'], $data[$min_end]['epoch'], $data[$min_end]['epoch'], $data[$min_end]['id']));
 	$min_max_spammer = $data2[0];
 	$data2 = db_query($query, array($data[$max_start]['epoch'], $data[$max_end]['epoch'], $data[$max_start]['id'], $data[$max_end]['id'], $data[$max_start]['epoch'], $data[$max_end]['epoch'], $data[$max_start]['epoch'], $data[$max_start]['id'], $data[$max_start]['epoch'], $data[$max_end]['epoch'], $data[$max_end]['epoch'], $data[$max_end]['id']));
@@ -67,7 +67,7 @@ unset($period);
 $time_difference = 300;
 $message_difference = 5;
 
-$query = 'SELECT "user", UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY epoch ASC, id ASC';
+$query = 'SELECT user_id "user", UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY epoch ASC, id ASC';
 $data = db_query($query);
 
 $time_queue = array();

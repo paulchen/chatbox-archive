@@ -68,7 +68,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	process_nick($member_id, $member_nick, $nick_color);
 
-	$query = 'SELECT id, epoch, "user", UNIX_TIMESTAMP("date") "date", message FROM shouts WHERE id = ? AND epoch = ?';
+	$query = 'SELECT id, epoch, user_id, UNIX_TIMESTAMP("date") "date", message FROM shouts WHERE id = ? AND epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 
 	$max_id = max($id, $max_id);
@@ -94,7 +94,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$date += $datetime->format('Z');
 
 	if(count($data) == 0) {
-		$query = 'INSERT INTO shouts (id, epoch, date, "user", message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
+		$query = 'INSERT INTO shouts (id, epoch, date, user_id, message, hour, day, month, year) VALUES (?, ?, FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?)';
 		db_query($query, array($id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
 		process_smilies($id, $epoch);
@@ -103,7 +103,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	}
 
 	$old_message = $data[0]['message'];
-	$old_user = $data[0]['user'];
+	$old_user = $data[0]['user_id'];
 	$old_date = $data[0]['date']-3600;
 	if($old_message == $message && $old_user == $member_id && $old_date == $date) {
 		return 0;
@@ -115,10 +115,10 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	
 	$replaced = time()-3600;
 
-	$query = 'INSERT INTO shout_revisions (id, epoch, revision, "user", "date", replaced, text) VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?)';
+	$query = 'INSERT INTO shout_revisions (id, epoch, revision, user_id, "date", replaced, text) VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?)';
 	db_query($query, array($id, $epoch, $revision, $old_user, $old_date, $replaced, $old_message));
 
-	$query = 'UPDATE shouts SET "date" = FROM_UNIXTIME(?), "user" = ?, message = ?, hour = ?, day = ?, month = ?, year = ? WHERE id = ? AND epoch = ?';
+	$query = 'UPDATE shouts SET "date" = FROM_UNIXTIME(?), user_id = ?, message = ?, hour = ?, day = ?, month = ?, year = ? WHERE id = ? AND epoch = ?';
 	db_query($query, array($date, $member_id, $message, $hour, $day, $month, $year, $id, $epoch));
 
 	process_smilies($id, $epoch);

@@ -7,7 +7,7 @@ if(!isset($_REQUEST['user'])) {
 
 $rows = db_query('SELECT UNIX_TIMESTAMP(s.date) last_seen
 		FROM shouts s
-			JOIN users u ON (s.user = u.id)
+			JOIN users u ON (s.user_id = u.id)
 		WHERE u.name = ?
 		ORDER BY s.epoch DESC, s.id DESC
 		LIMIT 1', array($_REQUEST['user']));

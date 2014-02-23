@@ -4,7 +4,7 @@ require_once(dirname(__FILE__) . '/../lib/ego.php');
 
 $rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message
 		FROM shouts s
-			JOIN users u ON (s.user = u.id)
+			JOIN users u ON (s.user_id = u.id)
 		WHERE s.deleted = 0
 			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
 		ORDER BY s.id ASC");

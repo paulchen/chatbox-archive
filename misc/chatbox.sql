@@ -173,7 +173,7 @@ ALTER SEQUENCE invisible_users_id_seq OWNED BY invisible_users.id;
 CREATE TABLE online_users (
     id integer NOT NULL,
     "timestamp" timestamp without time zone DEFAULT now() NOT NULL,
-    "user" integer NOT NULL
+    "user_id" integer NOT NULL
 );
 
 
@@ -311,7 +311,7 @@ CREATE TABLE shout_revisions (
     replaced timestamp without time zone NOT NULL,
     text text NOT NULL,
     date timestamp without time zone NOT NULL,
-    "user" integer NOT NULL
+    "user_id" integer NOT NULL
 );
 
 
@@ -353,7 +353,7 @@ CREATE TABLE shouts (
     id integer NOT NULL,
     epoch integer NOT NULL,
     date timestamp without time zone NOT NULL,
-    "user" integer NOT NULL,
+    "user_id" integer NOT NULL,
     message text NOT NULL,
     deleted smallint DEFAULT 0 NOT NULL,
     hour integer NOT NULL,
@@ -736,7 +736,7 @@ CREATE INDEX shouts_year_idx ON shouts USING btree (year);
 --
 
 ALTER TABLE ONLY online_users
-    ADD CONSTRAINT online_users_user_fkey FOREIGN KEY ("user") REFERENCES users(id);
+    ADD CONSTRAINT online_users_user_fkey FOREIGN KEY ("user_id") REFERENCES users(id);
 
 
 --
@@ -784,7 +784,7 @@ ALTER TABLE ONLY shout_words
 --
 
 ALTER TABLE ONLY shouts
-    ADD CONSTRAINT shouts_user_fkey FOREIGN KEY ("user") REFERENCES users(id);
+    ADD CONSTRAINT shouts_user_fkey FOREIGN KEY ("user_id") REFERENCES users(id);
 
 
 --
