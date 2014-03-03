@@ -817,3 +817,6 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
+insert into settings ("key", "value") values ('forum_username', '');
+insert into settings ("key", "value") values ('forum_password', '');
+
