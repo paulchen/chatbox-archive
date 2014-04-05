@@ -24,8 +24,8 @@ login() {
 	username=`grep forum_user config.php|sed -e "s/^.*= '//g;s/';//g"`
 	password=`grep forum_pass config.php|sed -e "s/^.*= '//g;s/';//g"`
 
-	wget --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://www.informatik-forum.at/login.php?do=login -O login.html -q --timeout=$timeout
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://www.informatik-forum.at/faq.php -O faq.html -q --timeout=$timeout
+	wget --save-cookies $cookie_file --keep-session-cookies --post-data="vb_login_username=$username&vb_login_password=$password&vb_login_password_hint=Password&cookieuser=1&s=&securitytoken=guest&do=login&vb_login_md5password=&vb_login_md5password_utf=" http://signanz.htu.tuwien.ac.at/login.php?do=login -O login.html -q --timeout=$timeout --header="Host: www.informatik-forum.at"
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies  http://signanz.htu.tuwien.ac.at/faq.php -O faq.html -q --timeout=$timeout --header="Host: www.informatik-forum.at"
 	grep SECURITYTOKEN faq.html|sed -e 's/^.* "//g;s/".*$//' > $tokenfile
 	rm login.html faq.html
 }
@@ -44,7 +44,7 @@ while true; do
 	log "Fetching chatbox... "
 	rm -f $tmpdir/cb1.xml
 	fail=0
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://www.informatik-forum.at/misc.php?show=ccbmessages -O $tmpdir/cb1.xml -q --timeout=$timeout || fail=1
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://signanz.htu.tuwien.ac.at/misc.php?show=ccbmessages -O $tmpdir/cb1.xml -q --timeout=$timeout --header="Host: www.informatik-forum.at" || fail=1
 	if [ "$fail" -eq 1 ]; then
 		log "Error while fetching chatbox contents, waiting 60 seconds now..."
 		sleep 60
@@ -56,7 +56,7 @@ while true; do
 		login
 		token=`cat $tokenfile`
 		log "Fetching chatbox..."
-		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://www.informatik-forum.at/misc.php?show=ccbmessages -O $tmpdir/cb1.xml -q --timeout=$timeout
+		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies --post-data="undefined&securitytoken=$token&s=" http://signanz.htu.tuwien.ac.at/misc.php?show=ccbmessages -O $tmpdir/cb1.xml -q --timeout=$timeout --header="Host: www.informatik-forum.at"
 		if [ `grep -c "DOCTYPE" $tmpdir/cb1.xml` -ne 0 ]; then
 			rm -f $tmpdir/cb1.xml
 			log "Unable to fetch chatbox contents, terminating now."
@@ -79,7 +79,7 @@ while true; do
 			page=$((page+1))
 			log "Fetching archive page $page... "
 			rm -f abc$page.xml
-			wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?do=ccarc\&page=$page -q -O abc$page.xml --timeout=$timeout
+			wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://signanz.htu.tuwien.ac.at/misc.php?do=ccarc\&page=$page -q -O abc$page.xml --timeout=$timeout --header="Host: www.informatik-forum.at"
 			log "Processing... "
 			rm -f def$page.xml
 			iconv -f iso-8859-1 -t utf-8 abc$page.xml -o def$page.xml
@@ -99,7 +99,7 @@ while true; do
 	fi
 
 	log "Fetching online users... "
-	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q --timeout=$timeout || fail=1
+	wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://signanz.htu.tuwien.ac.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q --timeout=$timeout --header="Host: www.informatik-forum.at" || fail=1
 	if [ "$fail" -eq 1 ]; then
 		log "Error while fetching chatbox users, waiting 60 seconds now..."
 		sleep 60
@@ -111,7 +111,7 @@ while true; do
 		login
 		token=`cat $tokenfile`
 		log "Fetching online users..."
-		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://www.informatik-forum.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q --timeout=$timeout
+		wget --load-cookies $cookie_file --save-cookies $cookie_file --keep-session-cookies http://signanz.htu.tuwien.ac.at/misc.php?show=ccbusers -O $tmpdir/cbusers1.xml -q --timeout=$timeout --header="Host: www.informatik-forum.at"
 		if [ `grep -c "DOCTYPE" $tmpdir/cbusers1.xml` -ne 0 ]; then
 			rm -f $tmpdir/cbusers1.xml
 			log "Unable to fetch chatbox contents, terminating now."
