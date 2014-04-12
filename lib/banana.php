@@ -55,7 +55,7 @@ function calculate_bananas($rows) {
 		if($debug) {
 			echo "processing row with id '${row['shout_id']}'... ";
 		}
-		if(preg_match_all('+<[^<>]*/(NoDevilBanana|trampolindb|devil-banana|turbo-devil-banana|extreme-turbo-devil-banana)\.gif[^<>]*>+', $row['message'], $matches, PREG_SET_ORDER)) {
+		if(preg_match_all('+<[^<>]*/(NoDevilBanana|trampolindb|devil-banana|turbo-devil-banana|extreme-turbo-devil-banana|multihaildb)\.gif[^<>]*>+', $row['message'], $matches, PREG_SET_ORDER)) {
 			foreach($matches as $match) {
 				switch($match[0]) {
 				case '<img src="pics/nb/smilies/NoDevilBanana.gif" border="0" alt="" title="No Devil Banana" class="inlineimg" />':
@@ -66,6 +66,7 @@ function calculate_bananas($rows) {
 				case '<img src="pics/nb/smilies/devil-banana.gif" border="0" alt="" title="devil banana" class="inlineimg" />':
 				case '<img src="images/smilies/turbo-devil-banana.gif" border="0" alt="" title="turbo devil banana" class="inlineimg" />':
 				case '<img src="images/smilies/extreme-turbo-devil-banana.gif" border="0" alt="" title="extreme turbo devil banana" class="inlineimg" />':
+				case '<img src="images/smilies/multihaildb.gif" border="0" alt="" title="hail the devil banana" class="inlineimg" />':
 					add_banana($users_data, $open_bananas, $first_banana_time, $match[1], $row['id'], $row['timestamp']);
 					break;
 

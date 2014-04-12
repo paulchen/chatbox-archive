@@ -6,7 +6,7 @@ $rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message, UNIX_T
 		FROM shouts s
 			JOIN users u ON (s.user_id = u.id)
 		WHERE s.deleted = 0
-			AND (s.message LIKE '%/trampolindb.gif%' OR s.message LIKE '%/devil-banana.gif%' OR s.message LIKE '%/turbo-devil-banana.gif%' OR s.message LIKE '%/extreme-turbo-devil-banana.gif%' OR s.message LIKE '%/NoDevilBanana.gif%')
+			AND (s.message LIKE '%/trampolindb.gif%' OR s.message LIKE '%/devil-banana.gif%' OR s.message LIKE '%/turbo-devil-banana.gif%' OR s.message LIKE '%/extreme-turbo-devil-banana.gif%' OR s.message LIKE '%/NoDevilBanana.gif%' OR s.message LIKE '%/multihaildb.gif%')
 		ORDER BY s.id ASC");
 $result = calculate_bananas($rows);
 $user_bananas = $result['user_bananas'];

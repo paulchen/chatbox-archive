@@ -51,11 +51,13 @@ $(document).ready(function() {
 				<th><img src="images/smilies/trampolindb.gif" alt=":trampolindb:" title=":trampolindb:" /></th>
 				<th><img src="images/smilies/turbo-devil-banana.gif" alt=":turbodb:" title=":turbodb:" /></th>
 				<th><img src="images/smilies/extreme-turbo-devil-banana.gif" alt=":extremeturbodb:" title=":extremeturbodb:" /></th>
+				<th><img src="images/smilies/multihaildb.gif" alt=":multihaildb:" title=":multihaildb:" /></th>
 				<th>Total</th>
 				<th><img src="images/smilies/devil-banana.gif" alt=":db:" title=":db:" /></th>
 				<th><img src="images/smilies/trampolindb.gif" alt=":trampolindb:" title=":trampolindb:" /></th>
 				<th><img src="images/smilies/turbo-devil-banana.gif" alt=":turbodb:" title=":turbodb:" /></th>
 				<th><img src="images/smilies/extreme-turbo-devil-banana.gif" alt=":extremeturbodb:" title=":extremeturbodb:" /></th>
+				<th><img src="images/smilies/multihaildb.gif" alt=":multihaildb:" title=":multihaildb:" /></th>
 				<th>min</th>
 				<th>max</th>
 				<th>avg</th>
@@ -70,11 +72,13 @@ $(document).ready(function() {
 					<td><?php echo isset($data['bananas_added']['trampolindb']) ? $data['bananas_added']['trampolindb'] : 0 ?></td>
 					<td><?php echo isset($data['bananas_added']['turbo-devil-banana']) ? $data['bananas_added']['turbo-devil-banana'] : 0 ?></td>
 					<td><?php echo isset($data['bananas_added']['extreme-turbo-devil-banana']) ? $data['bananas_added']['extreme-turbo-devil-banana'] : 0 ?></td>
+					<td><?php echo isset($data['bananas_added']['multihaildb']) ? $data['bananas_added']['multihaildb'] : 0 ?></td>
 					<td><?php echo $data['total_annihilated'] ?></td>
 					<td><?php echo isset($data['bananas_annihilated']['devil-banana']) ? $data['bananas_annihilated']['devil-banana'] : 0 ?></td>
 					<td><?php echo isset($data['bananas_annihilated']['trampolindb']) ? $data['bananas_annihilated']['trampolindb'] : 0 ?></td>
 					<td><?php echo isset($data['bananas_annihilated']['turbo-devil-banana']) ? $data['bananas_annihilated']['turbo-devil-banana'] : 0 ?></td>
 					<td><?php echo isset($data['bananas_annihilated']['extreme-turbo-devil-banana']) ? $data['bananas_annihilated']['extreme-turbo-devil-banana'] : 0 ?></td>
+					<td><?php echo isset($data['bananas_annihilated']['multihaildb']) ? $data['bananas_annihilated']['multihaildb'] : 0 ?></td>
 					<td><?php echo ($data['total_annihilated'] == 0) ? '-' : $data['times']['min'] ?></td>
 					<td><?php echo ($data['total_annihilated'] == 0) ? '-' : $data['times']['max'] ?></td>
 					<td><?php echo ($data['total_annihilated'] == 0) ? '-' : $data['times']['avg'] ?></td>
@@ -89,11 +93,13 @@ $(document).ready(function() {
 				<th><?php echo isset($total['bananas_added']['trampolindb']) ? $total['bananas_added']['trampolindb'] : 0 ?></th>
 				<th><?php echo isset($total['bananas_added']['turbo-devil-banana']) ? $total['bananas_added']['turbo-devil-banana'] : 0 ?></th>
 				<th><?php echo isset($total['bananas_added']['extreme-turbo-devil-banana']) ? $total['bananas_added']['extreme-turbo-devil-banana'] : 0 ?></th>
+				<th><?php echo isset($total['bananas_added']['multihaildb']) ? $total['bananas_added']['multihaildb'] : 0 ?></th>
 				<th><?php echo $total['total_annihilated'] ?></th>
 				<th><?php echo isset($total['bananas_annihilated']['devil-banana']) ? $total['bananas_annihilated']['devil-banana'] : 0 ?></th>
 				<th><?php echo isset($total['bananas_annihilated']['trampolindb']) ? $total['bananas_annihilated']['trampolindb'] : 0 ?></th>
 				<th><?php echo isset($total['bananas_annihilated']['turbo-devil-banana']) ? $total['bananas_annihilated']['turbo-devil-banana'] : 0 ?></th>
 				<th><?php echo isset($total['bananas_annihilated']['extreme-turbo-devil-banana']) ? $total['bananas_annihilated']['extreme-turbo-devil-banana'] : 0 ?></th>
+				<th><?php echo isset($total['bananas_annihilated']['multihaildb']) ? $total['bananas_annihilated']['multihaildb'] : 0 ?></th>
 				<th><?php echo ($total['total_annihilated'] == 0) ? '-' : $total['times']['min'] ?></th>
 				<th><?php echo ($total['total_annihilated'] == 0) ? '-' : $total['times']['max'] ?></th>
 				<th><?php echo ($total['total_annihilated'] == 0) ? '-' : $total['times']['avg'] ?></th>
