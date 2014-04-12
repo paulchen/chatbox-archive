@@ -6,7 +6,7 @@ $rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message
 		FROM shouts s
 			JOIN users u ON (s.user_id = u.id)
 		WHERE s.deleted = 0
-			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%')
+			AND (s.message LIKE '%ego%' OR s.message LIKE '%/hail.gif%' OR s.message LIKE '%/multihail.gif%' OR s.message LIKE '%/antihail.png%' OR s.message LIKE '%/multihaildb.gif%')
 		ORDER BY s.id ASC");
 $result = calculate_ego($rows);
 $user_egos = $result['user_egos'];

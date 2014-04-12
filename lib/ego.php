@@ -79,11 +79,14 @@ function calculate_ego($rows) {
 	$available_ego_per_person = array();
 	foreach($rows as $row) {
 		if($debug) {
-			echo "processing row with id '${row['shout_id']}'... ";
+			echo "processing row with id '${row['shout_id']}'... \n";
 		}
-		if(preg_match_all('+<[^<>]*/((multi|anti)?hail)\.(gif|png)[^<>]*>+', $row['message'], $matches, PREG_SET_ORDER)) {
+		if(preg_match_all('+<[^<>]*/(multi|anti)?hail(db)?\.(gif|png)[^<>]*>+', $row['message'], $matches, PREG_SET_ORDER)) {
 			foreach($matches as $match) {
 				if($match[0] == '<img src="images/ob/smilies/multihail.gif" border="0" alt="" title="multihail" class="inlineimg" />') {
+					make_ego_available($available_ego, $available_ego_per_person, $row['id'], 16);
+				}
+				else if($match[0] == '<img src="images/smilies/multihaildb.gif" border="0" alt="" title="hail the devil banana" class="inlineimg" />') {
 					make_ego_available($available_ego, $available_ego_per_person, $row['id'], 16);
 				}
 				else if($match[0] == '<img src="images/ob/smilies/antihail.png" border="0" alt="" title=":nohail:" class="inlineimg" />') {
