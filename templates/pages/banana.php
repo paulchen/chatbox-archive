@@ -43,7 +43,7 @@ $(document).ready(function() {
 		This table is sortable. Click on the column header to sort by the appropriate column.
 		<table class="sortable_table">
 			<thead>
-			<tr><th class="left">User</th><th colspan="5" class="center">Bananas posted</th><th colspan="5" class="center">Bananas neutralized</th><th colspan="3" class="center">Time until neutralization (minutes)</th></tr>
+			<tr><th class="left">User</th><th colspan="6" class="center">Bananas posted</th><th colspan="6" class="center">Bananas neutralized</th><th colspan="3" class="center">Time until neutralization (minutes)</th></tr>
 			<tr>
 				<th></th>
 				<th>Total</th>
