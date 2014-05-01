@@ -84,7 +84,7 @@ $time_difference = 300;
 $message_difference = 5;
 
 $query = 'SELECT user_id "user", UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY epoch ASC, id ASC';
-$data = db_query($query);
+$stmt = db_query_resultset($query);
 
 $time_queue = array();
 $id_queue = array();
@@ -104,7 +104,7 @@ function increase_points(&$points, $user1, $user2) {
 	}
 }
 
-foreach($data as $row) {
+while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	while(count($time_queue) > 0 && $row['date']-$time_queue[0]['date'] > $time_difference) {
 		array_shift($time_queue);
 	}
@@ -132,6 +132,7 @@ foreach($data as $row) {
 	$time_queue[] = $row;
 	$id_queue[] = $row;
 }
+db_stmt_close($stmt);
 
 foreach($overall_points as &$row) {
 	arsort($row);
