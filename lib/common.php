@@ -34,6 +34,20 @@ foreach($memcached_servers as $server) {
 }
 
 function db_query($query, $parameters = array()) {
+	$stmt = db_query_resultset($query, $parameters);
+	$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	db_stmt_close($stmt);
+	return $data;
+}
+
+function db_stmt_close($stmt) {
+	if(!$stmt->closeCursor()) {
+		$error = $stmt->errorInfo();
+		db_error($error[2], debug_backtrace(), $query, $parameters);
+	}
+}
+
+function db_query_resultset($query, $parameters = array()) {
 	global $db, $db_queries;
 
 	$query_start = microtime(true);
@@ -49,11 +63,7 @@ function db_query($query, $parameters = array()) {
 		$error = $stmt->errorInfo();
 		db_error($error[2], debug_backtrace(), $query, $parameters);
 	}
-	$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-	if(!$stmt->closeCursor()) {
-		$error = $stmt->errorInfo();
-		db_error($error[2], debug_backtrace(), $query, $parameters);
-	}
+
 	$query_end = microtime(true);
 
 	if(!isset($db_queries)) {
@@ -61,7 +71,7 @@ function db_query($query, $parameters = array()) {
 	}
 	$db_queries[] = array('timestamp' => time(), 'query' => $query, 'parameters' => serialize($parameters), 'execution_time' => $query_end-$query_start);
 
-	return $data;
+	return $stmt;
 }
 
 function db_error($error, $stacktrace, $query, $parameters) {
