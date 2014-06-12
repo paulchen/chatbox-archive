@@ -40,7 +40,7 @@ if(isset($_GET['id']) && isset($_GET['epoch'])) {
 
 $page = isset($_GET['page']) ? $_GET['page'] : $default_page;
 $limit = isset($_GET['limit']) ? $_GET['limit'] : $default_limit;
-if(!preg_match('/^[0-9]+$/', $page)) {
+if(!preg_match('/^[0-9]+$/', $page) || $page < 1) {
 	$page = $default_page;
 }
 if(!preg_match('/^[0-9]+$/', $limit)) {
