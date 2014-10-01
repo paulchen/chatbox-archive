@@ -33,9 +33,11 @@ if(date('w') == 1) {
 }
 if(date('d') == '01') {
 	$month = date('m')-1;
+	$month_index = $month;
 	$year = date('Y');
 	if($month == 0) {
 		$month = 12;
+		$month_index = 12;
 		$year--;
 	}
 	else if($month == 9) {
@@ -43,7 +45,7 @@ if(date('d') == '01') {
 	}
 
 	$monthnames = array('', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
-	$queries[] = array('name' => "{$monthnames[$month]} $year", 'filter' => 'month = ? AND year = ?', 'params' => array($month, $year), 'details_link' => "$base_url?month=$month&year=$year");
+	$queries[] = array('name' => "{$monthnames[$month_index]} $year", 'filter' => 'month = ? AND year = ?', 'params' => array($month, $year), 'details_link' => "$base_url?month=$month&year=$year");
 }
 if(date('dm') == '0101') {
 	$messages[] = 'Happy new year! :cheer:';
