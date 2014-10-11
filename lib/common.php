@@ -363,11 +363,11 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	$filters = array('deleted = 0');
 	$params = array();
 	if($text != '') {
-		$filters[] = 's.message LIKE ?';
+		$filters[] = 's.message ILIKE ?';
 		$params[] = "%$text%";
 	}
 	if($user != '') {
-		$filters[] = 'u.name = ?';
+		$filters[] = 'LOWER(u.name) = LOWER(?)';
 		$params[] = $user;
 	}
 	if($date != '') {

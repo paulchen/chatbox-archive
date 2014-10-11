@@ -8,7 +8,7 @@ if(!isset($_REQUEST['user'])) {
 $rows = db_query('SELECT s.date last_seen, s.id id, s.epoch epoch
 		FROM shouts s
 			JOIN users u ON (s.user_id = u.id)
-		WHERE u.name = ?
+		WHERE LOWER(u.name) = LOWER(?)
 		ORDER BY s.epoch DESC, s.id DESC
 		LIMIT 1', array($_REQUEST['user']));
 if(count($rows) == 0) {
