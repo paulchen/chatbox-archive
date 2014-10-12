@@ -109,25 +109,29 @@ function db_last_insert_id() {
 function log_data() {
 	global $db_queries, $start_time;
 
-	$end_time = microtime(true);
+	$data = array();
+	$data['db_queries'] = $db_queries;
 
+	$data['start_time'] = $start_time;
+	$data['end_time'] = microtime(true);
+
+	$data['request_uri'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+	$data['remote_addr'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+	$data['user_agent'] = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+	$data['auth_user'] = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
+	$data['request_time'] = time();
+
+	// TODO execute the code below asynchronously
 	$query = 'INSERT INTO requests (timestamp, url, ip, request_time, browser, username) VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?, ?)';
-
-	$request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-	$remote_addr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-	$user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-	$auth_user = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
-
-	db_query($query, array(time(), $request_uri, $remote_addr, $end_time-$start_time, $user_agent, $auth_user));
+	db_query($query, array($data['request_time'], $data['request_uri'], $data['remote_addr'], $data['end_time']-$data['start_time'], $data['user_agent'], $data['auth_user']));
 	$request_id = db_last_insert_id();
 
 	$query = 'INSERT INTO queries (request, timestamp, query, parameters, execution_time) VALUES (?, FROM_UNIXTIME(?), ?, ?, ?)';
 
-	/* don't use a foreach loop as this would create an endless loop because of db_query() appending each qwuery to $db_queries */
-	/* subtract 1 as we do not want the 'INSERT INTO requests' query (see above) to be logged */
-	$queries = count($db_queries)-1;
+	/* don't use a foreach loop as this would create an endless loop because of db_query() appending each query to $db_queries */
+	$queries = count($data['db_queries']);
 	for($a=0; $a<$queries; $a++) {
-		$db_query = $db_queries[$a];
+		$db_query = $data['db_queries'][$a];
 		db_query($query, array($request_id, $db_query['timestamp'], $db_query['query'], $db_query['parameters'], $db_query['execution_time']));
 	}
 }
@@ -376,19 +380,20 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 	}
 
 	$filter = implode(' AND ', $filters);
-	$query = "SELECT s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message, COUNT(sr.revision) revision_count
+	$query = "SELECT s.primary_id primary_id, s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message
 			FROM shouts s
-				JOIN users u ON (s.user_id = u.id) JOIN user_categories c ON (u.category = c.id)
-				LEFT JOIN shout_revisions sr ON (s.id = sr.id AND s.epoch = sr.epoch)
+				JOIN users u ON (s.user_id = u.id)
+				JOIN user_categories c ON (u.category = c.id)
 			WHERE $filter
-			GROUP BY s.id, s.epoch, s.date, color, u.id, user_name, message
-			ORDER BY s.epoch DESC, s.id DESC
+			ORDER BY s.primary_id DESC
 			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
 	$db_data = db_query($query, $params);
 
 	$data = array();
+	$placeholders = array();
+	$ids = array();
 	foreach($db_data as $row) {
 		$datetime = new DateTime($row['date'], new DateTimeZone('Europe/London'));
 		$datetime->setTimezone((new DateTime())->getTimezone());
@@ -405,15 +410,35 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		$message = clean_text($row['message']);
 
-		$revisions = array();
-		if($row['revision_count'] > 0) {
-			$sql = 'SELECT sr.revision revision, sr.text "text", sr.date "date", sr.user_id "user", c.color color, u.name user_name
-					FROM shout_revisions sr
-						JOIN users u ON (sr.user_id = u.id) JOIN user_categories c ON (u.category = c.id)
-					WHERE sr.id = ? AND sr.epoch = ?
-					ORDER BY sr.revision DESC';
-			$revisions = db_query($sql, array($row['id'], $row['epoch']));
+		$data[$row['primary_id']] = array('unixdate' => $datetime->getTimestamp(), 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch'], 'revisions' => array());
 
+		$placeholders[] = '?';
+		$ids[] = $row['primary_id'];
+	}
+
+	if(count($placeholders) > 0) {
+		$placeholder_string = implode(', ', $placeholders);
+		$sql = "SELECT sr.primary_id primary_id, sr.revision revision, sr.text \"text\", sr.date \"date\", sr.user_id \"user\", c.color color, u.name user_name
+				FROM shout_revisions sr
+					JOIN users u ON (sr.user_id = u.id)
+					JOIN user_categories c ON (u.category = c.id)
+				WHERE sr.primary_id IN ($placeholder_string)
+				ORDER BY sr.primary_id DESC, sr.revision DESC";
+		$revision_data = db_query($sql, $ids);
+		unset($placeholders);
+		unset($ids);
+
+		$grouped_data = array();
+		foreach($revision_data as $row) {
+			if(!isset($grouped_data[$row['primary_id']])) {
+				$grouped_data[$row['primary_id']] = array();
+			}
+			$grouped_data[$row['primary_id']][] = $row;
+
+		}
+		unset($revision_data);
+
+		foreach($grouped_data as $primary_id => $revisions) {
 			foreach($revisions as &$revision) {
 				$revision['text'] = clean_text($revision['text']);
 				$revision['color'] = ($revision['color'] == '-') ? 'user' : $revision['color'];
@@ -422,20 +447,31 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 				$datetime->setTimezone((new DateTime())->getTimezone());
 				$revision['date'] = $datetime->format('[d-m-Y H:i]');
 			}
-		}
+			unset($revision);
 
-		$data[] = array('unixdate' => $datetime->getTimestamp(), 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch'], 'revisions' => $revisions);
+			$data[$primary_id]['revisions'] = $revisions;
+		}
+		unset($grouped_data);
 	}
 
-	$query = 'SELECT COUNT(*) shouts FROM shouts WHERE deleted = 0';
-	$db_data = db_query($query);
-	$total_shouts = $db_data[0]['shouts'];
+	$total_shouts = get_setting('visible_shouts');
 
-	$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user_id = u.id) WHERE $filter";
-	array_pop($params);
-	array_pop($params);
-	$db_data = db_query($query, $params);
-	$filtered_shouts = $db_data[0]['shouts'];
+	if($filter != 'deleted = 0') {
+		if($user != '') {
+			$query = "SELECT COUNT(*) shouts FROM shouts s JOIN users u ON (s.user_id = u.id) WHERE $filter";
+		}
+		else {
+			$query = "SELECT COUNT(*) shouts FROM shouts s WHERE $filter";
+		}
+
+		array_pop($params);
+		array_pop($params);
+		$db_data = db_query($query, $params);
+		$filtered_shouts = $db_data[0]['shouts'];
+	}
+	else {
+		$filtered_shouts = $total_shouts;
+	}
 
 	$page_count = ceil($filtered_shouts/$limit);
 

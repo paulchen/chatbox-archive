@@ -13,6 +13,12 @@ require_once('lib/common.php');
 $max_id = get_setting('max_shout_id');
 $epoch = get_setting('current_epoch');
 
+$max_id_previous_epoch = 0;
+$data = db_query('SELECT MAX(id) id FROM shouts WHERE epoch = ?', array($epoch - 1));
+if(count($data) == 1) {
+	$max_id_previous_epoch = $data[0]['id'];
+}
+
 $contents = file_get_contents($argv[1]);
 if(strpos($contents, 'vsa_chatbox_bit') !== false) {
 	$ret = process_chatbox($contents);
@@ -25,6 +31,12 @@ else {
 }
 
 set_setting('max_shout_id', $max_id);
+
+$data = db_query('SELECT COUNT(*) shout_count FROM shouts');
+set_setting('total_shouts', $data[0]['shout_count']);
+
+$data = db_query('SELECT COUNT(*) shout_count FROM shouts WHERE deleted = 0');
+set_setting('visible_shouts', $data[0]['shout_count']);
 
 touch($success_file);
 
@@ -64,11 +76,11 @@ function process_nick($member_id, $member_nick, $nick_color) {
 }
 
 function process_shout($id, $date, $member_id, $member_nick, $nick_color, $message) {
-	global $mysqli, $max_id, $epoch;
+	global $mysqli, $max_id, $epoch, $max_id_previous_epoch;
 
 	process_nick($member_id, $member_nick, $nick_color);
 
-	$query = 'SELECT id, epoch, user_id, EXTRACT(EPOCH FROM "date") "date", message FROM shouts WHERE id = ? AND epoch = ?';
+	$query = 'SELECT primary_id, id, epoch, user_id, EXTRACT(EPOCH FROM "date") "date", message FROM shouts WHERE id = ? AND epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 
 	$max_id = max($id, $max_id);
@@ -94,8 +106,10 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$date += $datetime->format('Z');
 
 	if(count($data) == 0) {
-		$query = 'INSERT INTO shouts (id, epoch, date, user_id, message, hour, day, month, year) VALUES (?, ?, TO_TIMESTAMP(?), ?, ?, ?, ?, ?, ?)';
-		db_query($query, array($id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
+		$primary_id = $id + $max_id_previous_epoch;
+
+		$query = 'INSERT INTO shouts (primary_id, id, epoch, date, user_id, message, hour, day, month, year) VALUES (?, ?, ?, TO_TIMESTAMP(?), ?, ?, ?, ?, ?, ?)';
+		db_query($query, array($primary_id, $id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
 		process_smilies($id, $epoch);
 		process_words($id, $epoch);
@@ -122,11 +136,12 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$query = 'SELECT MAX(revision) revision FROM shout_revisions WHERE id = ? AND epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 	$revision = $data[0]['revision'] + 1;
+	$primary_id = $data[0]['primary_id'];
 	
 	$replaced = time()-3600;
 
-	$query = 'INSERT INTO shout_revisions (id, epoch, revision, user_id, "date", replaced, text) VALUES (?, ?, ?, ?, TO_TIMESTAMP(?), FROM_UNIXTIME(?), ?)';
-	db_query($query, array($id, $epoch, $revision, $old_user, $old_date, $replaced, $old_message));
+	$query = 'INSERT INTO shout_revisions (primary_id, id, epoch, revision, user_id, "date", replaced, text) VALUES (?, ?, ?, ?, ?, TO_TIMESTAMP(?), FROM_UNIXTIME(?), ?)';
+	db_query($query, array($primary_id, $id, $epoch, $revision, $old_user, $old_date, $replaced, $old_message));
 
 	$query = 'UPDATE shouts SET "date" = TO_TIMESTAMP(?), user_id = ?, message = ?, hour = ?, day = ?, month = ?, year = ? WHERE id = ? AND epoch = ?';
 	db_query($query, array($date, $member_id, $message, $hour, $day, $month, $year, $id, $epoch));
