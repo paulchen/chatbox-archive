@@ -12,3 +12,4 @@ tmp/cbusers1.xml
 tmp/cbusers2.xml
 tmp/last_update
 archive/
+request_log/req*

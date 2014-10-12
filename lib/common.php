@@ -121,6 +121,11 @@ function log_data() {
 	$data['auth_user'] = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
 	$data['request_time'] = time();
 
+	$serialized_data = serialize($data);
+	$filename = tempnam(get_setting('request_log_dir'), 'req');
+	file_put_contents($filename, $serialized_data);
+
+	return;
 	// TODO execute the code below asynchronously
 	$query = 'INSERT INTO requests (timestamp, url, ip, request_time, browser, username) VALUES (FROM_UNIXTIME(?), ?, ?, ?, ?, ?)';
 	db_query($query, array($data['request_time'], $data['request_uri'], $data['remote_addr'], $data['end_time']-$data['start_time'], $data['user_agent'], $data['auth_user']));
