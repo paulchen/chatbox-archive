@@ -104,6 +104,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	$datetime->setTimezone(new DateTimeZone('Europe/London'));
 	$date += $datetime->format('Z');
+	$primary_id = $data[0]['primary_id'];
 
 	if(count($data) == 0) {
 		$primary_id = $id + $max_id_previous_epoch;
@@ -136,7 +137,6 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$query = 'SELECT MAX(revision) revision FROM shout_revisions WHERE id = ? AND epoch = ?';
 	$data = db_query($query, array($id, $epoch));
 	$revision = $data[0]['revision'] + 1;
-	$primary_id = $data[0]['primary_id'];
 	
 	$replaced = time()-3600;
 
