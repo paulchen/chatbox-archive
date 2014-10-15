@@ -134,6 +134,10 @@ function noauth() {
 	die();
 }
 
+function cp1252_character($matches) {
+	return iconv('WINDOWS-1252', 'UTF-8', $matches[1]);
+}
+
 function unicode_character($matches) {
 	if(($matches[1] == 0x9) || ($matches[1] == 0xA) || ($matches[1] == 0xD) ||
 			(($matches[1] >= 0x20) && ($matches[1] <= 0xD7FF)) ||
@@ -337,6 +341,8 @@ function clean_text($message) {
 	}
 	$message = preg_replace('/<a href="([^:"]+")/', '<a href="http://www.informatik-forum.at/\1', $message);
 
+	// \x0097 is the "x" posted by Ravu al Hemio's bot's !thanks command; \x009f is the German "sharp s"
+	$message = preg_replace_callback('/.([\\x{0080}-\\x{0096}\\x{0098}-\\x{009e}])/', 'cp1252_character', $message);
 	$message = preg_replace_callback('/&#([0-9]+);/', 'unicode_character', $message);
 	$message = preg_replace('/color=(#......)/', 'color="\1"', $message);
 

@@ -11,6 +11,7 @@ tmp/cb2.xml
 tmp/cbusers1.xml
 tmp/cbusers2.xml
 tmp/last_update
+tmp/login_cookies_*
 archive/
 request_log/req*
 misc/archive.log

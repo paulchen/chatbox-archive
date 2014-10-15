@@ -39,6 +39,9 @@ $(document).ready(function() {
 	</div>
 	<hr />
 	<div>
+		<b>Warning</b>: Your password will be stored unencrypted.
+	</div>
+	<div>
 		<form method="post" action="login.php">
 			<table>
 				<tr>

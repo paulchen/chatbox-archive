@@ -172,7 +172,7 @@ function _post($cookie, $securitytoken, $message) {
 
 	$post = array(
 		'do' => 'cb_postnew',
-		'vsacb_newmessage' => iconv('UTF-8', 'ISO-8859-15//TRANSLIT', $message),
+		'vsacb_newmessage' => iconv('UTF-8', 'WINDOWS-1252//TRANSLIT', $message),
 		'securitytoken' => $securitytoken,
 	);
 	$curl = curl_init();
