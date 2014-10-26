@@ -104,7 +104,6 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 
 	$datetime->setTimezone(new DateTimeZone('Europe/London'));
 	$date += $datetime->format('Z');
-	$primary_id = $data[0]['primary_id'];
 
 	if(count($data) == 0) {
 		$primary_id = $id + $max_id_previous_epoch;
@@ -117,6 +116,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		return 1;
 	}
 
+	$primary_id = $data[0]['primary_id'];
 	$old_message = $data[0]['message'];
 	$old_user = $data[0]['user_id'];
 	$old_date = $data[0]['date']-7200; // TODO bullshit
