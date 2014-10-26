@@ -119,7 +119,7 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 	$primary_id = $data[0]['primary_id'];
 	$old_message = $data[0]['message'];
 	$old_user = $data[0]['user_id'];
-	$old_date = $data[0]['date']-7200; // TODO bullshit
+	$old_date = $data[0]['date']-3600; // TODO bullshit
 	if($old_message == $message && $old_user == $member_id && $old_date == $date) {
 		return 0;
 	}
