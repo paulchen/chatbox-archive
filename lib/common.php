@@ -361,7 +361,7 @@ function clean_text($message) {
 	return $message;
 }
 
-function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100) {
+function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 100, $last_shown_id = -1) {
 	$filters = array('deleted = 0');
 	$params = array();
 	if($text != '') {
@@ -376,8 +376,20 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		$filters[] = "TO_CHAR(s.date+INTERVAL '1 hour', 'YYYY-MM-DD') = ?";
 		$params[] = $date;
 	}
-
 	$filter = implode(' AND ', $filters);
+
+	$new_messages = 0;
+	if($last_shown_id != -1) {
+		$count_query = "SELECT COUNT(*) anzahl
+				FROM shouts s
+					JOIN users u ON (s.user_id = u.id)
+				WHERE $filter AND s.primary_id > ?";
+		$count_params = $params;
+		$count_params[] = $last_shown_id;
+		$count_data = db_query($count_query, $count_params);
+		$new_messages = $count_data[0]['anzahl'];
+	}
+
 	$query = "SELECT s.primary_id primary_id, s.id id, s.epoch epoch, s.date date, c.color color, u.id user_id, u.name user_name, message
 			FROM shouts s
 				JOIN users u ON (s.user_id = u.id)
@@ -412,6 +424,10 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		$placeholders[] = '?';
 		$ids[] = $row['primary_id'];
+	}
+	$last_loaded_id = -1;
+	if(count($ids) > 0) {
+		$last_loaded_id = $ids[0];
 	}
 
 	if(count($placeholders) > 0) {
@@ -478,6 +494,8 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 		'filtered_shouts' => $filtered_shouts,
 		'total_shouts' => $total_shouts,
 		'page_count' => $page_count,
+		'last_loaded_id' => $last_loaded_id,
+		'new_messages' => $new_messages,
 	);
 }
 

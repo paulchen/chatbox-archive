@@ -41,16 +41,23 @@ if(!$ajax):
 <!--
 var timeout;
 
+var last_loaded_id = <?php echo $last_loaded_id ?>;
+var last_shown_id = <?php echo $last_loaded_id ?>;
+
 function refresh() {
 	var url = document.location.href;
 	if(url.indexOf('#') > -1) {
 		url = url.substring(0, url.indexOf('#'));
 	}
 	if(url.indexOf('?') == -1) {
-		url += "?ajax=on";
+		url += "?";
 	}
 	else {
-		url += "&ajax=on";
+		url += "&";
+	}
+	url += 'ajax=on';
+	if(!tab_active) {
+		url += '&last_shown_id=' + last_shown_id;
 	}
 
 	$.ajax({
@@ -71,6 +78,15 @@ function refresh() {
 				$('#shouts_filtered').text(parts[1]);
 				$('#shouts_total').text(parts[2]);
 				$('.page_count').text(parts[0]);
+				last_loaded_id = parts[3];
+				new_messages = parts[4];
+				if(tab_active) {
+					last_shown_id = last_loaded_id;
+					new_messages = 0;
+				}
+				else {
+					show_unread_message_count();
+				}
 				$('.next_link').attr('href', "<?php echo $generic_link ?>" + Math.min(parts[0], <?php echo $page+1 ?>));
 				$('.last_link').attr('href', "<?php echo $generic_link ?>" + parts[0]);
 
@@ -137,12 +153,55 @@ $(document).ready(function() {
 		dateFormat : 'yy-mm-dd',
 	});
 
+	$(window).on("focus hover", function(e) {
+		tab_enabled();
+	});
+
+	$(window).blur(function(e) {
+		tab_disabled();
+	});
+
 	<?php foreach($messages as $message): ?>
 		<?php if(count($message['revisions']) > 0): ?>
 			bubbletip('<?php echo $message['id'] . '_' . $message['epoch'] ?>');
 		<?php endif; ?>
 	<?php endforeach; ?>
 });
+
+var tab_active = true;
+var new_messages = 0;
+
+function reset_unread_message_count() {
+	new_messages = 0;
+	show_unread_message_count();
+}
+
+function show_unread_message_count() {
+	var title = '';
+	if(new_messages > 0) {
+		title = '(' + new_messages + ') ';
+	}
+	title += 'Chatbox archive';
+	$(document).prop('title', title);
+}
+
+function tab_enabled() {
+	if(tab_active) {
+		return;
+	}
+
+	reset_unread_message_count();
+	tab_active = true;
+}
+
+function tab_disabled() {
+	if(!tab_active) {
+		return;
+	}
+
+	reset_unread_message_count();
+	tab_active = false;
+}
 
 function post_status(text) {
 	$('#post_status').html(' &ndash; ' + text);
@@ -217,7 +276,7 @@ function post() {
 <?php endif; /* if(isset($_REQUEST['post']) && $_REQUEST['post'] == 'on') */ ?> 
 		<div id="content">
 <?php else:
-	echo "$page_count $filtered_shouts $total_shouts$$";
+	echo "$page_count $filtered_shouts $total_shouts $last_loaded_id $new_messages$$";
 	foreach($messages as $message):
 		if(count($message['revisions']) > 0):
 			echo $message['id'] . '_' . $message['epoch'] . ' ';

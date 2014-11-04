@@ -58,11 +58,18 @@ $text = isset($_GET['text']) ? trim($_GET['text']) : '';
 $user = isset($_GET['user']) ? trim($_GET['user']) : '';
 $date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
-$message_data = get_messages($text, $user, $date, $offset, $limit);
+$last_shown_id = -1;
+if(isset($_GET['last_shown_id']) && preg_match('/^[0-9]+$/', $_GET['last_shown_id'])) {
+	$last_shown_id = $_GET['last_shown_id'];
+}
+
+$message_data = get_messages($text, $user, $date, $offset, $limit, $last_shown_id);
 $messages = $message_data['messages'];
 $filtered_shouts = $message_data['filtered_shouts'];
 $total_shouts = $message_data['total_shouts'];
 $page_count = $message_data['page_count'];
+$last_loaded_id = $message_data['last_loaded_id'];
+$new_messages = $message_data['new_messages'];
 
 $link_parts = "?limit=$limit";
 if($text != '') {
