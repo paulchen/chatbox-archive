@@ -222,7 +222,7 @@ function post() {
 			message: text
 		},
 		error: function(xhr, text_status, error_thrown) {
-			post_status('Error while posting message');
+			post_status('<span style="color: red;">Error while posting message</span>');
 		},
 		success: function(data, text_status, xhr) {
 			post_status('Message successfully posted');
