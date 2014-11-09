@@ -38,6 +38,8 @@ set_setting('total_shouts', $data[0]['shout_count']);
 $data = db_query('SELECT COUNT(*) shout_count FROM shouts WHERE deleted = 0');
 set_setting('visible_shouts', $data[0]['shout_count']);
 
+set_setting('last_update', time());
+
 touch($success_file);
 
 die($ret);
