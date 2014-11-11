@@ -399,12 +399,12 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 			OFFSET ? LIMIT ?";
 	$params[] = intval($offset);
 	$params[] = intval($limit);
-	$db_data = db_query($query, $params);
+	$result = db_query_resultset($query, $params);
 
 	$data = array();
 	$placeholders = array();
 	$ids = array();
-	foreach($db_data as $row) {
+	while($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$datetime = new DateTime($row['date'], new DateTimeZone('Europe/London'));
 		$datetime->setTimezone((new DateTime())->getTimezone());
 		$formatted_date = $datetime->format('[d-m-Y H:i]');
@@ -422,9 +422,21 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 		$data[$row['primary_id']] = array('unixdate' => $datetime->getTimestamp(), 'date' => $formatted_date, 'color' => $color, 'user_id' => $row['user_id'], 'user_name' => $user_name, 'message' => $message, 'user_link' => $link, 'id' => $row['id'], 'epoch' => $row['epoch'], 'revisions' => array());
 
-		$placeholders[] = '?';
-		$ids[] = $row['primary_id'];
+		if($limit <= 1000) {
+			$placeholders[] = '?';
+			$ids[] = $row['primary_id'];
+		}
+
+		unset($datetime);
+		unset($formatted_date);
+		unset($color);
+		unset($user_name);
+		unset($link);
+		unset($message);
+		unset($row);
 	}
+	db_stmt_close($result);
+
 	$last_loaded_id = -1;
 	if(count($ids) > 0) {
 		$last_loaded_id = $ids[0];
