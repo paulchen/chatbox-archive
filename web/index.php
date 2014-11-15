@@ -117,6 +117,11 @@ if(!$ajax) {
 // header('Content-Type: application/xhtml+xml; charset=utf-8');
 header('Content-Type: text/html; charset=utf-8');
 
+if($limit > 1000) {
+	require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
+	die();
+}
+
 ob_start();
 require_once(dirname(__FILE__) . '/../templates/pages/archive.php');
 $data = ob_get_contents();
