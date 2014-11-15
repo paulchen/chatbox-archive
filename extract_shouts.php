@@ -113,8 +113,8 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		$query = 'INSERT INTO shouts (primary_id, id, epoch, date, user_id, message, hour, day, month, year) VALUES (?, ?, ?, TO_TIMESTAMP(?), ?, ?, ?, ?, ?, ?)';
 		db_query($query, array($primary_id, $id, $epoch, $date, $member_id, $message, $hour, $day, $month, $year));
 
-		process_smilies($id, $epoch);
-		process_words($id, $epoch);
+		process_smilies($primary_id);
+		process_words($primary_id);
 		return 1;
 	}
 
@@ -136,20 +136,20 @@ function process_shout($id, $date, $member_id, $member_nick, $nick_color, $messa
 		echo "Shout $id: Date differs from old revision; old: $old_date; new: $date\n";
 	}
 
-	$query = 'SELECT MAX(revision) revision FROM shout_revisions WHERE id = ? AND epoch = ?';
-	$data = db_query($query, array($id, $epoch));
+	$query = 'SELECT MAX(revision) revision FROM shout_revisions WHERE shout = ?';
+	$data = db_query($query, array($primary_id));
 	$revision = $data[0]['revision'] + 1;
 	
 	$replaced = time()-3600;
 
-	$query = 'INSERT INTO shout_revisions (primary_id, id, epoch, revision, user_id, "date", replaced, text) VALUES (?, ?, ?, ?, ?, TO_TIMESTAMP(?), FROM_UNIXTIME(?), ?)';
-	db_query($query, array($primary_id, $id, $epoch, $revision, $old_user, $old_date, $replaced, $old_message));
+	$query = 'INSERT INTO shout_revisions (shout, revision, user_id, "date", replaced, text) VALUES (?, ?, ?, TO_TIMESTAMP(?), FROM_UNIXTIME(?), ?)';
+	db_query($query, array($primary_id, $revision, $old_user, $old_date, $replaced, $old_message));
 
-	$query = 'UPDATE shouts SET "date" = TO_TIMESTAMP(?), user_id = ?, message = ?, hour = ?, day = ?, month = ?, year = ? WHERE id = ? AND epoch = ?';
-	db_query($query, array($date, $member_id, $message, $hour, $day, $month, $year, $id, $epoch));
+	$query = 'UPDATE shouts SET "date" = TO_TIMESTAMP(?), user_id = ?, message = ?, hour = ?, day = ?, month = ?, year = ? WHERE primary_id = ?';
+	db_query($query, array($date, $member_id, $message, $hour, $day, $month, $year, $primary_id));
 
-	process_smilies($id, $epoch);
-	process_words($id, $epoch);
+	process_smilies($primary_id);
+	process_words($primary_id);
 	
 	return 0;
 }

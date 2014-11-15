@@ -2,12 +2,12 @@
 require_once(dirname(__FILE__) . '/../lib/common.php');
 require_once(dirname(__FILE__) . '/../lib/banana.php');
 
-$rows = db_query("SELECT s.id shout_id, u.id AS id, s.message AS message, UNIX_TIMESTAMP(date) \"timestamp\"
+$rows = db_query("SELECT s.primary_id shout_id, u.id AS id, s.message AS message, UNIX_TIMESTAMP(date) \"timestamp\"
 		FROM shouts s
 			JOIN users u ON (s.user_id = u.id)
 		WHERE s.deleted = 0
 			AND (s.message LIKE '%/trampolindb.gif%' OR s.message LIKE '%/devil-banana.gif%' OR s.message LIKE '%/turbo-devil-banana.gif%' OR s.message LIKE '%/extreme-turbo-devil-banana.gif%' OR s.message LIKE '%/NoDevilBanana.gif%' OR s.message LIKE '%/multihaildb.gif%')
-		ORDER BY s.id ASC");
+		ORDER BY s.primary_id ASC");
 $result = calculate_bananas($rows);
 $user_bananas = $result['user_bananas'];
 $total = $result['total'];

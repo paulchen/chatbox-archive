@@ -186,12 +186,12 @@ if(isset($_REQUEST['user'])) {
 	$what_parts[] = $user;
 }
 if(isset($_REQUEST['smiley'])) {
-	$filter_parts[] = "(s.id, s.epoch) in (select shout_id, shout_epoch from shout_smilies where smiley = ?)";
+	$filter_parts[] = "s.primary_id in (select shout from shout_smilies where smiley = ?)";
 	$params[] = $smiley_id;
 	$what_parts[] = "smiley <img src=\"images/smilies/$smiley_filename\" alt=\"\" />";
 }
 if(isset($_REQUEST['word'])) {
-	$filter_parts[] = "(s.id, s.epoch) in (select shout_id, shout_epoch from shout_words where word = ?)";
+	$filter_parts[] = "s.primary_id in (select shout from shout_words where word = ?)";
 	$params[] = $word_id;
 	$what_parts[] = "word \"" . htmlentities($_REQUEST['word'], ENT_QUOTES, 'UTF-8') . "\"";
 }
@@ -215,13 +215,13 @@ $queries = array();
 $queries[] = array(
 		'title' => 'Top spammers',
 		'query' => "with smileycount as (
-				select s.user_id \"user\", sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.user_id, sm.smiley
+				select s.user_id \"user\", sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.user_id, sm.smiley
 			), wordcount as (
-				select s.user_id \"user\", sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.user_id, sw.word
+				select s.user_id \"user\", sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.user_id, sw.word
 			), shout_data as (
-				select u.id, u.name, count(distinct s.id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
+				select u.id, u.name, count(distinct s.primary_id) shouts, unix_timestamp(min(date)) first_shout, unix_timestamp(max(date)) last_shout, count(ss.smiley) smilies
 					from users u join shouts s on (u.id=s.user_id)
-					left join shout_smilies ss on (s.id = ss.shout_id and s.epoch = ss.shout_epoch)
+					left join shout_smilies ss on (s.primary_id = ss.shout)
 					where $filter
 					group by u.name, u.id
 			)
@@ -286,9 +286,9 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Messages per hour',
 		'query' => "with smileycount as (
-				select s.hour, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.hour, sm.smiley
+				select s.hour, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.hour, sm.smiley
 			), wordcount as (
-				select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.hour, sw.word
+				select s.hour, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.hour, sw.word
 			), hours as (
 				select user_id \"user\", hour, count(*) count from shouts s where $filter group by user_id, hour
 			)
@@ -342,9 +342,9 @@ $queries[] = array(
 $queries[] = array(
 		'title' => 'Busiest days',
 		'query' => "with smileycount as (
-				select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.day, s.month, s.year, sm.smiley
+				select s.day, s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.day, s.month, s.year, sm.smiley
 			), wordcount as (
-				select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.day, s.month, s.year, sw.word
+				select s.day, s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.day, s.month, s.year, sw.word
 			), hours as (
 				select user_id \"user\", day, month, year, count(*) count from shouts s where $filter group by user_id, day, month, year
 			)
@@ -394,9 +394,9 @@ if(!isset($_REQUEST['day'])) {
 	$queries[] = array(
 			'title' => 'Messages per month',
 			'query' => "with smileycount as (
-				select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.month, s.year, sm.smiley
+				select s.month, s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.month, s.year, sm.smiley
 			), wordcount as (
-				select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.month, s.year, sw.word
+				select s.month, s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.month, s.year, sw.word
 			), hours as (
 				select user_id \"user\", month, year, count(*) count from shouts s where $filter group by user_id, month, year
 			)
@@ -450,9 +450,9 @@ if(!isset($_REQUEST['month'])) {
 	$queries[] = array(
 			'title' => 'Messages per year',
 			'query' => "with smileycount as (
-				select s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.id=sm.shout_id and s.epoch=sm.shout_epoch) where $filter group by s.year, sm.smiley
+				select s.year, sm.smiley, sum(sm.count) count from shouts s join shout_smilies sm on (s.primary_id=sm.shout) where $filter group by s.year, sm.smiley
 			), wordcount as (
-				select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch) where $filter group by s.year, sw.word
+				select s.year, sw.word, sum(sw.count) count from shouts s join shout_words sw on (s.primary_id=sw.shout) where $filter group by s.year, sw.word
 			), hours as (
 				select user_id \"user\", year, count(*) count from shouts s where $filter group by user_id, year
 			)
@@ -506,7 +506,7 @@ $queries[] = array(
 		'title' => 'Smiley usage',
 		'query' => "with smileycount as (
 				select s.user_id \"user\", ss.smiley, sum(count) count
-					from shouts s join shout_smilies ss on (s.id=ss.shout_id and s.epoch=ss.shout_epoch)
+					from shouts s join shout_smilies ss on (s.primary_id=ss.shout)
 					where $filter 
 					group by s.user_id, ss.smiley
 			)
@@ -559,7 +559,7 @@ $queries[] = array(
 		'title' => 'Word usage (top 100)',
 		'query' => "with wordcount as (
 			select s.user_id \"user\", sw.word, sum(count) count
-				from shouts s join shout_words sw on (s.id=sw.shout_id and s.epoch=sw.shout_epoch)
+				from shouts s join shout_words sw on (s.primary_id=sw.shout)
 				where $filter
 				group by s.user_id, sw.word
 		)

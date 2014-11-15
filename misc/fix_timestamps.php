@@ -12,16 +12,16 @@ foreach($ranges as $index => $range) {
 	$start = $range['start'];
 	$end = $range['end'];
 
-	$data = db_query("SELECT id, date FROM shouts WHERE id >= ? AND id <= ? AND year <> ?", array($start, $end, $range['year']));
+	$data = db_query("SELECT primary_id, date FROM shouts WHERE primary_id >= ? AND primary_id <= ? AND year <> ?", array($start, $end, $range['year']));
 	$count = 0;
 	foreach($data as $row) {
 		$count++;
-		$id = $row['id'];
+		$id = $row['primary_id'];
 		$old_date = $row['date'];
 		$new_date = preg_replace('/^201[0-9]/', $range['year'], $old_date);
 
 		echo "$id $old_date $new_date\n";
-		db_query('UPDATE shouts SET date = ?, year = ? WHERE id = ?', array($new_date, $range['year'], $id));
+		db_query('UPDATE shouts SET date = ?, year = ? WHERE primary_id = ?', array($new_date, $range['year'], $id));
 	}
 	$ranges[$index]['rows'] = $count;
 }

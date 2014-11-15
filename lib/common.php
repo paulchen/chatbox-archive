@@ -206,11 +206,11 @@ function process_message_smiley($match) {
 	}
 }
 
-function process_smilies($id, $epoch) {
+function process_smilies($shout) {
 	global $found_smilies;
 
-	$query = 'SELECT message FROM shouts WHERE id = ? AND epoch = ?';
-	$data = db_query($query, array($id, $epoch));
+	$query = 'SELECT message FROM shouts WHERE primary_id = ?';
+	$data = db_query($query, array($shout));
 	if(count($data) != 1) {
 		return;
 	}
@@ -219,8 +219,8 @@ function process_smilies($id, $epoch) {
 	$found_smilies = array();
 	$message = preg_replace_callback('+"/?(pics|images)/([no]b/)?smilies/[^"]*\.(gif|png|jpg)+i', 'process_message_smiley', $message);
 
-	$query = 'SELECT smiley, "count" FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
-	$data = db_query($query, array($id, $epoch));
+	$query = 'SELECT smiley, "count" FROM shout_smilies WHERE shout = ?';
+	$data = db_query($query, array($shout));
 
 	$diff = false;
 	foreach($data as $row) {
@@ -241,21 +241,21 @@ function process_smilies($id, $epoch) {
 	}
 
 	if($diff) {
-		$query = 'DELETE FROM shout_smilies WHERE shout_id = ? AND shout_epoch = ?';
-		db_query($query, array($id, $epoch));
+		$query = 'DELETE FROM shout_smilies WHERE shout = ?';
+		db_query($query, array($shout));
 
-		$query = 'INSERT INTO shout_smilies (shout_id, shout_epoch, smiley, "count") VALUES (?, ?, ?, ?)';
+		$query = 'INSERT INTO shout_smilies (shout, smiley, "count") VALUES (?, ?, ?)';
 		foreach($found_smilies as $smiley => $count) {
-			db_query($query, array($id, $epoch, $smiley, $count));
+			db_query($query, array($shout, $smiley, $count));
 		}
 	}
 }
 
-function process_words($id, $epoch) {
+function process_words($shout) {
 	global $found_smilies;
 
-	$query = 'SELECT message FROM shouts WHERE id = ? AND epoch = ?';
-	$data = db_query($query, array($id, $epoch));
+	$query = 'SELECT message FROM shouts WHERE primary_id = ?';
+	$data = db_query($query, array($shout));
 	if(count($data) != 1) {
 		return;
 	}
@@ -287,8 +287,8 @@ function process_words($id, $epoch) {
 		}
 	}
 
-	$query = 'SELECT word, "count" FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
-	$data = db_query($query, array($id, $epoch));
+	$query = 'SELECT word, "count" FROM shout_words WHERE shout = ?';
+	$data = db_query($query, array($shout));
 
 	$diff = false;
 	foreach($data as $row) {
@@ -309,12 +309,12 @@ function process_words($id, $epoch) {
 	}
 
 	if($diff) {
-		$query = 'DELETE FROM shout_words WHERE shout_id = ? AND shout_epoch = ?';
-		db_query($query, array($id, $epoch));
+		$query = 'DELETE FROM shout_words WHERE shout = ?';
+		db_query($query, array($shout));
 
-		$query = 'INSERT INTO shout_words (shout_id, shout_epoch, word, "count") VALUES (?, ?, ?, ?)';
+		$query = 'INSERT INTO shout_words (shout, word, "count") VALUES (?, ?, ?)';
 		foreach($found_words as $word => $count) {
-			db_query($query, array($id, $epoch, $word, $count));
+			db_query($query, array($shout, $word, $count));
 		}
 	}
 }
@@ -432,12 +432,12 @@ function get_messages($text = '', $user = '', $date = '', $offset = 0, $limit = 
 
 	if(count($placeholders) > 0) {
 		$placeholder_string = implode(', ', $placeholders);
-		$sql = "SELECT sr.primary_id primary_id, sr.revision revision, sr.text \"text\", sr.date \"date\", sr.user_id \"user\", c.color color, u.name user_name
+		$sql = "SELECT sr.shout primary_id, sr.revision revision, sr.text \"text\", sr.date \"date\", sr.user_id \"user\", c.color color, u.name user_name
 				FROM shout_revisions sr
 					JOIN users u ON (sr.user_id = u.id)
 					JOIN user_categories c ON (u.category = c.id)
-				WHERE sr.primary_id IN ($placeholder_string)
-				ORDER BY sr.primary_id DESC, sr.revision DESC";
+				WHERE sr.shout IN ($placeholder_string)
+				ORDER BY sr.shout DESC, sr.revision DESC";
 		$revision_data = db_query($sql, $ids);
 		unset($placeholders);
 		unset($ids);

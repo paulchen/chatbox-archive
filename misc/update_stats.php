@@ -7,7 +7,7 @@ $query_count = 'SELECT COUNT(*) anzahl FROM shouts WHERE deleted = 0';
 $data = db_query($query_count);
 $total = $data[0]['anzahl'];
 
-$messages_query = 'SELECT id, epoch, UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY epoch ASC, id ASC';
+$messages_query = 'SELECT primary_id, UNIX_TIMESTAMP(date) date FROM shouts WHERE deleted = 0 ORDER BY primary_id ASC';
 // $stmt = db_query_resultset($query);
 // $data = db_query($query);
 
@@ -57,20 +57,20 @@ foreach($periods as &$period) {
 		}
 	}
 
-	$query = 'SELECT u.name, COUNT(*) shouts FROM users u JOIN shouts s ON (u.id = s.user_id) WHERE ((? = ? AND s.id >= ? AND s.id < ?) OR (? < ? AND ((s.epoch = ? AND s.id >= ?) OR (s.epoch > ? AND s.epoch < ?) OR (s.epoch = ? AND s.id < ?)))) AND deleted = 0 GROUP BY u.id, u.name ORDER BY COUNT(*) DESC LIMIT 1';
-	$data2 = db_query($query, array($min_start_row['epoch'], $min_end_row['epoch'], $min_start_row['id'], $min_end_row['id'], $min_start_row['epoch'], $min_end_row['epoch'], $min_start_row['epoch'], $min_end_row['id'], $min_start_row['epoch'], $min_end_row['epoch'], $min_end_row['epoch'], $min_end_row['id']));
+	$query = 'SELECT u.name, COUNT(*) shouts FROM users u JOIN shouts s ON (u.id = s.user_id) WHERE (s.primary_id >= ? AND s.primary_id < ?) AND deleted = 0 GROUP BY u.id, u.name ORDER BY COUNT(*) DESC LIMIT 1';
+	$data2 = db_query($query, array($min_start_row['primary_id'], $min_end_row['primary_id']));
 	$min_max_spammer = $data2[0];
-	$data2 = db_query($query, array($max_start_row['epoch'], $max_end_row['epoch'], $max_start_row['id'], $max_end_row['id'], $max_start_row['epoch'], $max_end_row['epoch'], $max_start_row['epoch'], $max_start_row['id'], $max_start_row['epoch'], $max_end_row['epoch'], $max_end_row['epoch'], $max_end_row['id']));
+	$data2 = db_query($query, array($max_start_row['primary_id'], $max_end_row['primary_id']));
 	$max_max_spammer = $data2[0];
 
-	$query = 'SELECT sm.id, sm.filename, COUNT(*) smilies FROM shouts s JOIN shout_smilies ss ON (s.epoch = ss.shout_epoch AND s.id = ss.shout_id) JOIN smilies sm ON (ss.smiley = sm.id) WHERE ((? = ? AND s.id >= ? AND s.id < ?) OR (? < ? AND ((s.epoch = ? AND s.id >= ?) OR (s.epoch > ? AND s.epoch < ?) OR (s.epoch = ? AND s.id < ?)))) AND deleted = 0 GROUP BY sm.id, sm.filename ORDER BY COUNT(*) DESC LIMIT 1';
-	$data2 = db_query($query, array($min_start_row['epoch'], $min_end_row['epoch'], $min_start_row['id'], $min_end_row['id'], $min_start_row['epoch'], $min_end_row['epoch'], $min_start_row['epoch'], $min_end_row['id'], $min_start_row['epoch'], $min_end_row['epoch'], $min_end_row['epoch'], $min_end_row['id']));
+	$query = 'SELECT sm.id, sm.filename, COUNT(*) smilies FROM shouts s JOIN shout_smilies ss ON (s.primary_id = ss.shout) JOIN smilies sm ON (ss.smiley = sm.id) WHERE (s.primary_id >= ? AND s.primary_id < ?) AND deleted = 0 GROUP BY sm.id, sm.filename ORDER BY COUNT(*) DESC LIMIT 1';
+	$data2 = db_query($query, array($min_start_row['primary_id'], $min_end_row['primary_id']));
 	$min_max_smiley = $data2[0];
-	$data2 = db_query($query, array($max_start_row['epoch'], $max_end_row['epoch'], $max_start_row['id'], $max_end_row['id'], $max_start_row['epoch'], $max_end_row['epoch'], $max_start_row['epoch'], $max_start_row['id'], $max_start_row['epoch'], $max_end_row['epoch'], $max_end_row['epoch'], $max_end_row['id']));
+	$data2 = db_query($query, array($max_start_row['primary_id'], $max_end_row['primary_id']));
 	$max_max_smiley = $data2[0];
 
-	$period['min'] = array('count' => $min, 'start_id' => $min_start_row['id'], 'end_id' => $min_end_row['id'], 'start_data' => $min_start_row, 'end_data' => $min_end_row, 'spammer' => $min_max_spammer, 'smiley' => $min_max_smiley);
-	$period['max'] = array('count' => $max, 'start_id' => $max_start_row['id'], 'end_id' => $max_end_row['id'], 'start_data' => $max_start_row, 'end_data' => $max_end_row, 'spammer' => $max_max_spammer, 'smiley' => $max_max_smiley);
+	$period['min'] = array('count' => $min, 'start_id' => $min_start_row['primary_id'], 'end_id' => $min_end_row['primary_id'], 'start_data' => $min_start_row, 'end_data' => $min_end_row, 'spammer' => $min_max_spammer, 'smiley' => $min_max_smiley);
+	$period['max'] = array('count' => $max, 'start_id' => $max_start_row['primary_id'], 'end_id' => $max_end_row['primary_id'], 'start_data' => $max_start_row, 'end_data' => $max_end_row, 'spammer' => $max_max_spammer, 'smiley' => $max_max_smiley);
 
 	$period['min']['end_data']['date'] = $period['min']['start_data']['date'] + $period['seconds'];
 	$period['max']['end_data']['date'] = $period['max']['start_data']['date'] + $period['seconds'];
