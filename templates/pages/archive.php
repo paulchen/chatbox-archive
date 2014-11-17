@@ -43,6 +43,7 @@ var timeout;
 
 var last_loaded_id = <?php echo $last_loaded_id ?>;
 var last_shown_id = <?php echo $last_loaded_id ?>;
+var last_shown_id_backup = <?php echo $last_loaded_id ?>;
 
 function refresh() {
 	var url = document.location.href;
@@ -87,6 +88,7 @@ function refresh() {
 				else {
 					show_unread_message_count();
 				}
+				last_shown_id_backup = last_loaded_id;
 				$('.next_link').attr('href', "<?php echo $generic_link ?>" + Math.min(parts[0], <?php echo $page+1 ?>));
 				$('.last_link').attr('href', "<?php echo $generic_link ?>" + parts[0]);
 
@@ -190,6 +192,7 @@ function tab_enabled() {
 		return;
 	}
 
+	last_shown_id = last_shown_id_backup;
 	reset_unread_message_count();
 	tab_active = true;
 }
