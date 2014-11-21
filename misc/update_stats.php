@@ -65,9 +65,9 @@ foreach($periods as &$period) {
 
 	$query = 'SELECT sm.id, sm.filename, COUNT(*) smilies FROM shouts s JOIN shout_smilies ss ON (s.primary_id = ss.shout) JOIN smilies sm ON (ss.smiley = sm.id) WHERE (s.primary_id >= ? AND s.primary_id < ?) AND deleted = 0 GROUP BY sm.id, sm.filename ORDER BY COUNT(*) DESC LIMIT 1';
 	$data2 = db_query($query, array($min_start_row['primary_id'], $min_end_row['primary_id']));
-	$min_max_smiley = $data2[0];
+	$min_max_smiley = count($data2) > 0 ? $data2[0] : array();
 	$data2 = db_query($query, array($max_start_row['primary_id'], $max_end_row['primary_id']));
-	$max_max_smiley = $data2[0];
+	$max_max_smiley = count($data2) > 0 ? $data2[0] : array();
 
 	$period['min'] = array('count' => $min, 'start_id' => $min_start_row['primary_id'], 'end_id' => $min_end_row['primary_id'], 'start_data' => $min_start_row, 'end_data' => $min_end_row, 'spammer' => $min_max_spammer, 'smiley' => $min_max_smiley);
 	$period['max'] = array('count' => $max, 'start_id' => $max_start_row['primary_id'], 'end_id' => $max_end_row['primary_id'], 'start_data' => $max_start_row, 'end_data' => $max_end_row, 'spammer' => $max_max_spammer, 'smiley' => $max_max_smiley);

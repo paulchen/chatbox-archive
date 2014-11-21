@@ -10,7 +10,11 @@
 	<td style="padding-left: 10px;"><?php echo date('Y-m-d H:i', $period['min']['end_data']['date']) ?></td>
 	<td style="text-align: right; padding-left: 10px;"><?php echo $period['min']['count'] ?></td>
 	<td style="padding-left: 10px;"><a href="details.php?user=<?php echo $period['min']['spammer']['name'] ?>"><?php echo $period['min']['spammer']['name'] ?></a> (<?php echo $period['min']['spammer']['shouts'] ?>)</td>
-	<td style="padding-left: 10px;"><a href="details.php?smiley=<?php echo $period['min']['smiley']['id'] ?>"><img src="images/smilies/<?php echo $period['min']['smiley']['filename'] ?>" alt="" /></a> (<?php echo $period['min']['smiley']['smilies'] ?>)</td>
+	<?php if(isset($period['min']['smiley']['id'])): ?>
+		<td style="padding-left: 10px;"><a href="details.php?smiley=<?php echo $period['min']['smiley']['id'] ?>"><img src="images/smilies/<?php echo $period['min']['smiley']['filename'] ?>" alt="" /></a> (<?php echo $period['min']['smiley']['smilies'] ?>)</td>
+	<?php else: ?>
+		<td style="padding-left: 10px;">-</td>
+	<?php endif; ?>
 </tr>
 <tr>
 	<td></td>
@@ -19,7 +23,11 @@
 	<td style="padding-left: 10px;"><?php echo date('Y-m-d H:i', $period['max']['end_data']['date']) ?></td>
 	<td style="text-align: right; padding-left: 10px;"><?php echo $period['max']['count'] ?></td>
 	<td style="padding-left: 10px;"><a href="details.php?user=<?php echo $period['max']['spammer']['name'] ?>"><?php echo $period['max']['spammer']['name'] ?></a> (<?php echo $period['max']['spammer']['shouts'] ?>)</td>
-	<td style="padding-left: 10px;"><a href="details.php?smiley=<?php echo $period['max']['smiley']['id'] ?>"><img src="images/smilies/<?php echo $period['max']['smiley']['filename'] ?>" alt="" /></a> (<?php echo $period['max']['smiley']['smilies'] ?>)</td>
+	<?php if(isset($period['max']['smiley']['id'])): ?>
+		<td style="padding-left: 10px;"><a href="details.php?smiley=<?php echo $period['max']['smiley']['id'] ?>"><img src="images/smilies/<?php echo $period['max']['smiley']['filename'] ?>" alt="" /></a> (<?php echo $period['max']['smiley']['smilies'] ?>)</td>
+	<?php else: ?>
+		<td style="padding-left: 10px;">-</td>
+	<?php endif; ?>
 </tr>
 <?php endforeach; ?>
 </table>
