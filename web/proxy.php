@@ -67,6 +67,9 @@ switch($info['http_code']) {
 	case 200:
 		header('Content-Type: ' . $info['content_type']);
 		header('Content-Length: ' . $info['download_content_length']);
+		if(isset($response_headers['Content-Encoding'])) {
+			header('Content-Encoding: ' . $response_headers['Content-Encoding']);
+		}
 		return_headers($response_headers);
 		echo $body;
 		die();
