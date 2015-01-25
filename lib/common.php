@@ -358,6 +358,9 @@ function clean_text($message) {
 
 	$message = str_replace(chr(2), '', $message);
 
+	$message = str_replace('rueckgr.at', $_SERVER['HTTP_HOST'], $message);
+	$message = str_replace('rückgr.at', $_SERVER['HTTP_HOST'], $message);
+
 	return $message;
 }
 
