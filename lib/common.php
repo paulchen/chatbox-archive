@@ -357,6 +357,8 @@ function clean_text($message) {
 	$message = preg_replace('/<img alt="([^"]+)" src="/', '<img alt="\1" src="proxy.php?url=', $message);
 
 	$message = str_replace(chr(2), '', $message);
+	$message = str_replace(chr(0x0c), '', $message);
+	$message = str_replace(chr(0x7f), '', $message);
 
 	$message = str_replace('rueckgr.at', $_SERVER['HTTP_HOST'], $message);
 	$message = str_replace('rückgr.at', $_SERVER['HTTP_HOST'], $message);
