@@ -123,7 +123,7 @@ function log_data() {
 
 	$serialized_data = serialize($data);
 	$filename = tempnam(get_setting('request_log_dir'), 'req');
-	file_put_contents($filename, $serialized_data);
+//	file_put_contents($filename, $serialized_data);
 
 	return;
 }
