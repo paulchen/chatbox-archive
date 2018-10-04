@@ -46,6 +46,8 @@ var last_shown_id = <?php echo $last_loaded_id ?>;
 var last_shown_id_backup = <?php echo $last_loaded_id ?>;
 
 function refresh() {
+	return;
+
 	var url = document.location.href;
 	if(url.indexOf('#') > -1) {
 		url = url.substring(0, url.indexOf('#'));
@@ -256,13 +258,20 @@ function post() {
 		<tr><td>Page:</td><td style="white-space: nowrap;"><input type="text" name="page" value="<?php echo $page; ?>" /> (of <span class="page_count"><?php echo $page_count; ?></span>) <a href="<?php echo $first_link ?>">First</a> <a href="<?php echo $previous_link ?>">Previous</a> <a href="<?php echo $next_link ?>" class="next_link">Next</a> <a href="<?php echo $last_link ?>" class="last_link">Last</a></td></tr>
 		<tr><td>Date:</td><td><input type="text" name="date" value="<?php if(isset($_GET['date'])) echo htmlentities($_GET['date'], ENT_QUOTES, 'UTF-8') ?>" id="date_input" /></td></tr>
 		<tr><td></td><td><input type="submit" value="Filter" /><input type="button" value="Reset" onclick="reset_form();" /></td></tr>
-		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr>
+<!--		<tr><td></td><td><input id="refresh_checkbox" type="checkbox" name="refresh" <?php if($refresh) echo 'checked="checked"'; ?> />&nbsp;<label for="refresh_checkbox">Auto-refresh every <?php echo $refresh_time ?> seconds.</label></td></tr> -->
 		</table>
 		</form>
 		</fieldset>
 		<div style="padding: 10px 5px 10px 5px;">
 			Messages (filtered/total): <span id="shouts_filtered"><?php echo $filtered_shouts ?></span>/<span id="shouts_total"><?php echo $total_shouts ?></span>
 			<span id="post_status"></span>
+		</div>
+		<div style="padding: 10px 5px 10px 5px; font-weight: bold; color: black;">
+			Since September 22, 2015, there is no Chatbox at Informatik-Forum.at anymore. This archive will remain online to commemorate the chat which served 469 members of Informatik-Forum.at as a platform to exchange over a million messages over a period of more than five years.
+			<br /><br />
+			Thanks to everyone who made the Chatbox a place where people enjoyed to reside, where students readily supported others, where jokes where made, where people wrote about their worries, and where friendships were formed.
+			<br /><br />
+			The successor of the Chatbox at Informatik-Forum.at can be found at <a href="https://irc.rueckgr.at">irc.rueckgr.at</a>: the IRC channel #chatbox.
 		</div>
 <?php if(isset($_REQUEST['post']) && $_REQUEST['post'] == 'on'): ?>
 		<div id="post_form">
