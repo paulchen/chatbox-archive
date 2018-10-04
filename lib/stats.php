@@ -229,7 +229,8 @@ for($index=0; $index<count($queries); $index++) {
 				'data' => $data
 			);
 		// TODO magic number
-		$memcached->set($memcached_key, $memcached_data, 600+rand(0,100));
+		// $memcached->set($memcached_key, $memcached_data, 600+rand(0,100));
+		$memcached->set($memcached_key, $memcached_data, 604800);
 
 		$last_update = time();
 	}

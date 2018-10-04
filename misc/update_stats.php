@@ -164,5 +164,6 @@ $data = ob_get_contents();
 ob_end_clean();
 
 $memcached_key = "${memcached_prefix}_stats_min_max";
-$memcached->set($memcached_key, $data, 5400);
+// $memcached->set($memcached_key, $data, 5400);
+$memcached->set($memcached_key, $data, 604800);
 
