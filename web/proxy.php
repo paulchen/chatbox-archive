@@ -28,7 +28,7 @@ $header_size = $info['header_size'];
 $header = substr($data, 0, $header_size);
 $body = substr($data, $header_size);
 
-$response_headers = http_parse_headers($header);
+$response_headers = http\Header::parse($header);
 
 function return_headers($headers) {
 	global $forward_headers;
