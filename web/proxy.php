@@ -28,7 +28,25 @@ $header_size = $info['header_size'];
 $header = substr($data, 0, $header_size);
 $body = substr($data, $header_size);
 
-$response_headers = http\Header::parse($header);
+$response_headers = http_header_parse($header);
+
+function http_header_parse($header) {
+	$lines = mb_split("[\r\n]", $header);
+	$result = array();
+	foreach($lines as $line) {
+		if(trim($line) == '') {
+			continue;
+		}
+		$pos = mb_strpos($line, ':');
+		if($pos === false) {
+			continue;
+		}
+		$key = trim(mb_substr($line, 0, $pos));
+		$value = trim(mb_substr($line, $pos+1));
+		$result[$key] = $value;
+	}
+	return $result;
+}
 
 function return_headers($headers) {
 	global $forward_headers;
