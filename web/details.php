@@ -18,46 +18,46 @@ function overview_redirect() {
 	die();
 }
 
-function add_user_link(&$row) {
+function add_user_link($row) {
 	// TODO simplify this
 	$link_parts = build_link_from_request('day', 'month', 'year', 'hour', 'smiley', 'period', 'word');
 
-	$row[0]['name'] = '<a href="details.php?user=' . urlencode($row[0]['name']) . $link_parts . '">' . $row[0]['name'] . '</a>';
+	$row['name'] = '<a href="details.php?user=' . urlencode($row['name']) . $link_parts . '">' . $row['name'] . '</a>';
+
+	return $row;
 }
 
-function messages_per_hour(&$row) {
+function messages_per_hour($row) {
 	$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'smiley', 'period', 'word');
 
-	$row[0]['hour'] = '<a href="details.php?hour=' . $row[0]['hour'] . $link_parts . '">' . $row[0]['hour'] . '</a>';
+	$row['hour'] = '<a href="details.php?hour=' . $row['hour'] . $link_parts . '">' . $row['hour'] . '</a>';
 	spammer_smiley($row);
+
+	return $row;
 }
 
-function messages_per_month(&$row) {
+function messages_per_month($row) {
 	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
-	$parts = explode('-', $row[0]['month']);
+	$parts = explode('-', $row['month']);
 	$year = $parts[0];
 	$month = $parts[1];
-	$row[0]['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row[0]['month'] . '</a>';
+	$row['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row['month'] . '</a>';
 	spammer_smiley($row);
+
+	return $row;
 }
 
-function messages_per_year(&$row) {
+function messages_per_year($row) {
 	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
-	$row[0]['year'] = "<a href=\"details.php?year=" . $row[0]['year'] . "$link_parts\">" . $row[0]['year'] . '</a>';
+	$row['year'] = "<a href=\"details.php?year=" . $row['year'] . "$link_parts\">" . $row['year'] . '</a>';
 	spammer_smiley($row);
-}
 
-function init_ego(&$user_egos, $id) {
-	if(!isset($user_egos[$id])) {
-		$user_egos[$id] = 0;
-	}
+	return $row;
 }
 
 function total_words($data) {
-	$data = $data[0];
-
 	usort($data, function($a, $b) {
 		if($a['total_words'] == $b['total_words']) {
 			if($a['shouts'] == $b['shouts']) {
@@ -86,7 +86,7 @@ function top_spammers_total($data) {
 	$total_shouts = 0;
 	$total_smilies = 0;
 	$total_words = 0;
-	foreach($data[0] as $row) {
+	foreach($data as $row) {
 		$total_shouts += $row['shouts'];
 		$total_smilies += $row['smilies'];
 		$total_words += $row['total_words'];
@@ -378,13 +378,15 @@ $queries[] = array(
                                         left join words w on (i.word = w.id)
                                         order by j.count desc, j.year asc, j.month asc, j.day asc",
 		'params' => array_merge($params, $params, $params, $params),
-		'processing_function' => function(&$row) {
-				$parts = explode('-', $row[0]['day']);
+		'processing_function' => function($row) {
+				$parts = explode('-', $row['day']);
 				$year = $parts[0];
 				$month = $parts[1];
 				$day = $parts[2];
-				$row[0]['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row[0]['day'] . '</a>';
+				$row['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row['day'] . '</a>';
 				spammer_smiley($row);
+
+				return $row;
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Day', 'Messages', 'Top spammer', 'Most popular smiley', 'Most popular word'),
@@ -527,7 +529,7 @@ $queries[] = array(
 				left join smilies sm on (d.smiley=sm.id)
 				order by d.count desc, sm.filename asc",
 		'params' => $params,
-		'processing_function' => function(&$row) {
+		'processing_function' => function($row) {
 				global $smilies;
 
 				if(!isset($smilies)) {
@@ -536,20 +538,22 @@ $queries[] = array(
 				}
 
 				foreach($smilies as $smiley) {
-					if($smiley['filename'] == $row[0]['filename']) {
+					if($smiley['filename'] == $row['filename']) {
 						$smiley_id = $smiley['id'];
 						break;
 					}
 				}
 
-				$row[0]['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="images/smilies/' . $row[0]['filename'] . '" alt="" /></a>';
+				$row['filename'] = '<a href="details.php?smiley=' . $smiley_id . '"><img src="images/smilies/' . $row['filename'] . '" alt="" /></a>';
 
-				$top = explode('$$', $row[0]['top']);
+				$top = explode('$$', $row['top']);
 				$user_id = $top[0];
 				$username = $top[1];
 				$frequency = $top[2];
 				$link = 'details.php?user=' . urlencode($username);
-				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+				$row['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+
+				return $row;
 			},
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Smiley', 'Occurrences', 'Top user'),
@@ -582,15 +586,17 @@ $queries[] = array(
 				join words w on (d.word=w.id)
 				order by d.count desc, w.word asc",
 		'params' => $params,
-		'processing_function' => array(function(&$row) {
-				$row[0]['word'] = '<a href="details.php?word=' . urlencode($row[0]['word']) . '">' . $row[0]['word'] . '</a>';
+		'processing_function' => array(function($row) {
+				$row['word'] = '<a href="details.php?word=' . urlencode($row['word']) . '">' . $row['word'] . '</a>';
 
-				$top = explode('$$', $row[0]['top']);
+				$top = explode('$$', $row['top']);
 				$user_id = $top[0];
 				$username = $top[1];
 				$frequency = $top[2];
 				$link = 'details.php?user=' . urlencode($username);
-				$row[0]['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+				$row['top'] = "<a href=\"$link\">$username</a> (${frequency}x)";
+
+				return $row;
 			}),
 		'processing_function_all' => array('duplicates0', 'insert_position'),
 		'columns' => array('Position', 'Word', 'Occurrences', 'Top user'),
@@ -607,8 +613,8 @@ if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST[
 					AND $filter
 				ORDER BY s.id ASC",
 			'params' => $params,
-			'processing_function_all' => array(function(&$data) {
-					$result = calculate_ego($data[0]);
+			'processing_function_all' => array(function($data) {
+					$result = calculate_ego($data);
 					$user_egos = $result['user_egos'];
 
 					$datax = db_query('SELECT u.id AS id, u.name AS name, c.color AS color
@@ -622,17 +628,19 @@ if(!isset($_REQUEST['smiley']) && !isset($_REQUEST['word']) && !isset($_REQUEST[
 						$users[$row['id']] = $row;
 					}
 
-					while(count($data[0]) > 0) {
-						array_shift($data[0]);
+					while(count($data) > 0) {
+						array_shift($data);
 					}
 					$pos = 0;
 					foreach($user_egos as $id => $ego) {
-						$data[0][] = array(
+						$data[] = array(
 							++$pos,
 							'<a href="./?text=ego&amp;user=' . urlencode($users[$id]['name']) . '&amp;limit=100&amp;page=1&amp;date=&amp;refresh=on" class="' . $users[$id]['color'] . '">' . $users[$id]['name'] . '</a>',
 							$ego
 						);
 					}
+
+					return $data;
 				}),
 			'columns' => array('Position', 'User', 'Ego'),
 			'column_styles' => array('right', 'left', 'right'),
@@ -650,28 +658,30 @@ $queries[] = array(
 				GROUP BY u.id, u.name
 				ORDER BY duration DESC",
 		'params' => $params,
-		'processing_function' => array('add_user_link', function(&$row) {
-			if($row[0]['duration'] >= 86400*2) {
-				$row[0]['duration'] = floor($row[0]['duration']/86400) . ' Tage';
+		'processing_function' => array('add_user_link', function($row) {
+			if($row['duration'] >= 86400*2) {
+				$row['duration'] = floor($row['duration']/86400) . ' Tage';
 			}
-			else if($row[0]['duration'] >= 86400) {
-				$row[0]['duration'] = 'ein Tag';
+			else if($row['duration'] >= 86400) {
+				$row['duration'] = 'ein Tag';
 			}
-			else if($row[0]['duration'] >= 7200) {
-				$row[0]['duration'] = floor($row[0]['duration']/3600) . ' Stunden';
+			else if($row['duration'] >= 7200) {
+				$row['duration'] = floor($row['duration']/3600) . ' Stunden';
 			}
-			else if($row[0]['duration'] >= 3600) {
-				$row[0]['duration'] = 'eine Stunde';
+			else if($row['duration'] >= 3600) {
+				$row['duration'] = 'eine Stunde';
 			}
-			else if($row[0]['duration'] >= 120) {
-				$row[0]['duration'] = floor($row[0]['duration']/60) . ' Minuten';
+			else if($row['duration'] >= 120) {
+				$row['duration'] = floor($row['duration']/60) . ' Minuten';
 			}
-			else if($row[0]['duration'] >= 60) {
-				$row[0]['duration'] = 'eine Minute';
+			else if($row['duration'] >= 60) {
+				$row['duration'] = 'eine Minute';
 			}
 			else {
-				$row[0]['duration'] = '-';
+				$row['duration'] = '-';
 			}
+
+			return $row;
 		}),
 		'processing_function_all' => array('insert_position', 'ex_aequo4'),
 		'columns' => array('Position', 'Username', 'First message', 'Last message', 'Time difference'),
