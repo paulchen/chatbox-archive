@@ -20,6 +20,8 @@ curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($curl, CURLOPT_URL, $url);
 curl_setopt($curl, CURLOPT_HEADER, true);
 curl_setopt($curl, CURLOPT_HTTPHEADER, $request_headers);
+curl_setopt($curl, CURLOPT_USERAGENT, 'Chatbox archive HTTP proxy');
+curl_setopt($curl, CURLINFO_HEADER_OUT, true);
 $data = curl_exec($curl);
 $info = curl_getinfo($curl);
 curl_close($curl);
