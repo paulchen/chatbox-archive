@@ -31,7 +31,7 @@ function messages_per_hour($row) {
 	$link_parts = build_link_from_request('day', 'month', 'year', 'user', 'smiley', 'period', 'word');
 
 	$row['hour'] = '<a href="details.php?hour=' . $row['hour'] . $link_parts . '">' . $row['hour'] . '</a>';
-	spammer_smiley($row);
+	$row = spammer_smiley($row);
 
 	return $row;
 }
@@ -43,7 +43,7 @@ function messages_per_month($row) {
 	$year = $parts[0];
 	$month = $parts[1];
 	$row['month'] = "<a href=\"details.php?month=$month&amp;year=$year$link_parts\">" . $row['month'] . '</a>';
-	spammer_smiley($row);
+	$row = spammer_smiley($row);
 
 	return $row;
 }
@@ -52,7 +52,7 @@ function messages_per_year($row) {
 	$link_parts = build_link_from_request('user', 'hour', 'smiley', 'period', 'word');
 
 	$row['year'] = "<a href=\"details.php?year=" . $row['year'] . "$link_parts\">" . $row['year'] . '</a>';
-	spammer_smiley($row);
+	$row = spammer_smiley($row);
 
 	return $row;
 }
@@ -384,7 +384,7 @@ $queries[] = array(
 				$month = $parts[1];
 				$day = $parts[2];
 				$row['day'] = "<a href=\"details.php?day=$day&amp;month=$month&amp;year=$year\">" . $row['day'] . '</a>';
-				spammer_smiley($row);
+				$row = spammer_smiley($row);
 
 				return $row;
 			},
