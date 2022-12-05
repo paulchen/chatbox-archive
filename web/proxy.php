@@ -24,7 +24,13 @@ curl_setopt($curl, CURLOPT_USERAGENT, 'Chatbox archive HTTP proxy');
 curl_setopt($curl, CURLINFO_HEADER_OUT, true);
 $data = curl_exec($curl);
 $info = curl_getinfo($curl);
+$error = curl_error($curl);
 curl_close($curl);
+
+if($error) {
+	header('HTTP/1.1 502 Bad Gateway');
+	die('Bad Gateway');
+}
 
 $header_size = $info['header_size'];
 $header = substr($data, 0, $header_size);
@@ -33,6 +39,7 @@ $body = substr($data, $header_size);
 $response_headers = http_header_parse($header);
 
 function http_header_parse($header) {
+	$header = mb_convert_encoding($header, 'UTF-8', 'UTF-8');
 	$lines = mb_split("[\r\n]", $header);
 	$result = array();
 	foreach($lines as $line) {
